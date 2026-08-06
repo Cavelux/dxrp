@@ -1,0 +1,42 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Button",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000011",
+    "kind": "Button",
+    "className": "ok",
+    "appearance": {
+      "overrideBackground": true,
+      "backgroundColor": "#FF0000"
+    },
+    "payload": {
+      "content": "OK"
+    },
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000011",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "OK"
+      }
+    ],
+    "scssLines": [
+      "background-color: #FF0000;",
+      "background-image: none;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000011\u0022"
+    ],
+    "razorInnerText": "OK"
+  }
+}

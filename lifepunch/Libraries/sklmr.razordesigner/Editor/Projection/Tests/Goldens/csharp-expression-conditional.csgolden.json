@@ -1,0 +1,82 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-expression-conditional",
+  "namespaceFallback": "Test",
+  "classNameFallback": "Ternary",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "Ternary",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "State",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "X",
+        "type": "int",
+        "initial": {
+          "$type": "Literal",
+          "id": "00000000-0000-0000-0000-000000000010",
+          "typeId": "int",
+          "value": 0
+        },
+        "visibility": "Private"
+      },
+      {
+        "$type": "Method",
+        "id": "00000000-0000-0000-0000-000000000002",
+        "name": "Test",
+        "visibility": "Private",
+        "returnType": "void",
+        "parameters": [],
+        "body": [
+          {
+            "$type": "Set",
+            "id": "00000000-0000-0000-0000-000000000020",
+            "target": {
+              "$type": "Symbol",
+              "symbolId": "00000000-0000-0000-0000-000000000001"
+            },
+            "value": {
+              "$type": "Conditional",
+              "id": "00000000-0000-0000-0000-000000000021",
+              "condition": {
+                "$type": "Literal",
+                "id": "00000000-0000-0000-0000-000000000022",
+                "typeId": "bool",
+                "value": true
+              },
+              "then": {
+                "$type": "Literal",
+                "id": "00000000-0000-0000-0000-000000000023",
+                "typeId": "int",
+                "value": 1
+              },
+              "else": {
+                "$type": "Literal",
+                "id": "00000000-0000-0000-0000-000000000024",
+                "typeId": "int",
+                "value": 2
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "Ternary", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "Ternary", "baseClass": "PanelComponent" },
+      { "$type": "FieldDecl", "visibility": "private", "fieldType": "int", "name": "X", "initialExpr": "0", "isParameter": false },
+      { "$type": "MethodOpen", "visibility": "private", "isOverride": false, "isAsync": false, "returnType": "void", "name": "Test", "parameterList": "" },
+      { "$type": "Statement", "code": "X = (true ? 1 : 2)" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

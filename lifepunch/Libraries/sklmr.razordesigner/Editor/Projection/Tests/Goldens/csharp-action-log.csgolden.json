@@ -1,0 +1,73 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-action-log",
+  "namespaceFallback": "Test",
+  "classNameFallback": "Shout",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "Shout",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "Method",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Test",
+        "visibility": "Private",
+        "returnType": "void",
+        "parameters": [],
+        "body": [
+          {
+            "$type": "Log",
+            "id": "00000000-0000-0000-0000-000000000020",
+            "level": "Info",
+            "message": {
+              "$type": "Literal",
+              "id": "00000000-0000-0000-0000-000000000021",
+              "typeId": "string",
+              "value": "info"
+            }
+          },
+          {
+            "$type": "Log",
+            "id": "00000000-0000-0000-0000-000000000022",
+            "level": "Warning",
+            "message": {
+              "$type": "Literal",
+              "id": "00000000-0000-0000-0000-000000000023",
+              "typeId": "string",
+              "value": "warn"
+            }
+          },
+          {
+            "$type": "Log",
+            "id": "00000000-0000-0000-0000-000000000024",
+            "level": "Error",
+            "message": {
+              "$type": "Literal",
+              "id": "00000000-0000-0000-0000-000000000025",
+              "typeId": "string",
+              "value": "err"
+            }
+          }
+        ]
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "Shout", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "Shout", "baseClass": "PanelComponent" },
+      { "$type": "MethodOpen", "visibility": "private", "isOverride": false, "isAsync": false, "returnType": "void", "name": "Test", "parameterList": "" },
+      { "$type": "Statement", "code": "Log.Info( \"info\" )" },
+      { "$type": "Statement", "code": "Log.Warning( \"warn\" )" },
+      { "$type": "Statement", "code": "Log.Error( \"err\" )" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

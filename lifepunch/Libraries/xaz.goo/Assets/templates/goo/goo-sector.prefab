@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "2db06dad-97ee-45c2-8bf7-c59fa84627e5",
+    "Flags": 0,
+    "Name": "Sector",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.SectorNode",
+        "__guid": "ed0f006a-e461-484e-9003-42271b804b53"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Sector",
+  "MenuIcon": "pie_chart",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

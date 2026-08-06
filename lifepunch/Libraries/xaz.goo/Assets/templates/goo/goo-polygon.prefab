@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "fe50edd1-4de2-4c1a-864e-65513afd3321",
+    "Flags": 0,
+    "Name": "Polygon",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.PolygonNode",
+        "__guid": "97928c35-15c9-4a86-80b6-51a57df837b6"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Polygon",
+  "MenuIcon": "pentagon",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

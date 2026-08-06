@@ -1,0 +1,40 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "IconPanel",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000010",
+    "kind": "IconPanel",
+    "className": "star1",
+    "appearance": {
+      "width": "24px"
+    },
+    "payload": {
+      "iconName": "star"
+    },
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000010",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "star"
+      }
+    ],
+    "scssLines": [
+      "width: 24px;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000010\u0022"
+    ],
+    "razorInnerText": "star"
+  }
+}

@@ -1,0 +1,383 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.xenthio.xmovement</name>
+    </assembly>
+    <members>
+        <member name="P:XMovement.PlayerWalkControllerComplex.ApplyUserPreferences">
+            <summary>
+            If true, the camera will apply user preferences such as FOV and other settings.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.AimRay">
+            <summary>
+            Constructs a ray using the camera's GameObject
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.NoclipAction">
+            <summary>
+            The Input Action that noclipping is triggered by.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerWalkControllerComplex.CheckNoclip">
+            <summary>
+            TODO
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerWalkControllerComplex.DoNoclipMove">
+            <summary>
+            TODO
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.DefaultSpeed">
+            <summary>
+            How quickly does the player move by default?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.RunAction">
+            <summary>
+            The Input Action that the alternate speed mode is triggered by.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.RunByDefault">
+            <summary>
+            If the player should run by default, pressing the run action will swap to default speed
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.RunSpeed">
+            <summary>
+            The speed the player moves at while in the alternate speed mode.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.WalkAction">
+            <summary>
+            The Input Action that the alternate speed mode is triggered by.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.WalkSpeed">
+            <summary>
+            The speed the player moves at while in the alternate speed mode.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.CrouchAction">
+            <summary>
+            The Input Action that crouching is triggered by.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.CrouchSpeed">
+            <summary>
+            The speed the player moves at while crouching.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.JumpAction">
+            <summary>
+            The Input Action that jumping is triggered by.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.AllowPogosticking">
+            <summary>
+            Can the player hold down jump to repeatedly jump?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.JumpPower">
+            <summary>
+            How powerful is the player's jump?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.WantsJump">
+            <summary>
+            Do we want to jump next movement update?
+            </summary>
+        </member>
+        <member name="E:XMovement.PlayerWalkControllerComplex.OnJumped">
+            <summary>
+            Fired (broadcast to all clients) when this player jumps.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerWalkControllerComplex.BroadcastPlayerJumped">
+            <summary>
+            A network message that lets other users that we've triggered a jump.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.MovementPreset">
+            <summary>
+            Values from popular games.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerComplex.UseAction">
+            <summary>
+            The Input Action that noclipping is triggered by.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerSimple.RunSpeed">
+            <summary>
+            How quickly does the player move by default?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerSimple.JumpPower">
+            <summary>
+            How powerful is the player's jump?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerWalkControllerSimple.WantsJump">
+            <summary>
+            Do we want to jump next movement update?
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerWalkControllerSimple.BroadcastPlayerJumped">
+            <summary>
+            A network message that lets other users that we've triggered a jump.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.OutOfBoundsTraceDistance">
+            <summary>
+            How far down to trace when checking for a floor below the player (DownwardsTrace mode).
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.UnstickOutOfBoundsMode">
+            <summary>
+            Detection mode used when validating candidate positions during the unstuck process.
+            Defaults to BidirectionalTrace for more thorough checking so the player
+            cannot be unstuck to a position outside the world.
+            </summary>
+        </member>
+        <member name="F:XMovement.PlayerMovement.OutOfBoundsDetectionMode.DownwardsTrace">
+            <summary>
+            Simple void check. This will only check if there is a floor below the player.
+            </summary>
+        </member>
+        <member name="F:XMovement.PlayerMovement.OutOfBoundsDetectionMode.AllDirectionsTrace">
+            <summary>
+            Casts rays in all axis-aligned directions. If every ray hits a surface, the player
+            is inside the sealed map hull. If any ray escapes to infinity, the player is outside.
+            More reliable than RayParityTest for maps with internal geometry.
+            Requires a fully sealed map — all 6 directions must be enclosed.
+            </summary>
+        </member>
+        <member name="F:XMovement.PlayerMovement.OutOfBoundsDetectionMode.BidirectionalTrace">
+            <summary>
+            For each direction, fires an outward ray to find the nearest surface, then fires a
+            return ray inward from the far end of the trace back toward the player. If the return
+            ray hits a closer surface before reaching the player, there is a hull wall between
+            the player and that surface — meaning the player is outside it. Works without a fully
+            sealed map and is more robust to internal geometry than AllDirectionsTrace.
+            </summary>
+        </member>
+        <member name="F:XMovement.PlayerMovement.OutOfBoundsDetectionMode.OobVolume">
+            <summary>
+            Checks whether the player overlaps any collider tagged with <see cref="P:XMovement.PlayerMovement.OutOfBoundsTag"/>.
+            Works with any map type — the level designer places trigger volumes around OOB areas.
+            </summary>
+        </member>
+        <member name="F:XMovement.PlayerMovement.OutOfBoundsDetectionMode.NavMeshTest">
+            <summary>
+            Check if the player is outside of the navmesh. This requires the navmesh to be set up correctly and may cause performance issues if the navmesh is very large or complex.
+            </summary>
+        </member>
+        <member name="F:XMovement.PlayerMovement.OutOfBoundsDetectionMode.Custom">
+            <summary>
+            DIY.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.WasOutOfBounds">
+            <summary>
+            True if the player was out of bounds on the previous tick.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.IsCurrentlyOutOfBounds">
+            <summary>
+            True if the player is currently out of bounds.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.IsOutOfBounds(Vector3)">
+            <summary>
+            Returns true if the given world position is considered out of bounds.
+            For point-based modes, samples at feet/mid/head so gaps above walls are caught.
+            BidirectionalTrace uses a bbox sweep internally so it only needs one sample.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.IsOutOfBoundsForUnstick(Vector3)">
+            <summary>
+            Like <see cref="M:XMovement.PlayerMovement.IsOutOfBounds(Vector3)"/> but uses <see cref="P:XMovement.PlayerMovement.UnstickOutOfBoundsMode"/>
+            instead of <see cref="P:XMovement.PlayerMovement.DetectionMode"/>. Used by the unstuck system to prevent
+            teleporting the player to a position that is outside the world.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.AllDirectionsTraceDistance">
+            <summary>
+            How far each directional ray travels (AllDirectionsTrace mode).
+            Should be large enough to always reach the map hull from any interior point.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.BidirectionalTraceDistance">
+            <summary>
+            How far each bidirectional ray travels. Should be large enough to always reach the
+            map hull from any interior point.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.BidirectionalTraceThreshold">
+            <summary>
+            How many axis directions must report OOB before triggering. Lower values are more
+            sensitive; higher values reduce false positives from one-sided geometry holes.
+            Default 2 means any two directions reporting OOB is enough.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.OutOfBoundsTag">
+            <summary>
+            The tag used to identify out-of-bounds trigger volumes in the scene (OobVolume mode).
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.BuildProbeTrace(Vector3,Vector3)">
+            <summary>
+            Builds a point (ray) trace with the same tag/collision-rule filtering as BuildTrace.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.ClipVelocityToOutOfBounds">
+            <summary>
+            When OutOfBoundsIsSolid is true, binary-searches along the current velocity vector to find
+            the last in-bounds position, then estimates the boundary wall normal and clips velocity
+            against it — preserving the tangential (sliding) component like normal wall collision.
+            Call this before Move().
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.HandleOutOfBounds">
+            <summary>
+            Fires enter/leave events based on OOB state transitions.
+            When OutOfBoundsIsSolid is true, the boundary is enforced by ClipVelocityToOutOfBounds()
+            so only touch events are fired here if the player still ends up OOB.
+            </summary>
+        </member>
+        <member name="E:XMovement.PlayerMovement.OnEnterOutOfBounds">
+            <summary>
+            Event fired when the XMovement object enters the out of bounds area (Only works when OutOfBoundsIsSolid is false)
+            </summary>
+        </member>
+        <member name="E:XMovement.PlayerMovement.OnLeaveOutOfBounds">
+            <summary>
+            Event fired when this XMovement object leaves the out of bounds area (Only works when OutOfBoundsIsSolid is false)
+            </summary>
+        </member>
+        <member name="E:XMovement.PlayerMovement.OnTouchOutOfBounds">
+            <summary>
+            Event fired when the XMovement object collides with the out of bounds area (Only works when OutOfBoundsIsSolid is true)
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.Bounciness">
+            <summary>
+            When jumping into walls, should we bounce off or just stop dead?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.UseCollisionRules">
+            <summary>
+            If enabled, determine what to collide with using current project's collision rules for the <see cref="P:Sandbox.GameObject.Tags"/>
+            of the containing <see cref="T:Sandbox.GameObject"/>.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.PlayerColliderModel">
+            <summary>
+            Use a physics body for the shape of the player's movement trace, uses bbox if unset.
+            </summary> 
+        </member>
+        <member name="M:XMovement.PlayerMovement.LaunchUpwards(System.Single)">
+            <summary>
+            Move up and leave the ground, great for jumping.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.Accelerate(Vector3)">
+            <summary>
+            Add acceleration to the current velocity. 
+            No need to scale by time delta - it will be done inside.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.Accelerate(Vector3,System.Single)">
+            <summary>
+            Add our wish direction and speed onto our velocity
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.AirAccelerate(Vector3,System.Single)">
+            <summary>
+            Source-correct air acceleration. Equivalent to CGameMovement::AirAccelerate.
+            
+            The key difference from ground Accelerate: wishspeed is capped to AirSpeedCap
+            (equivalent to GetAirSpeedCap() = 30 in HL2/CS) for the dot-product and addspeed
+            check, but the FULL uncapped wishspeed is used in the accelspeed formula.
+            This is what produces proper strafing feel — you can keep gaining speed because
+            the 30-unit cap means currentspeed almost never exceeds wishspd at large velocities.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.ApplyFriction(Vector3,System.Single,System.Single)">
+            <summary>
+            Apply an amount of friction to the current velocity.
+            No need to scale by time delta - it will be done inside.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.TraceDirection(Vector3)">
+            <summary>
+            Trace the controller's current position to the specified delta
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.Punch(Vector3@)">
+            <summary>
+            Disconnect from ground and punch our velocity. This is useful if you want the player to jump or something.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "E:XMovement.PlayerMovement.OnLanded" -->
+        <!-- Badly formed XML comment ignored for member "M:XMovement.PlayerMovement.ClearGround" -->
+        <member name="M:XMovement.PlayerMovement.ChangeGround(Sandbox.SceneTraceResult)">
+            <summary>
+            We have a new ground
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.MoveTo(Vector3,System.Boolean)">
+            <summary>
+            Move from our current position to this target position, but using tracing an sliding.
+            This is good for different control modes like ladders and stuff.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.CreateShadowObjects">
+            <summary>
+            You can pre-create the shadow objects if you want to do so, otherwise they will be created at runtime.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.Gravity">
+            <summary>
+            The current gravity.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.BaseFriction">
+            <summary>
+            How much friction does the player have?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.StopSpeed">
+            <summary>
+            The speed at which we fully come to a stop.
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.AirControl">
+            <summary>
+            Can we control our movement in the air?
+            </summary>
+        </member>
+        <member name="P:XMovement.PlayerMovement.AirSpeedCap">
+            <summary>
+            Maximum wish speed used for the dot-product / addspeed check in air.
+            Equivalent to Source's GetAirSpeedCap() (hardcoded 30 in HL2/CS).
+            Keeping this low is what makes strafing feel like Source — you can always
+            add velocity sideways because the capped component against your current
+            velocity direction stays small.
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.Move(System.Boolean,System.Boolean,System.Single)">
+            <summary>
+            Move a character, with this velocity
+            </summary>
+        </member>
+        <member name="M:XMovement.PlayerMovement.GetFriction">
+            <summary>
+            Get the current friction.
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

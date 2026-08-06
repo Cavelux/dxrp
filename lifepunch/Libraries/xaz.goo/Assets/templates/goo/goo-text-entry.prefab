@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "8297c99d-0ce6-405f-a885-5c53971fde7f",
+    "Flags": 0,
+    "Name": "Text Entry",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.TextEntryNode",
+        "__guid": "68789a31-70fa-4f30-9ef4-6eecc4877754"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Text Entry",
+  "MenuIcon": "edit",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

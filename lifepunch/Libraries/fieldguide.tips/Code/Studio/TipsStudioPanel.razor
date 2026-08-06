@@ -1,0 +1,1173 @@
+@using Sandbox
+@using Sandbox.UI
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@namespace FieldGuide.Tips
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+@*
+	TIPS STUDIO - author a tip inside the running game and watch the real card change as you type.
+
+	One modal, three columns, over a dim scrim (the approved Field Kits layout, docs/design/ui-system).
+	LEFT is the merged catalog with the source each id resolved from, which is also how a tip left behind
+	by another scene gives itself away. MIDDLE is the editor: wording, order, prerequisites, and the two
+	trigger pickers, whose action list comes from the project's own input actions. RIGHT is the payoff:
+	the same card the player sees, rendered twice side by side so the keyboard and controller wordings
+	read together, and under it the bake-out (Copy to clipboard, or stage it for the editor menu action
+	that writes Assets/tips).
+
+	The lower-left card is still the REAL one: "show it" pushes the draft into the coach and TipsDisplay
+	draws it with the shipped stylesheet, and the device chips pin TipsCoach.PreviewDevice. The two cards
+	in the rail are the same component restated inside this panel, because a preview you have to look
+	away from is not a preview.
+
+	Toggle: `fg_tips_studio 1` in the console, or press T (a plain letter; the editor eats F1-F12 in
+	play-in-editor). The key OPENS only, never closes, so pressing T inside a text box types a T and
+	nothing else. Close with the x in the header or `fg_tips_studio 0`.
+
+	Panel rules this file follows, each of which has cost someone a session: rows come from @foreach in
+	main markup, never a RenderFragment; the root takes no pointer events and the scrim and modal take
+	all of them; both scroll regions are a FIXED pixel height, never a percentage; no field being TYPED
+	into is folded into BuildHash, because a rebuild takes the cursor out of the box.
+*@
+
+<root class="ts-root">
+@if ( TipsStudio.Open )
+{
+	<div class="ts-scrim">
+		<div class="ts-modal">
+
+			@* ================= header ================= *@
+			<div class="ts-hdr">
+				<div class="ts-hdr-left">
+					<div class="ts-title">TIPS STUDIO</div>
+					<div class="ts-hdr-meta">@HeaderMeta</div>
+				</div>
+				<div class="ts-x" onclick=@Close>×</div>
+			</div>
+
+			<div class="ts-cols">
+
+				@* ================= left: the merged catalog ================= *@
+				<div class="ts-left">
+					<div class="ts-list-hdr">
+						<div class="ts-list-t">Tips</div>
+						<div class="ts-list-m">by priority</div>
+					</div>
+
+					<div class="ts-list" @ref="ListBody">
+						@if ( Entries.Count == 0 )
+						{
+							<div class="ts-empty">
+								<div class="ts-empty-t">No tips yet</div>
+								<div class="ts-empty-l">Press New tip to write one.</div>
+							</div>
+						}
+						@foreach ( var e in Entries )
+						{
+							var entry = e;
+							<div class="ts-row @(entry.Selected ? "on" : "")" onclick=@(() => OpenTip( entry.Id ))>
+								<div class="ts-row-id">@entry.Id</div>
+								@* State REPLACES the source rather than sitting beside it: the row is 248px wide
+									and a third thing in it squeezes the id until it blanks out. *@
+								<div class="ts-row-meta">
+									@if ( entry.State is null )
+									{
+										<div class="ts-row-src">@entry.Source</div>
+									}
+									else
+									{
+										<div class="ts-row-state">@entry.State</div>
+									}
+								</div>
+							</div>
+						}
+					</div>
+
+					<div class="ts-left-btns">
+						<div class="ts-btn pri grow gap" onclick=@NewTip>New tip</div>
+						<div class="ts-btn" onclick=@Rescan>Rescan</div>
+					</div>
+				</div>
+
+				@* ================= middle: the draft ================= *@
+				<div class="ts-mid" @ref="MidBody">
+
+					@if ( TipsStudio.DroppedPredicates )
+					{
+						<div class="ts-warn">
+							<div class="ts-warn-b">!</div>
+							<div class="ts-warn-t">
+								<div class="ts-warn-l">This tip carries a code predicate.</div>
+								<div class="ts-warn-l">A .tip file cannot hold one, so baking</div>
+								<div class="ts-warn-l">keeps the triggers and drops the predicate.</div>
+							</div>
+						</div>
+					}
+
+					<div class="ts-frow">
+						<div class="ts-field w200">
+							<div class="ts-lab">Id</div>
+							<TextEntry class="ts-in" Value=@DraftId
+								OnTextEdited=@((string v) => { TipsStudio.Draft.Id = v; }) onsubmit=@Commit />
+						</div>
+						<div class="ts-field w150">
+							<div class="ts-lab">Priority</div>
+							<div class="ts-step">
+								<div class="ts-stp" onclick=@(() => BumpPriority( -10 ))>−</div>
+								<div class="ts-val">@DraftPriority</div>
+								<div class="ts-stp" onclick=@(() => BumpPriority( 10 ))>+</div>
+							</div>
+						</div>
+						<div class="ts-field grow last">
+							<div class="ts-lab">Prerequisites</div>
+							<div class="ts-drop">
+								<div class="ts-drop-face @(IsOpen( PrereqDrop ) ? "open" : "")"
+									onclick=@(() => ToggleDrop( PrereqDrop ))>
+									<div class="ts-drop-val">@PrereqFace</div>
+									<div class="ts-chev">expand_more</div>
+								</div>
+								@if ( IsOpen( PrereqDrop ) )
+								{
+									<div class="ts-drop-list @(Tall( AvailablePrerequisites.Count ))">
+										@if ( AvailablePrerequisites.Count == 0 )
+										{
+											<div class="ts-drop-opt">no other tip ids yet</div>
+										}
+										@foreach ( var p in AvailablePrerequisites )
+										{
+											var prereq = p;
+											<div class="ts-drop-opt" onclick=@(() => AddPrerequisite( prereq ))>@prereq</div>
+										}
+									</div>
+								}
+							</div>
+						</div>
+					</div>
+
+					@* Its own block under the field, with its own bottom margin: this row used to collapse
+						into the wording section and paint its chips over the Text label. *@
+					@if ( PrerequisiteList.Count > 0 )
+					{
+						<div class="ts-chips block">
+							@foreach ( var p in PrerequisiteList )
+							{
+								var prereq = p;
+								<div class="ts-chip on mono"
+									onclick=@(() => RemovePrerequisite( prereq ))>@($"{prereq} ×")</div>
+							}
+						</div>
+					}
+
+					<div class="ts-frow">
+						<div class="ts-field grow last">
+							<div class="ts-lab-row">
+								<div class="ts-lab">Text</div>
+								<div class="ts-cap">*Space* keycap · `A` pad button</div>
+							</div>
+							<TextEntry class="ts-in" Value=@DraftText
+								OnTextEdited=@((string v) => { TipsStudio.Draft.Text = v; Refresh(); }) onsubmit=@Commit />
+						</div>
+					</div>
+
+					<div class="ts-frow">
+						<div class="ts-field grow">
+							<div class="ts-lab">Pad text · optional</div>
+							<TextEntry class="ts-in" Value=@DraftTextPad
+								OnTextEdited=@((string v) => { TipsStudio.Draft.TextPad = v; Refresh(); }) onsubmit=@Commit />
+						</div>
+						<div class="ts-field w120 last">
+							<div class="ts-lab">Icon</div>
+							<TextEntry class="ts-in" Value=@DraftIcon
+								OnTextEdited=@((string v) => { TipsStudio.Draft.Icon = v; Refresh(); }) onsubmit=@Commit />
+						</div>
+					</div>
+
+					@* ---- the two trigger pickers, from one block of markup ---- *@
+					@foreach ( var s in TriggerSlots )
+					{
+						var slot = s;
+						var trig = slot.Trigger;
+						var actionDrop = slot.Key;
+
+						<div class="ts-sec">
+							<div class="ts-sec-hd">
+								<div class="ts-sec-t">@slot.Title</div>
+								<div class="ts-cap flat">@slot.Blurb</div>
+							</div>
+
+							<div class="ts-chips">
+								@foreach ( var k in TipStudioTrigger.AllKinds )
+								{
+									var kind = k;
+									<div class="ts-chip @(trig.Kind == kind ? "on" : "")"
+										onclick=@(() => SetKind( trig, kind ))>@TipStudioTrigger.KindName( kind )</div>
+								}
+							</div>
+
+							<div class="ts-frow">
+								@if ( trig.Kind == TipTriggerKind.InputAction )
+								{
+									<div class="ts-field w200">
+										<div class="ts-lab">Input action</div>
+										<div class="ts-drop">
+											<div class="ts-drop-face @(IsOpen( actionDrop ) ? "open" : "")"
+												onclick=@(() => ToggleDrop( actionDrop ))>
+												<div class="ts-drop-val">@ActionFace( trig )</div>
+												<div class="ts-chev">expand_more</div>
+											</div>
+											@if ( IsOpen( actionDrop ) )
+											{
+												<div class="ts-drop-list @(Tall( ActionNames.Count ))">
+													@if ( ActionNames.Count == 0 )
+													{
+														<div class="ts-drop-opt">no input actions bound</div>
+													}
+													@foreach ( var a in ActionNames )
+													{
+														var action = a;
+														<div class="ts-drop-opt @(trig.Action == action ? "on" : "")"
+															onclick=@(() => PickAction( trig, action ))>@action</div>
+													}
+												</div>
+											}
+										</div>
+										<div class="ts-cap">from Input.config</div>
+									</div>
+								}
+
+								@if ( trig.Kind == TipTriggerKind.Key )
+								{
+									<div class="ts-field w200">
+										<div class="ts-lab">Key</div>
+										<TextEntry class="ts-in" Value=@TrigKey( trig )
+											OnTextEdited=@((string v) => { trig.Key = v; }) onsubmit=@Commit />
+										<div class="ts-cap">space, w, mouse1</div>
+									</div>
+								}
+
+								@if ( slot.NeedsName )
+								{
+									<div class="ts-field w200">
+										<div class="ts-lab">Name</div>
+										<TextEntry class="ts-in" Value=@TrigName( trig )
+											OnTextEdited=@((string v) => { trig.Name = v; }) onsubmit=@Commit />
+										<div class="ts-cap">@slot.NameHint</div>
+									</div>
+								}
+
+								@if ( trig.Kind == TipTriggerKind.AtLeast )
+								{
+									<div class="ts-field w150">
+										<div class="ts-lab">At least</div>
+										<div class="ts-step">
+											<div class="ts-stp" onclick=@(() => BumpThreshold( trig, -1f ))>−</div>
+											<div class="ts-val">@TrigThreshold( trig )</div>
+											<div class="ts-stp" onclick=@(() => BumpThreshold( trig, 1f ))>+</div>
+										</div>
+									</div>
+								}
+
+								@if ( trig.Kind == TipTriggerKind.Timer )
+								{
+									<div class="ts-field w150">
+										<div class="ts-lab">Seconds</div>
+										<div class="ts-step">
+											<div class="ts-stp" onclick=@(() => BumpSeconds( trig, -1f ))>−</div>
+											<div class="ts-val">@TrigSeconds( trig )</div>
+											<div class="ts-stp" onclick=@(() => BumpSeconds( trig, 1f ))>+</div>
+										</div>
+									</div>
+								}
+
+								@if ( trig.Kind == TipTriggerKind.AnalogAxis )
+								{
+									<div class="ts-field w150">
+										<div class="ts-lab">Magnitude</div>
+										<div class="ts-step">
+											<div class="ts-stp" onclick=@(() => BumpMagnitude( trig, -0.1f ))>−</div>
+											<div class="ts-val">@TrigMagnitude( trig )</div>
+											<div class="ts-stp" onclick=@(() => BumpMagnitude( trig, 0.1f ))>+</div>
+										</div>
+										<div class="ts-cap">0 to 1</div>
+									</div>
+								}
+
+								@if ( slot.IsCompletion )
+								{
+									<div class="ts-field grow last">
+										<div class="ts-lab">Max show seconds</div>
+										<div class="ts-step">
+											<div class="ts-stp" onclick=@(() => BumpMaxShow( -1f ))>−</div>
+											<div class="ts-val w80">@DraftMaxShow</div>
+											<div class="ts-stp" onclick=@(() => BumpMaxShow( 1f ))>+</div>
+										</div>
+										<div class="ts-cap">0 = never auto-complete</div>
+									</div>
+								}
+							</div>
+
+							@if ( trig.Kind == TipTriggerKind.AnalogAxis )
+							{
+								<div class="ts-chips">
+									@foreach ( var src in TipStudioTrigger.AllAnalogSources )
+									{
+										var source = src;
+										<div class="ts-chip @(trig.AnalogSource == source ? "on" : "")"
+											onclick=@(() => SetSource( trig, source ))>@TipStudioTrigger.SourceName( source )</div>
+									}
+								</div>
+							}
+
+							@if ( slot.IsComposite )
+							{
+								<div class="ts-chips">
+									<div class="ts-chip" onclick=@(() => AddChild( trig ))>add one</div>
+									@if ( trig.Children.Count == 0 )
+									{
+										<div class="ts-cap flat">@slot.EmptyCompositeHint</div>
+									}
+								</div>
+
+								@foreach ( var c in trig.Children.ToList() )
+								{
+									var child = c;
+									<div class="ts-child">
+										<div class="ts-chips">
+											@foreach ( var k in TipStudioTrigger.AllKinds )
+											{
+												var kind = k;
+												<div class="ts-chip small @(child.Kind == kind ? "on" : "")"
+													onclick=@(() => SetKind( child, kind ))>@TipStudioTrigger.KindName( kind )</div>
+											}
+											<div class="ts-chip small drop" onclick=@(() => RemoveChild( trig, child ))>remove</div>
+										</div>
+										<div class="ts-frow">
+											<div class="ts-field grow last">
+												<div class="ts-lab-row">
+													<div class="ts-lab">Value</div>
+													<div class="ts-cap flat">@ChildHint( child )</div>
+												</div>
+												<TextEntry class="ts-in" Value=@ChildValue( child )
+													OnTextEdited=@((string v) => SetChildValue( child, v )) onsubmit=@Commit />
+											</div>
+										</div>
+									</div>
+								}
+							}
+						</div>
+					}
+
+					@* ---- what the draft would do wrong ---- *@
+					@if ( TipsStudio.ShadowedBy is not null )
+					{
+						<div class="ts-warn">
+							<div class="ts-warn-b">!</div>
+							<div class="ts-warn-t">
+								<div class="ts-warn-l">A code tip already owns this id.</div>
+								<div class="ts-warn-l">Your file sits behind it in the catalog.</div>
+							</div>
+						</div>
+					}
+
+					@foreach ( var n in NoteBlocks )
+					{
+						var note = n;
+						<div class="ts-warn">
+							<div class="ts-warn-b">!</div>
+							<div class="ts-warn-t">
+								@foreach ( var l in note.Lines )
+								{
+									var line = l;
+									<div class="ts-warn-l">@line</div>
+								}
+							</div>
+						</div>
+					}
+				</div>
+
+				@* ================= right: preview and bake ================= *@
+				<div class="ts-rail">
+					<div class="ts-rail-hdr">
+						<div class="ts-kicker">LIVE PREVIEW</div>
+						<div class="ts-btn-row">
+							<div class="ts-btn small gap" onclick=@CompleteNow>Complete it</div>
+							<div class="ts-btn pri small" onclick=@TestFire>Test fire</div>
+						</div>
+					</div>
+
+					@* Pinned above the scrolling preview: these four pick what the REAL lower-left card
+						shows, and a control that scrolls out of sight is a control nobody finds. *@
+					<div class="ts-pv-row">
+						<div class="ts-pv-key">Live card</div>
+						<div class="ts-chip @(TipsStudio.PreviewOn ? "on" : "")"
+							onclick=@TogglePreview>@(TipsStudio.PreviewOn ? "showing" : "show it")</div>
+						<div class="ts-chip @(TipsStudio.PinnedDevice == TipDevice.KeyboardMouse ? "on" : "")"
+							onclick=@(() => PinDevice( TipDevice.KeyboardMouse ))>keyboard</div>
+						<div class="ts-chip @(TipsStudio.PinnedDevice == TipDevice.Gamepad ? "on" : "")"
+							onclick=@(() => PinDevice( TipDevice.Gamepad ))>pad</div>
+						<div class="ts-chip @(TipsStudio.PinnedDevice is null ? "on" : "")"
+							onclick=@(() => PinDevice( null ))>live</div>
+					</div>
+
+					<div class="ts-rail-body" @ref="RailBody">
+					<div class="ts-well">
+						@foreach ( var p in PreviewCards )
+						{
+							var card = p;
+							<div class="ts-pv @(card.Last ? "last" : "")">
+								<div class="ts-pv-lab">@card.Label</div>
+								<div class="tsp-card">
+									<div class="tsp-stripe"></div>
+									<div class="tsp-in">
+										@if ( !string.IsNullOrEmpty( card.Icon ) )
+										{
+											<div class="tsp-glyph">@card.Icon</div>
+										}
+										<div class="tsp-body">
+											<div class="tsp-kicker">GUIDE</div>
+											<div class="tsp-text">
+												@foreach ( var seg in card.Segments )
+												{
+													var run = seg;
+													if ( run.Kind == TipSegmentKind.Key )
+													{
+														<span class="tsp-key">@run.Text</span>
+													}
+													else if ( run.Kind == TipSegmentKind.GamepadButton )
+													{
+														<span class="tsp-pad">@run.Text</span>
+													}
+													else
+													{
+														<span>@run.Text</span>
+													}
+												}
+											</div>
+										</div>
+										<div class="tsp-x">×</div>
+									</div>
+								</div>
+							</div>
+						}
+						<div class="ts-cap well">renders exactly what the coach will show</div>
+					</div>
+					</div>
+
+					<div class="ts-out">
+						<div class="ts-btn-row">
+							<div class="ts-btn grow gap" onclick=@CopyJson>@_copyLabel</div>
+							<div class="ts-btn pri grow" onclick=@Stage>Write to project</div>
+						</div>
+						<div class="ts-out-line">@BakeTarget</div>
+						<div class="ts-btn-row pad">
+							<div class="ts-btn small" onclick=@ClearStaged>Clear staged</div>
+							<div class="ts-out-line inline">@StatusLine</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+</root>
+
+@code
+{
+	// ---- mounting ----
+
+	/// <summary>The raw key that OPENS the Studio. A plain letter on purpose: the editor eats F1 to F12 in
+	/// play-in-editor. It only opens, never closes, so pressing it inside a text box just types the letter.
+	/// Close with the header's × or <c>fg_tips_studio 0</c>.</summary>
+	[Property] public string OpenKey { get; set; } = "T";
+
+	/// <summary>Whether the Studio starts open. Off by default: an authoring panel that appears unbidden over
+	/// a game is a bug. This, and only this, decides the boot state; the persisted convar never does.</summary>
+	[Property] public bool OpenOnStart { get; set; }
+
+	/// <summary>Force the Studio shut anywhere but the editor. On by default: it is an authoring tool, and a
+	/// published build has nothing to author. Turn it off if you want it in your own standalone dev build.</summary>
+	[Property] public bool EditorOnly { get; set; } = true;
+
+	// @ref binds to an auto-PROPERTY. On a bare private field it silently never assigns, and the
+	// CanDragScroll fix below would quietly do nothing.
+	Sandbox.UI.Panel ListBody { get; set; }
+	Sandbox.UI.Panel MidBody { get; set; }
+	Sandbox.UI.Panel RailBody { get; set; }
+
+	bool _booted;
+	bool _wasOpen;
+	int _revision;
+	string _copyLabel = "Copy .tip JSON";
+	string _stageLine = "";
+
+	/// <summary>Which dropdown is showing its options, or null. One at a time: the lists sit in flow under
+	/// their field, so two open at once would push the column around for no reason.</summary>
+	string _openDrop;
+
+	/// <summary>The prerequisite picker's key. The trigger pickers key off their slot name.</summary>
+	const string PrereqDrop = "prereq";
+
+	bool IsOpen( string key ) => _openDrop == key;
+
+	void ToggleDrop( string key )
+	{
+		_openDrop = _openDrop == key ? null : key;
+		Refresh();
+	}
+
+	// ---- the catalog list ----
+
+	/// <summary>One row of the tip list. A struct of finished strings so the markup interpolates single
+	/// identifiers only, never a chained member read (which renders blank in several razor cases).</summary>
+	public struct Entry
+	{
+		public string Id;
+		public string Source;
+		public string State;
+		public bool Selected;
+	}
+
+	/// <summary>Every tip in the merged catalog, read fresh (so an edited .tip appears the moment the
+	/// catalog rebuilds), labelled with the source it resolved from and ordered the way the coach picks
+	/// them: highest priority first.</summary>
+	List<Entry> Entries
+	{
+		get
+		{
+			var list = new List<Entry>();
+			var view = TipsCatalog.View;
+			var activeId = TipsCoach.ActiveTip?.Id;
+			var opened = TipsStudio.OpenedFrom;
+
+			foreach ( var def in view.Tips.OrderByDescending( t => t.Priority ).ThenBy( t => t.Id, StringComparer.Ordinal ) )
+			{
+				var source = view.SourceById.TryGetValue( def.Id, out var s ) ? s : "unknown";
+
+				list.Add( new Entry
+				{
+					Id = def.Id,
+					Source = source,
+					State = def.Id == activeId ? "on screen" : ( TipsCoach.IsCompleted( def.Id ) ? "done" : null ),
+					Selected = def.Id == opened,
+				} );
+			}
+
+			return list;
+		}
+	}
+
+	/// <summary>The header's one line: the package, the catalog, and what the middle column is editing.
+	/// One interpolated string rather than three text nodes, because the in-editor codegen drops the
+	/// whitespace between a literal and an expression.</summary>
+	string HeaderMeta => $"fieldguide.tips · {CatalogSummary} · {DraftOrigin}";
+
+	/// <summary>How many tips and where they came from. A source you did not expect is a tip left over
+	/// from somewhere else.</summary>
+	string CatalogSummary
+	{
+		get
+		{
+			var view = TipsCatalog.View;
+			if ( view.Tips.Count == 0 )
+				return "no tips yet";
+
+			var counts = new Dictionary<string, int>();
+			foreach ( var kv in view.SourceById )
+				counts[kv.Value] = counts.TryGetValue( kv.Value, out var n ) ? n + 1 : 1;
+
+			var parts = counts.OrderBy( kv => kv.Key, StringComparer.Ordinal ).Select( kv => $"{kv.Value} {kv.Key}" );
+			return $"{view.Tips.Count} tips · {string.Join( ", ", parts )}";
+		}
+	}
+
+	void OpenTip( string id )
+	{
+		TipsStudio.OpenTip( id );
+		ResetLabels();
+		_openDrop = null;
+		Refresh();
+	}
+
+	void NewTip()
+	{
+		TipsStudio.NewDraft();
+		ResetLabels();
+		_openDrop = null;
+		Refresh();
+	}
+
+	void Rescan()
+	{
+		TipsCatalog.NoteAssetsChanged();
+		Refresh();
+	}
+
+	// ---- draft editing ----
+
+	string DraftOrigin => string.IsNullOrEmpty( TipsStudio.OpenedFrom )
+		? "new tip"
+		: $"editing {TipsStudio.OpenedFrom}";
+
+	// Single-identifier reads for the markup. A razor interpolation of a CHAINED member read
+	// (TipsStudio.Draft.Priority) renders blank in several cases; a plain property or a method call does not.
+	string DraftId => TipsStudio.Draft.Id;
+	string DraftText => TipsStudio.Draft.Text;
+	string DraftTextPad => TipsStudio.Draft.TextPad;
+	string DraftIcon => TipsStudio.Draft.Icon;
+	int DraftPriority => TipsStudio.Draft.Priority;
+	string DraftMaxShow => Show( TipsStudio.Draft.MaxShowSeconds );
+
+	static string TrigKey( TipStudioTrigger t ) => t.Key;
+	static string TrigName( TipStudioTrigger t ) => t.Name;
+	static string TrigThreshold( TipStudioTrigger t ) => Show( t.Threshold );
+	static string TrigSeconds( TipStudioTrigger t ) => Show( t.Seconds );
+	static string TrigMagnitude( TipStudioTrigger t ) => Show( t.Magnitude );
+
+	static string Show( float value ) => value.ToString( "0.##" );
+
+	void BumpPriority( int delta )
+	{
+		TipsStudio.Draft.Priority += delta;
+		Refresh();
+	}
+
+	void BumpMaxShow( float delta )
+	{
+		TipsStudio.Draft.MaxShowSeconds = MathF.Max( 0f, TipsStudio.Draft.MaxShowSeconds + delta );
+		Refresh();
+	}
+
+	List<string> PrerequisiteList => TipsStudio.Draft.PrerequisiteTipIds ?? new List<string>();
+
+	/// <summary>What the prerequisite field reads at rest. The list underneath ADDS one; the chips below the
+	/// row remove them, which is the only honest shape for a field that holds several values.</summary>
+	string PrereqFace
+	{
+		get
+		{
+			var have = PrerequisiteList;
+			if ( have.Count == 0 )
+				return "none";
+
+			return have.Count == 1 ? have[0] : $"{have.Count} tips";
+		}
+	}
+
+	/// <summary>Catalog ids this tip could wait on: everything except itself, the preview id, and the ones it
+	/// already waits on.</summary>
+	List<string> AvailablePrerequisites
+	{
+		get
+		{
+			var have = new HashSet<string>( PrerequisiteList, StringComparer.Ordinal );
+			var mine = TipsStudio.Draft.Id ?? "";
+			return TipsCatalog.Active
+				.Select( t => t.Id )
+				.Where( id => id != mine && id != TipsStudio.PreviewId && !have.Contains( id ) )
+				.OrderBy( id => id, StringComparer.Ordinal )
+				.ToList();
+		}
+	}
+
+	void AddPrerequisite( string id )
+	{
+		TipsStudio.Draft.PrerequisiteTipIds.Add( id );
+		_openDrop = null;
+		Refresh();
+	}
+
+	void RemovePrerequisite( string id )
+	{
+		TipsStudio.Draft.PrerequisiteTipIds.Remove( id );
+		Refresh();
+	}
+
+	// ---- the two trigger pickers ----
+
+	/// <summary>The Completion and Relevance pickers as data, so ONE block of markup renders both. A
+	/// RenderFragment would be the other way to share it, and RenderFragments under-measure here.</summary>
+	public struct TriggerSlot
+	{
+		public string Key;
+		public string Title;
+		public string Blurb;
+		public TipStudioTrigger Trigger;
+		public bool IsCompletion;
+		public bool NeedsName;
+		public string NameHint;
+		public bool IsComposite;
+		public string EmptyCompositeHint;
+	}
+
+	List<TriggerSlot> TriggerSlots
+	{
+		get
+		{
+			var completion = TipsStudio.Draft.Completion ??= new TipStudioTrigger();
+			var relevance = TipsStudio.Draft.Relevance ??= new TipStudioTrigger();
+
+			return new List<TriggerSlot>
+			{
+				Slot( "completion", "COMPLETION TRIGGER", "what retires this tip", completion, true ),
+				Slot( "relevance", "RELEVANCE TRIGGER", "an extra gate before it shows", relevance, false ),
+			};
+		}
+	}
+
+	static TriggerSlot Slot( string key, string title, string blurb, TipStudioTrigger trigger, bool isCompletion )
+	{
+		var kind = trigger.Kind;
+		var needsName = kind == TipTriggerKind.Signal || kind == TipTriggerKind.Ever
+			|| kind == TipTriggerKind.Flag || kind == TipTriggerKind.AtLeast;
+
+		var hint = kind switch
+		{
+			TipTriggerKind.Signal => "Signal(...) string",
+			TipTriggerKind.Ever => "ctx.Ever(...)",
+			TipTriggerKind.Flag => "ctx.SetFlag(...)",
+			_ => "ctx.SetNumber(...)",
+		};
+
+		return new TriggerSlot
+		{
+			Key = key,
+			Title = title,
+			Blurb = blurb,
+			Trigger = trigger,
+			IsCompletion = isCompletion,
+			NeedsName = needsName,
+			NameHint = hint,
+			IsComposite = kind == TipTriggerKind.AnyOf || kind == TipTriggerKind.AllOf,
+			EmptyCompositeHint = isCompletion && kind == TipTriggerKind.AllOf
+				? "empty: the shape a TipTriggerObject retires"
+				: "empty, so it never fires",
+		};
+	}
+
+	void SetKind( TipStudioTrigger trigger, TipTriggerKind kind )
+	{
+		trigger.Kind = kind;
+		_openDrop = null;
+		Refresh();
+	}
+
+	static string ActionFace( TipStudioTrigger trigger )
+		=> string.IsNullOrEmpty( trigger.Action ) ? "pick an action" : trigger.Action;
+
+	void PickAction( TipStudioTrigger trigger, string action )
+	{
+		trigger.Action = action;
+		_openDrop = null;
+		Refresh();
+	}
+
+	void SetSource( TipStudioTrigger trigger, TipTriggerAnalogSource source )
+	{
+		trigger.AnalogSource = source;
+		Refresh();
+	}
+
+	void BumpThreshold( TipStudioTrigger trigger, float delta )
+	{
+		trigger.Threshold = MathF.Max( 0f, trigger.Threshold + delta );
+		Refresh();
+	}
+
+	void BumpSeconds( TipStudioTrigger trigger, float delta )
+	{
+		trigger.Seconds = MathF.Max( 0f, trigger.Seconds + delta );
+		Refresh();
+	}
+
+	void BumpMagnitude( TipStudioTrigger trigger, float delta )
+	{
+		trigger.Magnitude = Math.Clamp( trigger.Magnitude + delta, 0f, 1f );
+		Refresh();
+	}
+
+	void AddChild( TipStudioTrigger parent )
+	{
+		parent.Children.Add( new TipStudioTrigger { Kind = TipTriggerKind.Key } );
+		Refresh();
+	}
+
+	void RemoveChild( TipStudioTrigger parent, TipStudioTrigger child )
+	{
+		parent.Children.Remove( child );
+		Refresh();
+	}
+
+	/// <summary>A composed child edits its one parameter through a single box, whichever box its kind reads.
+	/// Nesting a full picker per child would triple the panel for a case the format barely uses.</summary>
+	static string ChildValue( TipStudioTrigger child ) => child.Kind switch
+	{
+		TipTriggerKind.InputAction => child.Action,
+		TipTriggerKind.Key => child.Key,
+		TipTriggerKind.Signal or TipTriggerKind.Ever or TipTriggerKind.Flag or TipTriggerKind.AtLeast => child.Name,
+		TipTriggerKind.Timer => child.Seconds.ToString( "0.##" ),
+		TipTriggerKind.AnalogAxis => child.Magnitude.ToString( "0.##" ),
+		_ => "",
+	};
+
+	static void SetChildValue( TipStudioTrigger child, string value )
+	{
+		switch ( child.Kind )
+		{
+			case TipTriggerKind.InputAction: child.Action = value; break;
+			case TipTriggerKind.Key: child.Key = value; break;
+			case TipTriggerKind.Signal:
+			case TipTriggerKind.Ever:
+			case TipTriggerKind.Flag:
+			case TipTriggerKind.AtLeast: child.Name = value; break;
+			case TipTriggerKind.Timer:
+				if ( float.TryParse( value, out var seconds ) ) child.Seconds = MathF.Max( 0f, seconds );
+				break;
+			case TipTriggerKind.AnalogAxis:
+				if ( float.TryParse( value, out var magnitude ) ) child.Magnitude = Math.Clamp( magnitude, 0f, 1f );
+				break;
+		}
+	}
+
+	static string ChildHint( TipStudioTrigger child ) => TipStudioTrigger.FieldFor( child.Kind ) switch
+	{
+		"action" => "an input action name",
+		"key" => "a raw key name",
+		"name" => "the named condition",
+		"name+threshold" => "the named number",
+		"seconds" => "seconds",
+		"stick+magnitude" => "magnitude, 0 to 1",
+		"children" => "nest one level only",
+		_ => "this kind takes no value",
+	};
+
+	// ---- the two preview cards ----
+
+	/// <summary>One rendered card in the rail: the label above it and the runs inside it. Finished data, so
+	/// the markup walks a list rather than calling into the parser mid-tree.</summary>
+	public struct PreviewCard
+	{
+		public string Label;
+		public string Icon;
+		public List<TipSegment> Segments;
+		public bool Last;
+	}
+
+	/// <summary>The draft as the player will read it on each device, side by side. The pad card runs the same
+	/// keycap remap the shipped display does (TipsCoach.PadLabelFor), so a chip with no controller equivalent
+	/// disappears here exactly as it would in the game.</summary>
+	List<PreviewCard> PreviewCards
+	{
+		get
+		{
+			var text = TipsStudio.Draft.Text ?? "";
+			var pad = TipsStudio.Draft.TextPad ?? "";
+			var icon = TipsStudio.Draft.Icon ?? "";
+
+			return new List<PreviewCard>
+			{
+				new PreviewCard
+				{
+					Label = "KEYBOARD",
+					Icon = icon,
+					Segments = TipSegment.Parse( text ).ToList(),
+				},
+				new PreviewCard
+				{
+					Label = "CONTROLLER",
+					Icon = icon,
+					Segments = PadRuns( text, pad ),
+					Last = true,
+				},
+			};
+		}
+	}
+
+	/// <summary>The pad-mode runs for a wording: its pad text when authored, then every keycap put through
+	/// the game's pad label map. A mapped label reads as a controller chip; an unmappable one is dropped, the
+	/// same two rules the shipped card follows.</summary>
+	static List<TipSegment> PadRuns( string text, string textPad )
+	{
+		var runs = new List<TipSegment>();
+
+		foreach ( var seg in TipSegment.Parse( TipDeviceText.PadTextOr( text, textPad ) ) )
+		{
+			if ( seg.Kind != TipSegmentKind.Key )
+			{
+				runs.Add( seg );
+				continue;
+			}
+
+			var mapped = TipDeviceText.PadCap( seg.Text, TipsCoach.PadLabelFor );
+			if ( string.IsNullOrEmpty( mapped ) )
+				continue;
+
+			runs.Add( new TipSegment( mapped, mapped == seg.Text ? TipSegmentKind.Key : TipSegmentKind.GamepadButton ) );
+		}
+
+		return runs;
+	}
+
+	// ---- preview, test fire ----
+
+	List<string> ActionNames => TipsStudio.ActionNames.ToList();
+
+	/// <summary>One authoring note, already broken into lines that fit.</summary>
+	public struct NoteBlock
+	{
+		public List<string> Lines;
+	}
+
+	List<NoteBlock> NoteBlocks => TipsStudio.Notes
+		.Select( n => new NoteBlock { Lines = Lines( n ) } )
+		.ToList();
+
+	/// <summary>An option list longer than this scrolls at a fixed height instead of growing the column.</summary>
+	static string Tall( int count ) => count > 6 ? "tall" : "";
+
+	/// <summary>
+	/// Chunk a sentence into lines short enough to lay out as text. A run that overflows its box does not
+	/// wrap here: the style engine rasterizes it as a solid grey block, or drops it to an empty box. 46
+	/// characters is one comfortable line in the widest box this panel has, and it is the same ceiling
+	/// TipStudioText warns tip authors about.
+	/// </summary>
+	static List<string> Lines( string text )
+	{
+		var lines = new List<string>();
+		if ( string.IsNullOrWhiteSpace( text ) )
+			return lines;
+
+		var line = "";
+
+		foreach ( var word in text.Split( ' ' ) )
+		{
+			if ( string.IsNullOrEmpty( word ) )
+				continue;
+
+			if ( line.Length == 0 )
+				line = word;
+			else if ( line.Length + 1 + word.Length > 46 )
+			{
+				lines.Add( line );
+				line = word;
+			}
+			else
+				line = line + " " + word;
+		}
+
+		if ( line.Length > 0 )
+			lines.Add( line );
+
+		return lines;
+	}
+
+	void TogglePreview()
+	{
+		if ( TipsStudio.PreviewOn )
+			TipsStudio.StopPreview( Scene );
+		else
+			TipsStudio.PushPreview( Scene );
+
+		Refresh();
+	}
+
+	void PinDevice( TipDevice? device )
+	{
+		TipsStudio.PinnedDevice = device;
+		Refresh();
+	}
+
+	void TestFire()
+	{
+		TipsStudio.TestFire( Scene );
+		Refresh();
+	}
+
+	void CompleteNow()
+	{
+		TipsStudio.CompleteNow();
+		Refresh();
+	}
+
+	/// <summary>The one-line status under the bake buttons: whatever the last bake action said, or what
+	/// is waiting in the staging folder when it has said nothing yet.</summary>
+	string StatusLine
+	{
+		get
+		{
+			var text = string.IsNullOrEmpty( _stageLine ) ? StagedLine : _stageLine;
+			var lines = Lines( text );
+			return lines.Count == 0 ? "" : lines[0];
+		}
+	}
+
+	// ---- bake ----
+
+	string BakeTarget
+	{
+		get
+		{
+			var file = TipStudioJson.FileNameFor( TipsStudio.Draft.Id );
+			return file is null
+				? "Give the tip an id: the file takes its name."
+				: $"writes Assets/tips/{file}";
+		}
+	}
+
+	string StagedLine
+	{
+		get
+		{
+			var count = TipsStudio.StagedCount;
+			return count == 0 ? "nothing staged" : $"{count} staged for the editor";
+		}
+	}
+
+	void CopyJson()
+	{
+		TipsStudio.CopyJson();
+		_copyLabel = "Copied!";
+		Refresh();
+	}
+
+	void Stage()
+	{
+		_stageLine = TipsStudio.Stage();
+		Refresh();
+	}
+
+	void ClearStaged()
+	{
+		_stageLine = TipsStudio.ClearStaged();
+		Refresh();
+	}
+
+	void ResetLabels()
+	{
+		_copyLabel = "Copy .tip JSON";
+		_stageLine = "";
+	}
+
+	// ---- open / close, boot, cursor ----
+
+	/// <summary>Bump the panel's own revision so the next frame rebuilds it. Every click calls this; typing
+	/// into the id box does NOT, because a rebuild would take the cursor out of the box you are typing in.</summary>
+	void Refresh() => _revision++;
+
+	/// <summary>Enter in a text box: push the wording at the preview card and refresh everything derived
+	/// from it.</summary>
+	void Commit()
+	{
+		if ( TipsStudio.PreviewOn )
+			TipsStudio.PushPreview( Scene );
+
+		Refresh();
+	}
+
+	void Close()
+	{
+		TipsStudio.StopPreview( Scene );
+		TipsStudio.Open = false;
+		_openDrop = null;
+		ResetLabels();
+	}
+
+	protected override void OnTreeBuilt()
+	{
+		// A background press-drag over a scrolling region must not pan the content or eat a button click; the
+		// wheel and the scrollbar still scroll.
+		if ( ListBody is not null )
+			ListBody.CanDragScroll = false;
+
+		if ( MidBody is not null )
+			MidBody.CanDragScroll = false;
+
+		if ( RailBody is not null )
+			RailBody.CanDragScroll = false;
+	}
+
+	protected override void OnUpdate()
+	{
+		// BOOT. `fg_tips_studio` is a convar and s&box persists convars across sessions, so a session could
+		// otherwise come up with an authoring panel open from a value set weeks ago. This component's own
+		// OpenOnStart decides the boot state and the persisted value never does. Deliberately in the FIRST
+		// UPDATE, not OnStart: a panel created in code is configured by whatever created it, and OnStart would
+		// race that assignment.
+		if ( !_booted )
+		{
+			_booted = true;
+			TipsStudio.Open = OpenOnStart;
+		}
+
+		// The Studio is an authoring tool; a published build has nothing to author with it.
+		if ( EditorOnly && !Application.IsEditor )
+		{
+			TipsStudio.Open = false;
+			return;
+		}
+
+		// Opens only. Closing is the header × or the convar, so this key can never fight a text box.
+		if ( !TipsStudio.Open && !string.IsNullOrEmpty( OpenKey ) && Input.Keyboard.Pressed( OpenKey ) )
+		{
+			TipsStudio.Open = true;
+			Refresh();
+		}
+
+		if ( TipsStudio.Open )
+		{
+			Mouse.Visibility = MouseVisibility.Visible;
+			_wasOpen = true;
+		}
+		else if ( _wasOpen )
+		{
+			_wasOpen = false;
+			ResetLabels();
+			TipsStudio.StopPreview( Scene );
+		}
+	}
+
+	protected override void OnDestroy()
+	{
+		// Everything the Studio pins is static and would otherwise follow the developer into the next scene:
+		// the preview draft, a test-fire draft, and the pinned preview device.
+		TipsStudio.Shutdown();
+	}
+
+	// Fold the things a CLICK changes, and nothing anyone TYPES into. A rebuild rehomes every TextEntry, which
+	// takes the cursor out of the box mid-word, so Id and a trigger's Key and Name are deliberately absent:
+	// the panel repaints when you press Enter or click, via _revision.
+	protected override int BuildHash()
+	{
+		var hc = new HashCode();
+		hc.Add( TipsStudio.Open );
+		hc.Add( TipsStudio.OpenedFrom );
+		hc.Add( TipsStudio.PreviewOn );
+		hc.Add( TipsStudio.PinnedDevice );
+		hc.Add( TipsCoach.ActiveTip?.Id );
+		hc.Add( _copyLabel );
+		hc.Add( _stageLine );
+		hc.Add( _openDrop );
+		hc.Add( _revision );
+		hc.Add( TipsStudio.Draft.Priority );
+		hc.Add( TipsStudio.Draft.MaxShowSeconds );
+		hc.Add( PrerequisiteList.Count );
+
+		foreach ( var slot in TriggerSlots )
+		{
+			hc.Add( slot.Trigger.Kind );
+			hc.Add( slot.Trigger.Action );
+			hc.Add( slot.Trigger.Threshold );
+			hc.Add( slot.Trigger.Seconds );
+			hc.Add( slot.Trigger.AnalogSource );
+			hc.Add( slot.Trigger.Magnitude );
+			hc.Add( slot.Trigger.Children.Count );
+			foreach ( var child in slot.Trigger.Children )
+				hc.Add( child.Kind );
+		}
+
+		return hc.ToHashCode();
+	}
+}

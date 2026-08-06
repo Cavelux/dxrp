@@ -1,0 +1,17 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-empty",
+  "namespaceFallback": "Grains",
+  "classNameFallback": "EmptyDoc",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "",
+    "namespace": "",
+    "symbols": [],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": []
+  }
+}

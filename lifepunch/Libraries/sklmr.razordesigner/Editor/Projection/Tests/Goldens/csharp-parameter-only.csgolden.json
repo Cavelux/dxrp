@@ -1,0 +1,38 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-parameter-only",
+  "namespaceFallback": "Test",
+  "classNameFallback": "ParamOnly",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "ParamOnly",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "Parameter",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Title",
+        "type": "string",
+        "initial": {
+          "$type": "Literal",
+          "id": "00000000-0000-0000-0000-000000000010",
+          "typeId": "string",
+          "value": ""
+        }
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "ParamOnly", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "ParamOnly", "baseClass": "PanelComponent" },
+      { "$type": "FieldDecl", "visibility": "public", "fieldType": "string", "name": "Title", "initialExpr": "\"\"", "isParameter": true },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

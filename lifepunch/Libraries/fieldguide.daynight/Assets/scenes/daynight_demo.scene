@@ -1,0 +1,143 @@
+{
+  "__guid": "d9a71c00-0001-4001-8001-000000000001",
+  "GameObjects": [
+    {
+      "__guid": "d9a71c00-0002-4002-8002-000000000002",
+      "Flags": 0,
+      "Name": "Sun",
+      "Rotation": "-0.0729315,0.4822396,0.1305433,0.8631827",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "d9a71c00-0003-4003-8003-000000000003",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "1.72,1.5,1.14,1",
+          "Shadows": true,
+          "SkyColor": "0.92,0.84,0.68,1"
+        },
+        {
+          "__type": "FieldGuide.DayNight.DayNightDriver",
+          "__guid": "d9a71c00-0004-4004-8004-000000000004"
+        }
+      ]
+    },
+    {
+      "__guid": "d9a71c00-0005-4005-8005-000000000005",
+      "Flags": 0,
+      "Name": "2D Skybox",
+      "Tags": "skybox",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.SkyBox2D",
+          "__guid": "d9a71c00-0006-4006-8006-000000000006",
+          "SkyMaterial": "materials/skybox/skybox_day_01.vmat",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.EnvmapProbe",
+          "__guid": "d9a71c00-0007-4007-8007-000000000007",
+          "Texture": "textures/cubemaps/default2.vtex",
+          "Bounds": {
+            "Mins": "-1024,-1024,-512",
+            "Maxs": "1024,1024,512"
+          },
+          "DelayBetweenUpdates": 0.1,
+          "Feathering": 0.02,
+          "FrameInterval": 5,
+          "MaxDistance": 2048,
+          "Projection": "Sphere",
+          "RenderDynamically": false,
+          "TintColor": "1,1,1,1",
+          "UpdateStrategy": "OnEnabled",
+          "ZFar": 8192,
+          "ZNear": 16
+        }
+      ]
+    },
+    {
+      "__guid": "d9a71c00-0008-4008-8008-000000000008",
+      "Flags": 0,
+      "Name": "Ground",
+      "Scale": "14,14,1",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "d9a71c00-0009-4009-8009-000000000009",
+          "BodyGroups": 18446744073709551615,
+          "MaterialOverride": "materials/default.vmat",
+          "Model": "models/dev/plane.vmdl",
+          "RenderType": "On",
+          "Tint": "0.42,0.44,0.4,1"
+        }
+      ]
+    },
+    {
+      "__guid": "d9a71c00-000a-400a-800a-00000000000a",
+      "Flags": 0,
+      "Name": "Camera",
+      "Position": "-900,-700,260",
+      "Rotation": "-0.019809,0.057746,0.323872,0.944134",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.CameraComponent",
+          "__guid": "d9a71c00-000b-400b-800b-00000000000b",
+          "BackgroundColor": "0.09,0.1,0.12,1",
+          "ClearFlags": "All",
+          "FieldOfView": 70,
+          "IsMainCamera": true,
+          "Orthographic": false,
+          "OrthographicHeight": 1204,
+          "Priority": 1,
+          "RenderExcludeTags": "",
+          "RenderTags": "",
+          "TargetEye": "None",
+          "Viewport": "0,0,1,1",
+          "ZFar": 80000,
+          "ZNear": 2
+        }
+      ]
+    },
+    {
+      "__guid": "d9a71c00-000c-400c-800c-00000000000c",
+      "Flags": 0,
+      "Name": "Day Night Rig",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "FieldGuide.DayNight.DayNightClock",
+          "__guid": "d9a71c00-000d-400d-800d-00000000000d"
+        },
+        {
+          "__type": "FieldGuide.DayNight.DayNightDemoBootstrap",
+          "__guid": "d9a71c00-000e-400e-800e-00000000000e",
+          "DemoWorldSeed": 20260731,
+          "DemoDayLengthMinutes": 4,
+          "DemoStartHour": 8.5
+        }
+      ]
+    }
+  ],
+  "SceneProperties": {
+    "FixedUpdateFrequency": 50,
+    "MaxFixedUpdates": 5,
+    "NetworkFrequency": 60,
+    "NetworkInterpolation": true,
+    "ThreadedAnimation": true,
+    "TimeScale": 1,
+    "UseFixedUpdate": true,
+    "NavMesh": {
+      "Enabled": false
+    }
+  },
+  "Title": "daynight_demo",
+  "Description": "Field Guide Day Night Kit demo: a host-authoritative clock drives a sun sweep and colour grade over a lit shape cluster, with a time panel for scrubbing the clock, pinning weather, and copying the tuned config.",
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

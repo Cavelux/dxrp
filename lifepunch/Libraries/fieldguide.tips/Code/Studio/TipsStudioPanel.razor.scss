@@ -1,0 +1,1110 @@
+// ============================================================================================
+// TIPS STUDIO stylesheet. The approved Field Kits UI system (docs/design/ui-system) translated into
+// the s&box panel-CSS subset: a centred 1360px modal over a dim scrim, three columns, flex and px
+// only. Self-contained on purpose: s&box compiles SCSS per file at runtime, so an @import of a
+// game-side theme would break wherever this kit is vendored.
+//
+// RETINT: change the three $fk-accent values below and nothing else moves.
+//
+// ============================================================================================
+// TYPE. This panel ships the mockup's scale: 16 / 14 / 13 / 12 with exact px line heights
+// (16/22 titles, 14/18 mono values keycaps steppers and dropdowns, 13/20 body labels buttons and
+// tabs, 12/16 kickers captions and meta). Four distinct sizes, inside the engine's per-assembly
+// budget, and the same pairings the other kits ship. No letter-spacing anywhere, that one really
+// does corrupt glyphs.
+//
+// AN EARLIER NOTE HERE CLAIMED font-size RENDERS TEXT AS SOLID BLOCKS, AND STRIPPED EVERY SIZE OUT
+// OF THIS PANEL. That claim was wrong and it is retracted. It was read off MCP camera captures: the
+// capture path rasterizes sized text as filled grey blocks, so a screenshot of any panel that
+// declares font-size looks corrupted. On the physical screen those same panels render pin sharp,
+// owner-verified on engine 26.07.22 (2026-07-31) against the Sound Mixer panels, which declare all
+// four sizes and are crisp.
+//
+// So a capture cannot verify TEXT. Geometry is judgeable in a capture (boxes, spacing, corners,
+// fills); glyphs are not, and the check for text is the owner's eye on a real screen. Never delete
+// a font-size on screenshot evidence again.
+// ============================================================================================
+//
+// OTHER ENGINE RULES this file obeys, each of which has cost someone a session:
+//   - Borders are border-width + border-color ONLY. A `border:` shorthand or any `border-style` is a
+//     parse error that aborts the whole stylesheet and collapses the panel to 0x0, and SCSS compiles
+//     in the editor at runtime, so a headless build never sees it.
+//   - No box-shadow, no letter-spacing, no backdrop-filter, no inset shorthand.
+//   - Scroll regions are a FIXED px height under a pinned header. A percentage max-height on an
+//     absolutely positioned card measures against a parent the style engine has not sized yet, and
+//     the card collapses.
+//   - Wrapping rows space their children with margins, not gap, and a scrolling column never gets gap.
+//   - A fixed-size flex child declares BOTH width (or height) and flex-basis: flex-basis wins for the
+//     main axis, and an inherited 0 basis collapses the column to nothing.
+//   - Text nodes stay inside one line's worth of box. A run that overflows its box rasterizes as a
+//     solid grey block or clips to blank, so long strings are chunked before they reach the markup.
+//   - Text stays bright. #E8EAED is the floor for anything an author reads to operate the panel;
+//     key glyphs are pure white at weight 700.
+// ============================================================================================
+
+// ---- accent: the whole retint surface ----
+$fk-accent:        #e3c85e;
+$fk-accent-hover:  #edd478;
+$fk-accent-ink:    #1a160a;
+
+// ---- base surfaces ----
+$fk-panel-bg:      rgba( 15, 17, 21, 0.94 );
+$fk-scrim:         rgba( 6, 8, 10, 0.55 );
+$fk-well:          #14171c;
+$fk-toast-bg:      rgba( 15, 17, 21, 0.92 );
+
+$fk-row:           rgba( 255, 255, 255, 0.05 );
+$fk-row-2:         rgba( 255, 255, 255, 0.06 );
+$fk-hover:         rgba( 255, 255, 255, 0.10 );
+$fk-border:        rgba( 255, 255, 255, 0.08 );
+$fk-border-hi:     rgba( 255, 255, 255, 0.12 );
+$fk-border-soft:   rgba( 255, 255, 255, 0.05 );
+$fk-accent-edge:   rgba( 227, 200, 94, 0.60 );
+
+// ---- text ----
+$fk-text-hi:       #f2f4f7;
+$fk-text:          #e8eaed;
+$fk-key-glyph:     #ffffff;
+$fk-danger:        #ff6b6b;
+$fk-danger-bg:     rgba( 255, 107, 107, 0.10 );
+$fk-danger-edge:   rgba( 255, 107, 107, 0.35 );
+
+// ---- pad chip (controller blue, the one non-accent hue) ----
+$fk-pad-bg:        rgba( 60, 70, 90, 0.60 );
+$fk-pad-edge:      rgba( 150, 190, 240, 0.65 );
+
+// FONTS ARE DECLARED INLINE, never through a variable, and the UI family is the BARE name. The engine
+// auto-registers fonts by family name and resolves them itself; the working precedent everywhere in the
+// kits is `font-family: Poppins, sans-serif;` and `font-family: "Roboto Mono", monospace;`. A quoted
+// "Poppins" behind a "Segoe UI" fallback did not resolve, and every element that should have been
+// Poppins fell back to the engine default, which reads as mono. Owner caught it on a real screen; a
+// capture cannot show it (font FACE resolution is not screenshot-verifiable).
+
+// The three-column body height, and the height of one control row. Every fixed box below is derived
+// from these two, so moving one keeps the columns aligned.
+//
+// Both are the mockup's own numbers. The control row is the mockup's 38 (9 and 9 padding, 2 border,
+// over a mono line), and the body is the mockup's 593. They were 660 / 42 while this sheet had no
+// font sizes and every line stood at the engine default.
+//
+// THE ONE NUMBER THAT IS NOT THE MOCKUP'S, and the reason the fixed boxes below are not either:
+// this engine draws a text line HALF AGAIN as tall as the px line-height you declare. Measured on a
+// live 1:1 capture (2026-07-31, engine 26.07.22): 16/22 renders a 33px line, 13/20 renders 30. So a
+// 13px button is 9 + 9 + 2 + 30 = 50 tall, not 40, and every stack of them runs long. Keep the
+// mockup's outer boxes and let the two scroll regions absorb it: measure, do not assume.
+$ts-body-h:        593px;
+$ts-ctrl-h:        38px;
+
+// ============================================================================================
+// Root and scrim
+// ============================================================================================
+
+// The root covers the screen and takes NO pointer events: without that it hit-tests every pixel and
+// swallows the clicks meant for the game underneath. Root none, scrim and modal all.
+.ts-root {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	font-family: Poppins, sans-serif;
+	color: $fk-text;
+}
+
+.ts-scrim {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	background-color: $fk-scrim;
+	pointer-events: all;
+}
+
+.ts-modal {
+	width: 1360px;
+	flex-basis: 1360px;
+	flex-direction: column;
+	flex-shrink: 0;
+	background-color: $fk-panel-bg;
+	border-width: 1px;
+	border-color: $fk-border;
+	border-radius: 16px;
+	pointer-events: all;
+}
+
+// ============================================================================================
+// Header
+// ============================================================================================
+
+.ts-hdr {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	flex-shrink: 0;
+	padding-top: 20px;
+	padding-right: 24px;
+	padding-bottom: 16px;
+	padding-left: 24px;
+	border-bottom-width: 1px;
+	border-bottom-color: $fk-border;
+}
+
+.ts-hdr-left {
+	flex-direction: row;
+	align-items: center;
+}
+
+.ts-title {
+	font-size: 16px;
+	line-height: 22px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: $fk-text-hi;
+	margin-right: 12px;
+}
+
+.ts-hdr-meta {
+	font-family: "Roboto Mono", monospace;
+	font-size: 12px;
+	line-height: 16px;
+	color: $fk-text;
+	flex-shrink: 0;
+}
+
+// A generous target: this is the close affordance, and a small one is a fight.
+.ts-x {
+	font-size: 16px;
+	line-height: 22px;
+	width: 42px;
+	flex-basis: 42px;
+	height: 42px;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	margin-top: -8px;
+	margin-right: -12px;
+	margin-bottom: -8px;
+	border-radius: 6px;
+	font-weight: 700;
+	color: $fk-text-hi;
+	cursor: pointer;
+	pointer-events: all;
+	transition: all 0.1s ease;
+
+	&:hover {
+		background-color: $fk-hover;
+	}
+}
+
+// ============================================================================================
+// The three columns
+// ============================================================================================
+
+.ts-cols {
+	flex-direction: row;
+	flex-shrink: 0;
+	height: $ts-body-h;
+	flex-basis: $ts-body-h;
+}
+
+// ---- left: the merged catalog ----
+.ts-left {
+	width: 300px;
+	flex-basis: 300px;
+	height: $ts-body-h;
+	flex-shrink: 0;
+	flex-direction: column;
+	padding: 16px;
+	border-right-width: 1px;
+	border-right-color: $fk-border;
+}
+
+.ts-list-hdr {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	flex-shrink: 0;
+	padding-bottom: 8px;
+	margin-bottom: 10px;
+	border-bottom-width: 1px;
+	border-bottom-color: $fk-border;
+}
+
+.ts-list-t {
+	font-size: 13px;
+	line-height: 20px;
+	font-weight: 600;
+	color: $fk-text-hi;
+	flex-shrink: 0;
+}
+
+.ts-list-m {
+	font-family: "Roboto Mono", monospace;
+	font-size: 12px;
+	line-height: 16px;
+	color: $fk-text;
+	flex-shrink: 0;
+}
+
+.ts-list {
+	// The mockup's 472 less the 20 the taller lines cost the header and the button under it, so the
+	// column still ends 16 above the modal's bottom edge (32 padding + 49 header + 452 + 10 + 50).
+	height: 452px;
+	flex-basis: 452px;
+	flex-shrink: 0;
+	flex-direction: column;
+	overflow-y: scroll;
+	margin-bottom: 10px;
+	pointer-events: all;
+}
+
+.ts-row {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	flex-shrink: 0;
+	background-color: $fk-row;
+	border-radius: 6px;
+	padding: 7px 10px;
+	margin-bottom: 4px;
+	cursor: pointer;
+	pointer-events: all;
+	transition: all 0.1s ease;
+
+	&:hover {
+		background-color: $fk-hover;
+	}
+
+	// flex-shrink 0 is load bearing. A text node squeezed narrower than its own run does not ellipsis
+	// or wrap here, it rasterizes as a solid filled block, which is exactly what a long id next to a
+	// state chip did. Better to overflow the row than to blank the id out.
+	.ts-row-id {
+		font-family: "Roboto Mono", monospace;
+		font-size: 14px;
+		line-height: 18px;
+		flex-shrink: 0;
+		color: $fk-text;
+		margin-right: 10px;
+	}
+
+	.ts-row-meta {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+	}
+
+	.ts-row-src {
+		font-family: "Roboto Mono", monospace;
+		font-size: 12px;
+		line-height: 16px;
+		flex-shrink: 0;
+		color: $fk-text;
+	}
+
+	.ts-row-state {
+		font-family: "Roboto Mono", monospace;
+		font-size: 12px;
+		line-height: 16px;
+		flex-shrink: 0;
+		font-weight: 700;
+		color: $fk-accent-ink;
+		background-color: $fk-accent;
+		border-radius: 5px;
+		padding: 0px 6px;
+	}
+
+	// The row being edited: accent fill, ink text, exactly as the draft row reads in the mockup. The
+	// children name their own colour, so the override has to name them too.
+	&.on {
+		background-color: $fk-accent;
+
+		.ts-row-id {
+			color: $fk-accent-ink;
+		}
+
+		.ts-row-src {
+			color: $fk-accent-ink;
+		}
+
+		.ts-row-state {
+			color: $fk-accent-ink;
+			background-color: rgba( 26, 22, 10, 0.18 );
+		}
+
+		&:hover {
+			background-color: $fk-accent-hover;
+		}
+	}
+}
+
+.ts-left-btns {
+	flex-direction: row;
+	flex-shrink: 0;
+}
+
+// ---- middle: the draft editor ----
+// flex-grow 1 over a ZERO basis, so the column is exactly the width the other two leave behind
+// rather than the width its widest row would like to be.
+.ts-mid {
+	flex-grow: 1;
+	flex-basis: 0px;
+	height: $ts-body-h;
+	flex-direction: column;
+	padding: 16px 24px;
+	overflow-y: scroll;
+	pointer-events: all;
+}
+
+// ---- right: preview and bake ----
+.ts-rail {
+	width: 460px;
+	flex-basis: 460px;
+	height: $ts-body-h;
+	flex-shrink: 0;
+	flex-direction: column;
+	padding: 16px 20px;
+	border-left-width: 1px;
+	border-left-color: $fk-border;
+}
+
+// ============================================================================================
+// Fields
+// ============================================================================================
+
+// A row of fields side by side.
+.ts-frow {
+	flex-direction: row;
+	flex-shrink: 0;
+	margin-bottom: 14px;
+}
+
+.ts-field {
+	flex-direction: column;
+	margin-right: 12px;
+
+	// 200, where the mockup draws 280 for the Id and for a trigger's Input action. 280 does not fit
+	// either row and the type scale did not change that: the middle column is 548 wide, and the Id row
+	// spends 12 + 150 on Priority, which would leave the Prerequisites field 98 for a value that runs
+	// to 118 at 14px mono ("handbrake-turn") plus 50 of padding and chevron, and a run that overflows
+	// its box rasterizes as a solid block. The trigger rows are worse: they compose up to three fields
+	// (param, a 150 stepper, and Max show seconds, whose own stepper will not shrink below 148), which
+	// needs 602 of a 548 box at 280 and fits with room at 200. Measure the widest composition before
+	// widening this.
+	&.w200 { width: 200px; flex-basis: 200px; flex-shrink: 0; }
+	// 150px is the mockup's Priority column, and it is also the narrowest this box can honestly be:
+	// the stepper inside it is 28 + 6 + 80 + 6 + 28, and none of those five children shrink, so a
+	// 130px declaration was a box lying about its own content and stealing the difference from the
+	// field beside it.
+	&.w150 { width: 150px; flex-basis: 150px; flex-shrink: 0; }
+	&.w120 { width: 120px; flex-basis: 120px; flex-shrink: 0; }
+	&.grow { flex-grow: 1; flex-basis: 0px; }
+	&.last { margin-right: 0px; }
+}
+
+.ts-lab {
+	font-size: 13px;
+	line-height: 20px;
+	color: $fk-text-hi;
+	margin-bottom: 6px;
+	flex-shrink: 0;
+}
+
+// Label on the left, a short semantic note on the right.
+.ts-lab-row {
+	flex-shrink: 0;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 6px;
+
+	.ts-lab {
+		margin-bottom: 0px;
+	}
+
+	.ts-cap {
+		font-size: 12px;
+		line-height: 16px;
+		margin-top: 0px;
+	}
+}
+
+// A section's title beside its one-line blurb.
+.ts-sec-hd {
+	flex-shrink: 0;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+
+	.ts-sec-t {
+		font-size: 12px;
+		line-height: 16px;
+		margin-bottom: 0px;
+	}
+}
+
+.ts-cap {
+	flex-shrink: 0;
+	font-family: "Roboto Mono", monospace;
+	color: $fk-text;
+	margin-top: 6px;
+
+	// Sitting in a row rather than under a control.
+	&.flat {
+		margin-top: 0px;
+	}
+
+	// The line under the preview well, one block-gap below the last card, as the mockup draws it.
+	&.well {
+		margin-top: 14px;
+	}
+}
+
+// A text box. Its height is pinned so it lines up with the steppers and dropdowns beside it.
+.ts-in {
+	flex-shrink: 0;
+	font-family: "Roboto Mono", monospace;
+	font-size: 14px;
+	line-height: 18px;
+	height: $ts-ctrl-h;
+	color: $fk-text;
+	background-color: $fk-row;
+	border-width: 1px;
+	border-color: rgba( 255, 255, 255, 0.10 );
+	border-radius: 6px;
+	padding: 0px 12px;
+	pointer-events: all;
+
+	&:focus {
+		border-color: $fk-accent-edge;
+	}
+}
+
+// ---- stepper: minus, value, plus ----
+.ts-step {
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.ts-stp {
+	width: 28px;
+	flex-basis: 28px;
+	height: $ts-ctrl-h;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	font-family: "Roboto Mono", monospace;
+	font-size: 14px;
+	line-height: 18px;
+	color: $fk-text-hi;
+	background-color: $fk-row-2;
+	border-width: 1px;
+	border-color: rgba( 255, 255, 255, 0.10 );
+	border-radius: 6px;
+	cursor: pointer;
+	pointer-events: all;
+	transition: all 0.1s ease;
+
+	&:hover {
+		color: $fk-accent-ink;
+		background-color: $fk-accent;
+	}
+}
+
+.ts-val {
+	flex-grow: 1;
+	height: $ts-ctrl-h;
+	align-items: center;
+	justify-content: center;
+	font-family: "Roboto Mono", monospace;
+	font-size: 14px;
+	line-height: 18px;
+	color: $fk-text;
+	background-color: $fk-row;
+	border-width: 1px;
+	border-color: rgba( 255, 255, 255, 0.10 );
+	border-radius: 6px;
+	margin-left: 6px;
+	margin-right: 6px;
+
+	&.w80 {
+		width: 80px;
+		flex-basis: 80px;
+		flex-grow: 0;
+		flex-shrink: 0;
+	}
+}
+
+// ============================================================================================
+// Dropdown. The engine has no native select, so this is a field that opens a flat option list
+// underneath it, in flow: an absolutely positioned popup would need a z-order this style engine
+// does not give siblings.
+// ============================================================================================
+
+.ts-drop {
+	flex-direction: column;
+	flex-shrink: 0;
+}
+
+.ts-drop-face {
+	flex-shrink: 0;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	height: $ts-ctrl-h;
+	background-color: $fk-row;
+	border-width: 1px;
+	border-color: rgba( 255, 255, 255, 0.10 );
+	border-radius: 6px;
+	padding: 0px 12px;
+	cursor: pointer;
+	pointer-events: all;
+	transition: all 0.1s ease;
+
+	&:hover {
+		border-color: $fk-accent-edge;
+	}
+
+	// Open: an accent hairline says which field the list below belongs to.
+	&.open {
+		background-color: $fk-row-2;
+		border-color: $fk-accent-edge;
+	}
+}
+
+.ts-drop-val {
+	font-family: "Roboto Mono", monospace;
+	font-size: 14px;
+	line-height: 18px;
+	flex-shrink: 0;
+	color: $fk-text;
+}
+
+// The chevron. The mockup's ▾ is a Geometric Shapes glyph, which none of the shipped fonts cover, so
+// it would render as tofu. This is the same mark the engine's own DropDown draws: the Material Icons
+// ligature `expand_more`, which ships in addons/base/Assets/fonts and is what Add.Icon() uses.
+.ts-chev {
+	flex-shrink: 0;
+	font-family: "Material Icons";
+	font-size: 16px;
+	line-height: 22px;
+	color: $fk-text-hi;
+	margin-left: 8px;
+}
+
+// A long option list gets a FIXED height and scrolls. max-height is the shape that compresses
+// unpredictably here, so the markup adds `tall` once there are more options than fit.
+.ts-drop-list {
+	flex-direction: column;
+	background-color: $fk-panel-bg;
+	border-width: 1px;
+	border-color: $fk-border-hi;
+	border-radius: 6px;
+	padding: 4px;
+	margin-top: 4px;
+	pointer-events: all;
+
+	&.tall {
+		height: 232px;
+		flex-basis: 232px;
+		flex-shrink: 0;
+		overflow-y: scroll;
+	}
+}
+
+.ts-drop-opt {
+	flex-shrink: 0;
+	font-family: "Roboto Mono", monospace;
+	font-size: 14px;
+	line-height: 18px;
+	color: $fk-text;
+	border-radius: 5px;
+	padding: 5px 10px;
+	cursor: pointer;
+	pointer-events: all;
+	transition: all 0.1s ease;
+
+	&:hover {
+		background-color: $fk-hover;
+	}
+
+	&.on {
+		color: $fk-accent-ink;
+		background-color: $fk-accent;
+
+		&:hover {
+			background-color: $fk-accent-hover;
+		}
+	}
+}
+
+// ============================================================================================
+// Sections, chips, warnings
+// ============================================================================================
+
+.ts-sec {
+	flex-direction: column;
+	flex-shrink: 0;
+	border-top-width: 1px;
+	border-top-color: $fk-border;
+	padding-top: 12px;
+	margin-bottom: 14px;
+}
+
+.ts-sec-t {
+	font-family: "Roboto Mono", monospace;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: $fk-accent;
+	margin-bottom: 8px;
+}
+
+// flex-shrink 0 is not optional on a child of a scrolling column. Without it the row is the one
+// thing in the middle column that can be squeezed, and a squeezed wrap row collapses to no height
+// and paints its chips over the block below (the prerequisite chip landed on top of the Text
+// label). Every other block in this column already declares it.
+.ts-chips {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	flex-shrink: 0;
+	margin-bottom: 2px;
+
+	// Standing on its own under a field rather than inside a section.
+	&.block {
+		margin-bottom: 12px;
+	}
+}
+
+.ts-chip {
+	flex-shrink: 0;
+	font-weight: 500;
+	color: $fk-text-hi;
+	background-color: $fk-row;
+	border-radius: 6px;
+	padding: 4px 12px;
+	margin-right: 6px;
+	margin-bottom: 6px;
+	cursor: pointer;
+	pointer-events: all;
+	transition: all 0.1s ease;
+
+	&:hover {
+		background-color: $fk-hover;
+	}
+
+	&.on {
+		font-weight: 600;
+		color: $fk-accent-ink;
+		background-color: $fk-accent;
+
+		&:hover {
+			background-color: $fk-accent-hover;
+		}
+	}
+
+	&.mono {
+		font-family: "Roboto Mono", monospace;
+	font-size: 13px;
+	line-height: 20px;
+	}
+
+	&.drop {
+		color: $fk-danger;
+	}
+}
+
+// A composed child trigger, indented behind an accent edge.
+.ts-child .ts-frow {
+	margin-bottom: 0px;
+}
+
+.ts-child {
+	flex-direction: column;
+	flex-shrink: 0;
+	background-color: $fk-row;
+	border-radius: 6px;
+	border-left-width: 3px;
+	border-left-color: $fk-accent;
+	padding: 10px 12px;
+	margin-bottom: 8px;
+}
+
+.ts-warn {
+	flex-direction: row;
+	align-items: flex-start;
+	flex-shrink: 0;
+	background-color: $fk-danger-bg;
+	border-width: 1px;
+	border-color: $fk-danger-edge;
+	border-radius: 6px;
+	padding: 9px 12px;
+	margin-bottom: 8px;
+
+	.ts-warn-b {
+		font-family: "Roboto Mono", monospace;
+		font-size: 12px;
+		line-height: 16px;
+		font-weight: 700;
+		color: $fk-danger;
+		margin-right: 10px;
+	}
+
+	.ts-warn-t {
+		flex-direction: column;
+		flex-grow: 1;
+	}
+
+	.ts-warn-l {
+		font-size: 13px;
+		line-height: 20px;
+		flex-shrink: 0;
+		color: $fk-text;
+	}
+}
+
+// The empty state: a bright line and a short instruction inside a hairline well.
+.ts-empty {
+	flex-direction: column;
+	align-items: center;
+	flex-shrink: 0;
+	border-width: 1px;
+	border-color: $fk-border;
+	border-radius: 10px;
+	padding: 24px 16px;
+
+	.ts-empty-t {
+		font-size: 13px;
+		line-height: 20px;
+		flex-shrink: 0;
+		font-weight: 600;
+		color: $fk-text-hi;
+		margin-bottom: 6px;
+	}
+
+	.ts-empty-l {
+		font-size: 13px;
+		line-height: 20px;
+		flex-shrink: 0;
+		color: $fk-text;
+	}
+}
+
+// ============================================================================================
+// Buttons
+// ============================================================================================
+
+.ts-btn-row {
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+
+	&.pad {
+		margin-top: 8px;
+	}
+}
+
+.ts-btn {
+	font-size: 13px;
+	line-height: 20px;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	font-weight: 600;
+	color: $fk-text-hi;
+	background-color: $fk-row-2;
+	border-width: 1px;
+	border-color: rgba( 255, 255, 255, 0.10 );
+	border-radius: 10px;
+	padding: 9px 18px;
+	cursor: pointer;
+	pointer-events: all;
+	transition: all 0.1s ease;
+
+	&:hover {
+		background-color: $fk-hover;
+	}
+
+	// Primary: accent fill, ink text. No hairline, the fill is the edge.
+	&.pri {
+		color: $fk-accent-ink;
+		background-color: $fk-accent;
+		border-width: 0px;
+		border-color: $fk-accent;
+
+		&:hover {
+			background-color: $fk-accent-hover;
+		}
+	}
+
+	&.grow {
+		flex-grow: 1;
+		flex-shrink: 1;
+		flex-basis: 0px;
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+
+	&.small {
+		padding: 6px 14px;
+	}
+
+	&.gap {
+		margin-right: 8px;
+	}
+}
+
+// ============================================================================================
+// The right rail: live preview and bake-out
+// ============================================================================================
+
+.ts-rail-hdr {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	flex-shrink: 0;
+	margin-bottom: 12px;
+}
+
+.ts-kicker {
+	font-family: "Roboto Mono", monospace;
+	font-size: 12px;
+	line-height: 16px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: $fk-accent;
+}
+
+// Everything between the pinned header and the pinned bake block. A FIXED height that scrolls, so a
+// long tip grows the preview cards without ever pushing the bake buttons off the bottom of the card.
+//
+// The height is what the rail has left over, and it has to be kept in step by hand, at the line
+// heights this engine actually draws (see the note at the top of the file): 593 body, less 32
+// padding, less 56 for the header row and its margin, less 50 for the device picker row, less 159
+// for the bake block (12 margin, 1 rule, 12 padding, a 50 button row, a 32 caption line, and an
+// 8 plus 44 second button row). Under-count it and the bake block hangs below the modal.
+.ts-rail-body {
+	height: 296px;
+	flex-basis: 296px;
+	flex-shrink: 0;
+	flex-direction: column;
+	overflow-y: scroll;
+	pointer-events: all;
+}
+
+.ts-well {
+	flex-direction: column;
+	flex-shrink: 0;
+	background-color: $fk-well;
+	border-width: 1px;
+	border-color: $fk-border-soft;
+	border-radius: 10px;
+	padding: 16px;
+	margin-bottom: 12px;
+}
+
+.ts-pv {
+	flex-direction: column;
+	flex-shrink: 0;
+	// The mockup stacks the two preview blocks 14px apart inside the well.
+	margin-bottom: 14px;
+
+	&.last {
+		margin-bottom: 0px;
+	}
+}
+
+.ts-pv-lab {
+	font-family: "Roboto Mono", monospace;
+	font-size: 12px;
+	line-height: 16px;
+	color: $fk-text;
+	margin-bottom: 6px;
+	flex-shrink: 0;
+}
+
+// A row of small pickers under the preview: which device the real lower-left card reads as.
+.ts-pv-row {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	flex-shrink: 0;
+	margin-bottom: 6px;
+}
+
+.ts-pv-key {
+	font-size: 13px;
+	line-height: 20px;
+	color: $fk-text-hi;
+	margin-right: 8px;
+	margin-bottom: 6px;
+}
+
+.ts-out {
+	flex-direction: column;
+	flex-shrink: 0;
+	border-top-width: 1px;
+	border-top-color: $fk-border;
+	padding-top: 12px;
+	margin-top: 12px;
+}
+
+.ts-out-line {
+	flex-shrink: 0;
+	font-family: "Roboto Mono", monospace;
+	font-size: 12px;
+	line-height: 16px;
+	color: $fk-text;
+	margin-top: 8px;
+
+	&.inline {
+		margin-top: 0px;
+		margin-left: 10px;
+	}
+}
+
+// ============================================================================================
+// The toast preview cards. Same component as the shipped card (TipsDisplay), restated here because
+// a stylesheet does not reach into another panel's tree; keep the two in sync when retinting.
+// ============================================================================================
+
+.tsp-card {
+	flex-direction: row;
+	align-items: stretch;
+	flex-shrink: 0;
+	background-color: $fk-toast-bg;
+	border-width: 1px;
+	border-color: $fk-border;
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+// Square bar, rounded at its ends by the card's `overflow: hidden` above, exactly as the mockup
+// builds it. A radius of its own is what put a notch in the corner: a radius scales down to fit its
+// own box, so 9px on a 3px-wide bar comes out as a 3px curve, and that curve inside the card's 10px
+// one reads as a step. Keep this in step with TipsDisplay's .stripe.
+.tsp-stripe {
+	width: 3px;
+	flex-basis: 3px;
+	flex-shrink: 0;
+	background-color: $fk-accent;
+}
+
+.tsp-in {
+	flex-grow: 1;
+	flex-direction: row;
+	align-items: flex-start;
+	padding: 12px 12px 12px 14px;
+}
+
+.tsp-glyph {
+	font-size: 14px;
+	line-height: 18px;
+	flex-shrink: 0;
+	color: $fk-text;
+	margin-right: 8px;
+}
+
+.tsp-body {
+	flex-grow: 1;
+	flex-direction: column;
+	flex-shrink: 0;
+}
+
+.tsp-kicker {
+	font-family: "Roboto Mono", monospace;
+	font-size: 12px;
+	line-height: 16px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: $fk-text-hi;
+	margin-bottom: 3px;
+	flex-shrink: 0;
+}
+
+.tsp-text {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	font-size: 13px;
+	font-weight: 500;
+	color: $fk-text;
+	// 13/20, the scale's body metric, carried by every child of the row so a wrapped second line
+	// clears the key chips on the line above by the same rhythm the mockup draws.
+	line-height: 20px;
+
+	span {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text;
+		// The mockup spaces every child of this row by 3px. A wrapping row cannot use gap, so each
+		// child carries the same right margin instead: a run against a chip gets the same air as a
+		// chip against a run, and the pad pill stops touching the word after it.
+		margin-right: 3px;
+	}
+
+	// A chip never splits across a wrapped line: flex + nowrap + no-shrink keeps it atomic.
+	.tsp-key {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+		white-space: nowrap;
+		font-family: "Roboto Mono", monospace;
+		font-size: 14px;
+		line-height: 18px;
+		font-weight: 700;
+		color: $fk-key-glyph;
+		background-color: $fk-row;
+		border-width: 1px;
+		border-color: $fk-border-hi;
+		border-radius: 5px;
+		padding-left: 7px;
+		padding-right: 7px;
+		margin-left: 0px;
+		margin-right: 3px;
+	}
+
+	// The pad chip is the same atom rounded into a pill and tinted cooler, so a controller prompt
+	// reads apart from a keycap at a glance.
+	.tsp-pad {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+		white-space: nowrap;
+		font-family: "Roboto Mono", monospace;
+		font-size: 14px;
+		line-height: 18px;
+		font-weight: 700;
+		color: $fk-key-glyph;
+		background-color: $fk-pad-bg;
+		border-width: 1px;
+		border-color: $fk-pad-edge;
+		border-radius: 99px;
+		padding-left: 10px;
+		padding-right: 10px;
+		margin-left: 0px;
+		margin-right: 3px;
+	}
+}
+
+.tsp-x {
+	font-size: 16px;
+	line-height: 22px;
+	width: 42px;
+	flex-basis: 42px;
+	height: 42px;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	margin-top: -8px;
+	margin-right: -8px;
+	margin-bottom: -8px;
+	border-radius: 6px;
+	color: $fk-text-hi;
+}

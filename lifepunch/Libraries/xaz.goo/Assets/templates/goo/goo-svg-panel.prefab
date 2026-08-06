@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "80b000c8-445d-4d20-bbae-fb56f3d40126",
+    "Flags": 0,
+    "Name": "SVG Panel",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.SvgPanelNode",
+        "__guid": "23dd7c30-cab7-467b-b18d-e58c5966a2fa"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/SVG Panel",
+  "MenuIcon": "gesture",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

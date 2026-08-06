@@ -1,0 +1,24 @@
+{
+  "RootObject": {
+    "__guid": "f7645d51-1915-4b1c-874d-baa0c47784c4",
+    "Flags": 0,
+    "Name": "Text",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.TextNode",
+        "__guid": "dab4152c-dc97-4f53-8f70-e7d11c4d9732",
+        "Content": "Text"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Text",
+  "MenuIcon": "text_fields",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

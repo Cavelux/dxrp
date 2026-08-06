@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "4e5a1645-8dea-45a4-9a30-766d135659d0",
+    "Flags": 0,
+    "Name": "Scene Panel",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.ScenePanelNode",
+        "__guid": "dd538525-410d-461b-83e2-de18cb52f386"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Scene Panel",
+  "MenuIcon": "view_in_ar",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

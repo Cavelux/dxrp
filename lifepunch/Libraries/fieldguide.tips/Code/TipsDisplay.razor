@@ -1,0 +1,126 @@
+@using System
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@namespace FieldGuide.Tips
+@inherits PanelComponent
+
+@*
+	The coach's calm little card: one tip at a time, lower-left, out of the way of the vitals and the
+	action bar. It renders whatever TipsCoach publishes, the coach owns all the logic; this is a pure
+	view. All state is read through null-safe statics, so the panel is inert until a coach drives it.
+
+	Device-aware (v0.4): the body picks the keyboard or pad segment list off TipsCoach.ActiveDevice, and
+	on a pad it remaps each keycap through TipsCoach.PadLabelFor (skipping chips with no pad equivalent).
+	ActiveDevice is folded into BuildHash, so plugging or unplugging a controller mid-display re-renders
+	the wording and the chips at once.
+*@
+
+<root class="tips-root">
+	@if ( TipsCoach.Visible && TipsCoach.ActiveTip is not null )
+	{
+		var onPad = TipsCoach.ActiveDevice == TipDevice.Gamepad;
+		var segments = onPad ? TipsCoach.ActivePadSegments : TipsCoach.ActiveSegments;
+
+		<div class="tip">
+			@* The accent stripe is its own element carrying its own left radius, rather than a clipped child
+				of a rounded parent: relying on the parent to clip it is how it ends up a square corner over a
+				round card. *@
+			<div class="stripe"></div>
+			<div class="row">
+				@if ( !string.IsNullOrEmpty( TipsCoach.ActiveTip.Icon ) )
+				{
+					<div class="glyph">@TipsCoach.ActiveTip.Icon</div>
+				}
+				<div class="body">
+					<div class="kicker">GUIDE</div>
+					<div class="text">
+						@foreach ( var seg in segments )
+						{
+							if ( seg.Kind == TipSegmentKind.Key )
+							{
+								if ( onPad && TipsCoach.PadLabelFor is not null )
+								{
+									// Pad-mode keycap remap (build plan point 4): swap the keyboard label for its
+									// controller label, or drop the chip when it has no pad equivalent.
+									var mapped = TipDeviceText.PadCap( seg.Text, TipsCoach.PadLabelFor );
+									if ( !string.IsNullOrEmpty( mapped ) )
+									{
+										<span class="@(mapped == seg.Text ? "key" : "pad")">@mapped</span>
+									}
+								}
+								else
+								{
+									<span class="key">@seg.Text</span>
+								}
+							}
+							else if ( seg.Kind == TipSegmentKind.GamepadButton )
+							{
+								<span class="pad">@seg.Text</span>
+							}
+							else
+							{
+								<span>@seg.Text</span>
+							}
+						}
+					</div>
+				</div>
+				@* Optional "hide tips" chip: shows the label that matches the active device (HidePadLabel on a
+					pad, HideKeyLabel on keyboard). It appears only when the game set that label; the kit itself
+					has no keybind opinion. Clicking it runs the same Hide() as the close affordance. *@
+				@if ( onPad && !string.IsNullOrEmpty( TipsCoach.HidePadLabel ) )
+				{
+					<div class="hint" onclick=@Hide>
+						<span class="pad">@TipsCoach.HidePadLabel</span>
+						<span class="hint-label">hide tips</span>
+					</div>
+				}
+				else if ( !onPad && !string.IsNullOrEmpty( TipsCoach.HideKeyLabel ) )
+				{
+					<div class="hint" onclick=@Hide>
+						<span class="key">@TipsCoach.HideKeyLabel</span>
+						<span class="hint-label">hide tips</span>
+					</div>
+				}
+				<div class="close" onclick=@Hide>×</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	// The close affordance (and the optional hide chip). When the game wired the TipsCoach.HideAll seam it
+	// runs that (a game-owned "tips off" action, e.g. a persisted preference); otherwise it falls back to the
+	// v0.1-v0.3 behaviour of dismissing just the current tip. A library cannot reference game controls, so
+	// HideAll is the only legal bridge for a game-defined hide (a direct game-type reference fails CS0103 in
+	// the editor's separate library assembly).
+	private void Hide()
+	{
+		if ( TipsCoach.HideAll is not null )
+		{
+			TipsCoach.HideAll.Invoke();
+			return;
+		}
+
+		Scene?.GetAllComponents<TipsCoach>().FirstOrDefault()?.DismissCurrent();
+	}
+
+	// Re-render only when the shown tip, its WORDING, or the input device changes. TipsCoach.ActiveDevice is
+	// folded in because it picks which segment list renders and which hide-chip label shows, so a mid-display
+	// controller plug/unplug re-renders the body wording and chips at once (the same "device flag belongs in
+	// BuildHash" precedent as WB's ItemsHud / RightRail).
+	//
+	// Text and TextPad are folded in alongside the id because the Tips Studio rewrites the tip UNDER THE SAME
+	// ID while you type: this card is the Studio's live preview, so hashing the id alone froze the wording at
+	// whatever it was when the preview started. A shipped game is unaffected, TipDefinition is a record with
+	// init-only fields, so its wording cannot change without the tip itself being replaced, which changes the
+	// id in every case that is not authoring.
+	protected override int BuildHash() => HashCode.Combine(
+		TipsCoach.Visible,
+		TipsCoach.ActiveTip?.Id,
+		TipsCoach.ActiveTip?.Text,
+		TipsCoach.ActiveTip?.TextPad,
+		TipsCoach.ActiveTip?.Icon,
+		TipsCoach.ActiveDevice );
+}

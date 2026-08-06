@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "2659e14b-e7fa-4a3b-8bf6-ad1f4496998c",
+    "Flags": 0,
+    "Name": "Image",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.ImageNode",
+        "__guid": "8c523900-9733-474e-a478-387f306c99fe"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Image",
+  "MenuIcon": "image",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

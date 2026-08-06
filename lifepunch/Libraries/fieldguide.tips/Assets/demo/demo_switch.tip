@@ -1,0 +1,35 @@
+{
+  "Id": "demo_switch",
+  "Text": "Stand in the ring and press *Space* to switch the marker on.",
+  "TextPad": "Stand in the ring and press `A` to switch the marker on.",
+  "Icon": "💡",
+  "Priority": 110,
+  "PrerequisiteTipIds": [
+    "demo_reach"
+  ],
+  "Completion": {
+    "Kind": "AllOf",
+    "Action": "",
+    "Key": "",
+    "Name": "",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "MaxShowSeconds": 0,
+  "Relevance": {
+    "Kind": "Flag",
+    "Action": "",
+    "Key": "",
+    "Name": "fg_tips_demo",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "__references": [],
+  "__version": 0
+}

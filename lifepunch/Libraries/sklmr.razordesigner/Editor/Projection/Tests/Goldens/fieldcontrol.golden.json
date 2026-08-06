@@ -1,0 +1,33 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "FieldControl",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000018",
+    "kind": "FieldControl",
+    "className": "ctrl1",
+    "appearance": {
+      "flexGrow": 1
+    },
+    "payload": {},
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000018",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "flex-grow: 1;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000018\u0022"
+    ]
+  }
+}

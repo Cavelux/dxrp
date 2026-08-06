@@ -1,0 +1,35 @@
+{
+  "Id": "demo_reach",
+  "Text": "Walk over to the amber marker.",
+  "TextPad": "",
+  "Icon": "🚩",
+  "Priority": 120,
+  "PrerequisiteTipIds": [
+    "starter_jump"
+  ],
+  "Completion": {
+    "Kind": "AllOf",
+    "Action": "",
+    "Key": "",
+    "Name": "",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "MaxShowSeconds": 0,
+  "Relevance": {
+    "Kind": "Flag",
+    "Action": "",
+    "Key": "",
+    "Name": "fg_tips_demo",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "__references": [],
+  "__version": 0
+}

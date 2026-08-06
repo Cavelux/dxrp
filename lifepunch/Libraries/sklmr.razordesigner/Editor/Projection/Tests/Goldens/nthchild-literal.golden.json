@@ -1,0 +1,52 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Label",
+  "node": {
+    "id": "b1b2c3d4-0000-0000-0000-000000000006",
+    "kind": "Label",
+    "className": "nth-label",
+    "appearance": {},
+    "payload": {
+      "content": "Item"
+    },
+    "children": [],
+    "slots": {},
+    "states": [
+      {
+        "state": "NthChild",
+        "nthChildMode": "Literal",
+        "nthChildArg": 3,
+        "delta": {
+          "overrideBackground": true,
+          "backgroundColor": "#444444"
+        }
+      }
+    ]
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "b1b2c3d4-0000-0000-0000-000000000006",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "Item"
+      }
+    ],
+    "scssLines": [
+      "\u0026:nth-child(3) {",
+      "    background-color: #444444;",
+      "    background-image: none;",
+      "}"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022b1b2c3d4-0000-0000-0000-000000000006\u0022"
+    ],
+    "razorInnerText": "Item"
+  }
+}

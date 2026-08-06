@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.notpointless.chomnr_adaptive_director</name>
+    </assembly>
+    <members>
+        <member name="T:SboxDirector.ConcurrentEncounterSchedule">
+            <summary>
+            Runs independent encounter lanes during one authoritative tick. This mirrors the proven separation
+            of survival lull, horde, special, and boss schedules without copying their unrecovered formulas.
+            </summary>
+        </member>
+        <member name="T:SboxDirector.DirectorOrchestration">
+            <summary>Composes the recovered panic-wave and finale-style stage responsibilities around the host-neutral core.</summary>
+        </member>
+        <member name="T:SboxDirector.WeightedEncounterComposer">
+            <summary>Configurable clean-room weighted composition policy. This is optional and is not the recovered retail special-class algorithm.</summary>
+        </member>
+        <member name="T:SboxDirector.UniformEncounterComposer">
+            <summary>Selects every member uniformly from the supplied eligible archetypes.</summary>
+        </member>
+        <member name="T:SboxDirector.RecoveredMusicDirectorDefaults">
+            <summary>Recovered numeric behavior packaged without any game audio or entity names.</summary>
+        </member>
+        <member name="T:SboxDirector.IPersistentPlacementPolicy">
+            <summary>Implement this alongside IPlacementPolicy when a custom placement policy owns mutable deterministic state.</summary>
+        </member>
+        <member name="T:SboxDirector.IPersistentDirectorPolicy">
+            <summary>Implement this alongside IDirectorPolicy when a custom policy owns mutable deterministic state.</summary>
+        </member>
+        <member name="T:SboxDirector.IAdaptiveDirectorPolicy">
+            <summary>Optional mode/difficulty override surface corresponding to recovered scripted Director policy.</summary>
+        </member>
+        <member name="T:SboxDirector.RecoveredDirectorDefaults">
+            <summary>Constants recovered from a verified retail Director build. The names are generalized; hosts own navigation and trace execution.</summary>
+        </member>
+        <member name="M:SboxDirector.HullVisibilitySamples.CreateFivePointPattern(SboxDirector.DirectorVector,SboxDirector.DirectorVector,System.Single,System.Single)">
+            <summary>Returns the recovered lower-left, lower-right, upper-center, upper-left and upper-right sample pattern.</summary>
+        </member>
+        <member name="T:SboxDirector.SpecialClassRotation">
+            <summary>Persistent independent class timers with uniform due-and-eligible selection.</summary>
+        </member>
+        <member name="T:SboxDirector.ResourcePopulationController">
+            <summary>Generalized density/conversion/revisit controller backed by recovered item-population responsibilities.</summary>
+        </member>
+        <member name="T:SboxDirector.AdaptiveDirectorComponent">
+            <summary>
+            Optional s&amp;box component bridge. Derive from this class and translate your
+            game's entities/navigation into a WorldSnapshot and SpawnRequestResult.
+            </summary>
+        </member>
+        <member name="T:SboxDirector.AdaptiveMusicDirectorComponent">
+            <summary>Optional local/authoritative s&amp;box bridge for adaptive music. Networked games may replicate MusicDecisionBatch and run MusicRuntime on each client instead.</summary>
+        </member>
+    </members>
+</doc>

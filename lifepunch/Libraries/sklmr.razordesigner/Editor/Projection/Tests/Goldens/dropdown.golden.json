@@ -1,0 +1,33 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "DropDown",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000015",
+    "kind": "DropDown",
+    "className": "dd1",
+    "appearance": {
+      "width": "150px"
+    },
+    "payload": {},
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000015",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "width: 150px;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000015\u0022"
+    ]
+  }
+}

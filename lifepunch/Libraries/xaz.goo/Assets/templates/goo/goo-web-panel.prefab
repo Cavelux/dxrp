@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "c00ef1be-7dac-4d04-90cc-119855d9d829",
+    "Flags": 0,
+    "Name": "Web Panel",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.WebPanelNode",
+        "__guid": "78783465-52ae-4bdb-afee-08de72b1eb90"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Web Panel",
+  "MenuIcon": "language",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

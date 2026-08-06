@@ -1,0 +1,74 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Panel",
+  "node": {
+    "id": "b1b2c3d4-0000-0000-0000-000000000004",
+    "kind": "Panel",
+    "className": "main-panel",
+    "appearance": {
+      "direction": "Column",
+      "overrideBackground": true,
+      "backgroundColor": "#333333"
+    },
+    "payload": {},
+    "children": [
+      {
+        "id": "b1b2c3d4-0000-0000-0000-000000000041",
+        "kind": "Label",
+        "className": "child1",
+        "appearance": {},
+        "payload": {
+          "content": "A"
+        },
+        "children": [],
+        "slots": {}
+      },
+      {
+        "id": "b1b2c3d4-0000-0000-0000-000000000042",
+        "kind": "Label",
+        "className": "child2",
+        "appearance": {},
+        "payload": {
+          "content": "B"
+        },
+        "children": [],
+        "slots": {}
+      }
+    ],
+    "slots": {},
+    "states": [
+      {
+        "state": "Hover",
+        "nthChildArg": 1,
+        "delta": {
+          "overrideBackground": true,
+          "backgroundColor": "#444444"
+        }
+      }
+    ]
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "b1b2c3d4-0000-0000-0000-000000000004",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "flex-direction: column;",
+      "gap: 8px;",
+      "background-color: #333333;",
+      "background-image: none;",
+      "\u0026:hover {",
+      "    background-color: #444444;",
+      "}"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022b1b2c3d4-0000-0000-0000-000000000004\u0022"
+    ]
+  }
+}

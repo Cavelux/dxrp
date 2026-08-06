@@ -1,0 +1,62 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "SplitContainer",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000008",
+    "kind": "SplitContainer",
+    "className": "split1",
+    "appearance": {
+      "width": "100%",
+      "height": "100%"
+    },
+    "payload": {},
+    "children": [],
+    "slots": {
+      "left": [
+        {
+          "id": "a1b2c3d4-0000-0000-0000-000000000081",
+          "kind": "Label",
+          "className": "label1",
+          "appearance": {},
+          "payload": {
+            "content": "Left"
+          },
+          "children": [],
+          "slots": {}
+        }
+      ],
+      "right": [
+        {
+          "id": "a1b2c3d4-0000-0000-0000-000000000082",
+          "kind": "Button",
+          "className": "button1",
+          "appearance": {},
+          "payload": {
+            "content": "Right"
+          },
+          "children": [],
+          "slots": {}
+        }
+      ]
+    }
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000008",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "width: 100%;",
+      "height: 100%;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000008\u0022"
+    ]
+  }
+}

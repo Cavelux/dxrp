@@ -1,0 +1,1724 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.fieldguide.tips</name>
+    </assembly>
+    <members>
+        <member name="T:FieldGuide.Tips.TipsDemoBootstrap">
+             <summary>
+             Wires the demo scene in one component so the whole kit runs from a single press of play: it points the
+             <see cref="T:FieldGuide.Tips.TipsWorld"/> seams at the demo pawn, creates the coach and its display with
+             <see cref="M:FieldGuide.Tips.TipsCoach.Ensure(Sandbox.Scene)"/>, and pushes a context every frame carrying the demo flag the demo tips
+             gate on. The tips themselves are authored assets (<c>Assets/demo/*.tip</c> plus
+             <c>Assets/starter.tip</c>), not code, so the scene also shows the no-code authoring path.
+            
+             THE DEMO FLAG. Every demo tip's Relevance is <c>Flag("fg_tips_demo")</c>, and only this component sets
+             that flag. A game that vendors the kit and never runs this scene therefore never sees a demo tip, even
+             if it forgets to delete the assets: the tips merge into the catalog but stay irrelevant forever. Delete
+             them anyway.
+            
+             THE ENDING. The walkthrough hands the player to the authoring tool: the last tip coaches <c>T</c>, and
+             opening the Tips Studio is what retires it. Two pieces do that, both of them demo wiring rather than
+             kit runtime. This component builds the Studio's host object at boot (the same one line a game writes
+             from the README), and it raises the <see cref="F:FieldGuide.Tips.TipsDemoBootstrap.StudioOpenedSignal"/> string signal while the Studio is
+             open, which is the completion <c>demo_wrap.tip</c> waits on.
+            
+             Not part of the kit's runtime surface: delete <c>Code/Demo</c> and <c>Assets/demo</c> when you drop the
+             kit into your own project, and write your own bootstrap from the README instead.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsDemoBootstrap.DemoFlag">
+            <summary>The context flag every demo tip's Relevance reads, so demo content is inert anywhere this
+            component is not running.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsDemoBootstrap.DemoSaveFile">
+            <summary>Progress file the demo writes, kept apart from the kit default so replaying the demo never
+            touches the progress your own game saves.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsDemoBootstrap.StudioOpenedSignal">
+            <summary>The string signal this component latches while the Tips Studio is open, and the completion
+            <c>demo_wrap.tip</c> waits on. A demo-side name: the kit knows nothing about it, which is the point.
+            Any game can retire a tip on its own UI the same way, with one <see cref="M:FieldGuide.Tips.TipsCoach.Signal(System.String)"/>
+            call and a Signal trigger on the tip.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoBootstrap.ReplayKey">
+            <summary>Raw key that resets progress and replays the sequence from the top.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoBootstrap.EnsureStudioHost">
+             <summary>
+             Build the Tips Studio's host: one <see cref="T:Sandbox.ScreenPanel"/> carrying the panel, created in code so
+             the demo scene file holds no razor reference (the same idiom the other kits' demos use). It sits
+             above the coach's own panel, since the Studio is a modal over the card it is editing. The Studio
+             ships CLOSED and opens on its own OpenKey, which is T; nothing here opens it.
+            
+             Idempotent: a scene that already carries a Studio panel of its own keeps it.
+             </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsDemoCitizen">
+             <summary>
+             Builds and drives the demo pawn's look: a dressed stock citizen, spawned in code as a child of the pawn
+             object. Everything here ships with the engine (the citizen model, its clothing, its animgraph), so the
+             demo still carries zero art of its own.
+            
+             WHY IN CODE. The pawn object is authored in <c>tips_demo.scene</c> with a plain box renderer, and the
+             scene stays exactly that on disk. <see cref="T:FieldGuide.Tips.TipsDemoPawn"/> switches the box off at boot and builds
+             this instead, so the swap costs no scene churn and the editor viewport still shows the simple authored
+             block when nothing is playing.
+            
+             WHY NOT CitizenAnimationHelper. The engine ships a helper component that wraps these same animgraph
+             parameters, but it lives in a namespace a Field Guide kit is not allowed to reference (the isolation
+             lint severs it). The parameter names below are the ones that helper sets, driven directly on the
+             renderer, which is also what the placement and vehicle physics kits do.
+            
+             Not part of the kit's runtime surface: delete <c>Code/Demo</c> and <c>Assets/demo</c> when you drop the
+             kit into your own project.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsDemoCitizen.Outfit">
+            <summary>A plain outfit from the shipped citizen clothing resources, the same two items the
+            placement kit's demo wears. Each is null-checked, so a missing asset degrades to a barer citizen
+            rather than a broken spawn.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoCitizen.Build(Sandbox.GameObject,System.Single)">
+            <summary>
+            Spawn the citizen as a child of the pawn. <paramref name="footOffset"/> is its local Z: the pawn
+            object sits half a block above the ground because the authored box is centred on it, and the citizen
+            model's origin is at its feet, so the visual drops by that half height to stand on the floor.
+            Returns null if the model did not load, which leaves the caller free to keep the block.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoCitizen.Drive(Sandbox.SkinnedModelRenderer,Vector3,Vector3,System.Boolean)">
+            <summary>
+            Push a frame of locomotion at the animgraph. <paramref name="velocity"/> is what the pawn actually
+            travelled, <paramref name="wishVelocity"/> is what the stick asked for; the graph uses the first for
+            the legs and the second for arm swing in the air, which is why both go across.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoCitizen.TriggerJump(Sandbox.SkinnedModelRenderer)">
+            <summary>Fire the animgraph's one-shot hop. It self-clears, so it is set and forgotten.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoCitizen.SetMotion(Sandbox.SkinnedModelRenderer,System.String,Vector3)">
+            <summary>The six parameters the citizen animgraph reads per motion channel, resolved against the
+            renderer's own facing so a sideways walk plays the strafe blend rather than a forward one.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsDemoMarker">
+             <summary>
+             The demo scene's one interactable: a marker the citizen walks up to and switches on. It owns its own
+             state (off / on) and tells the kit about the use through <see cref="M:FieldGuide.Tips.TipTriggerObject.NotifyInteracted(Sandbox.GameObject)"/>,
+             which is exactly the one line a real game writes from wherever it already handles "the player used
+             this object". The proximity half of the beat is a second <see cref="T:FieldGuide.Tips.TipTriggerObject"/> on the sibling
+             zone object, in <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.PlayerEntered"/>, so no code is involved there at all.
+            
+             Note the ordering: the marker gates on ITS OWN rule (the pawn is inside the ring and the marker is
+             still off), never on which tip is showing. Game logic drives tips, not the other way round.
+            
+             Not part of the kit's runtime surface: delete <c>Code/Demo</c> and <c>Assets/demo</c> when you drop
+             the kit into your own project.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoMarker.Radius">
+            <summary>How close the pawn has to be, in world units, before the marker accepts the switch.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoMarker.SwitchAction">
+            <summary>The Input.config action that switches the marker on. The demo reuses Jump so the prompt
+            reads Space on a keyboard and A on a pad with no extra binding.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoMarker.PawnInside">
+            <summary>True while the demo pawn stands inside the marker ring (flat distance, height ignored so a
+            hop does not drop the player out of the ring).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoMarker.ResetMarker">
+            <summary>Switch the marker back off (the demo's replay key).</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsDemoPawn">
+             <summary>
+             The demo scene's stand-in player: a citizen that slides along the ground on the movement stick (or
+             W/A/S/D) and hops on the jump action. Deliberately the simplest thing that can be coached: plain
+             transform movement, one hand-integrated hop, no rigidbody, no collider, no controller. It exists so
+             the tips in <c>Assets/demo/</c> have real actions to retire on.
+            
+             THE LOOK. The scene authors this object with a plain box renderer. At boot the pawn switches that off
+             and builds a dressed stock citizen in its place (<see cref="T:FieldGuide.Tips.TipsDemoCitizen"/>), so the scene file
+             stays as authored and the editor viewport still shows the simple block when nothing is playing. The
+             movement, the play radius and the hop are untouched by the swap: only the visual changed.
+            
+             Not part of the kit's runtime surface: delete <c>Code/Demo</c> and <c>Assets/demo</c> when you drop
+             the kit into your own project, and coach your own player instead.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.MoveSpeed">
+            <summary>Ground speed in world units per second.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.JumpSpeed">
+            <summary>Upward speed of one hop, in world units per second.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.Gravity">
+            <summary>Downward acceleration applied to a hop, in world units per second squared.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.PlayRadius">
+            <summary>How far from its start the citizen may wander. The demo camera is fixed, so this is what
+            keeps the citizen in frame, and the scene's camera is framed to contain exactly this disc. The
+            marker sits 205 units from the start, so 220 lets the citizen walk onto it and a little past
+            without opening up a corner of the yard that the camera would then have to cover for nothing.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.JumpAction">
+            <summary>The Input.config action that hops. Bound to Space on a keyboard and A on a pad in the
+            s&amp;box default config, which is what the demo tips prompt.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.CameraYaw">
+            <summary>Yaw the demo camera looks along, so pushing forward moves the citizen away from the camera
+            instead of sideways. Change it with the camera.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.VisualZOffset">
+            <summary>Local Z of the citizen visual. The pawn object sits half a block above the ground because
+            the authored box is centred on it, and the citizen's origin is at its feet, so the visual drops by
+            that half height to stand on the floor instead of hovering.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsDemoPawn.TurnSpeed">
+            <summary>How briskly the citizen turns to face where it is going, in turns per second-ish. High
+            enough to read as responsive, low enough that a flick of the stick does not snap it.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoPawn.ReadMove">
+            <summary>
+            Movement as a forward/left pair. <c>Input.AnalogMove</c> carries the movement stick and, in a
+            project whose Input.config binds the standard movement actions, the keyboard too. The raw W/A/S/D
+            fallback keeps the demo drivable in a project that binds movement under other names, which is the
+            same reason the movement tip completes on either the stick or those keys.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoPawn.DriveVisual(Vector3,Vector3,System.Boolean)">
+            <summary>
+            Turn the citizen to face its travel and hand the animgraph a frame of locomotion. The legs read the
+            distance actually covered rather than the stick, so at the play radius the clamp reads as standing
+            still instead of running on the spot.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoPawn.HideAuthoredBlock">
+            <summary>
+            Switch off the box renderer the scene authors on this object, so the citizen stands alone. Disabling
+            the component at runtime leaves the scene file untouched: reopen it in the editor and the simple
+            authored block is still what you see. The skinned renderer is skipped by type because it derives
+            from <c>ModelRenderer</c> too.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsDemoPawn.ResetPawn">
+            <summary>Put the citizen back where it started (the demo's replay key).</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipStudioDraft">
+             <summary>
+             A tip being AUTHORED. It carries exactly the fields a <c>.tip</c> asset carries, in the same order, so it
+             is both what the Tips Studio edits and what gets written out as JSON; and it maps to a runtime
+             <see cref="T:FieldGuide.Tips.TipDefinition"/> so a draft can be live in the catalog while you are still typing it.
+            
+             Why this exists next to <see cref="T:FieldGuide.Tips.TipResource"/> rather than reusing it: <see cref="T:FieldGuide.Tips.TipResource"/> is a
+             <c>GameResource</c>, which means the engine owns its lifetime and it only exists once a file does. A
+             draft has no file yet. This type is plain data with no <c>Sandbox</c> reference at all, which also lets the
+             headless harness round-trip the exact serialization the editor writes.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.Id">
+            <summary>Stable id. Doubles as the file name when the draft is baked out (<c>&lt;id&gt;.tip</c>).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.Text">
+            <summary>The tip line. <c>*asterisks*</c> mark a keycap chip, <c>`backticks`</c> a gamepad chip.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.TextPad">
+            <summary>Optional gamepad wording. Blank uses <see cref="P:FieldGuide.Tips.TipStudioDraft.Text"/> on both devices.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.Icon">
+            <summary>A small emoji glyph shown beside the text.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.Priority">
+            <summary>Higher wins when several tips are eligible at once.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.PrerequisiteTipIds">
+            <summary>Tip ids that must be complete before this one may show.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.Completion">
+            <summary>When the tip retires.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.MaxShowSeconds">
+            <summary>Safety valve: auto-complete after this many visible seconds. 0 never times out.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioDraft.Relevance">
+            <summary>Narrows when the tip may show.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioDraft.ToDefinition">
+            <summary>The runtime tip this draft describes, ready for
+            <see cref="M:FieldGuide.Tips.TipsCatalog.RegisterRuntime(FieldGuide.Tips.TipDefinition)"/>. A blank id yields null: the catalog keys on
+            id and an unnamed draft would be unreachable.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioDraft.FromDefinition(FieldGuide.Tips.TipDefinition)">
+            <summary>Open an existing catalog tip in the editor. The two code-only predicates
+            (<c>Trigger</c> / <c>CompleteWhen</c>) have no authored form and are dropped, so a code tip opened here
+            and baked out keeps its declarative triggers and loses its predicates. The Studio says so on screen.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioDraft.Clone">
+            <summary>A deep copy, so editing a draft never writes through to the one it was copied from.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipStudioTrigger">
+            <summary>
+            The authored form of one trigger: a kind plus the boxes that kind reads. It mirrors
+            <see cref="T:FieldGuide.Tips.TipTriggerSpec"/> field for field (that is the shape the <c>.tip</c> file carries) but holds no
+            inspector attributes and no <c>Sandbox</c> reference, so the Studio and the harness share it. Both it and
+            the asset build their runtime trigger through the same <see cref="M:FieldGuide.Tips.TipTriggerBuild.From(FieldGuide.Tips.TipTriggerKind,System.String,System.String,System.String,System.Single,System.Single,FieldGuide.Tips.TipTriggerAnalogSource,System.Single,System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipTrigger})"/>.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Kind">
+            <summary>Which observable condition this trigger watches.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Action">
+            <summary>InputAction: an action name from the project's input settings.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Key">
+            <summary>Key: a raw key / mouse-button name, e.g. "space", "mouse1".</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Name">
+            <summary>Signal / Ever / Flag / AtLeast: the named condition this trigger reads.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Threshold">
+            <summary>AtLeast: the Number(Name) value to reach.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Seconds">
+            <summary>Timer: visible seconds before it fires.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.AnalogSource">
+            <summary>AnalogAxis: which stick to watch.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Magnitude">
+            <summary>AnalogAxis: the stick magnitude (0 to 1) to reach.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.Children">
+            <summary>AnyOf / AllOf: the composed triggers.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.ToTrigger">
+            <summary>Map this authored trigger to the runtime record, recursing children.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.FromTrigger(FieldGuide.Tips.TipTrigger)">
+            <summary>Read a runtime trigger back into authored boxes, so an existing tip opens in the picker with
+            its fields filled. Only the fields the kind reads are carried over, which is what keeps a
+            build-then-read round trip stable.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.Clone">
+            <summary>A deep copy.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.AllKinds">
+            <summary>Every trigger kind, in the order the Studio's dropdown offers them: the two composites last,
+            because they are the only ones that nest.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipStudioTrigger.AllAnalogSources">
+            <summary>Both analog sources, for the AnalogAxis picker.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.KindName(FieldGuide.Tips.TipTriggerKind)">
+            <summary>The on-disk name of a trigger kind.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.ParseKind(System.String)">
+            <summary>Read an on-disk kind name. Anything unrecognised reads as <see cref="F:FieldGuide.Tips.TipTriggerKind.Always"/>,
+            which adds no gate, so a file from a newer kit degrades to "no extra condition" instead of throwing.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.SourceName(FieldGuide.Tips.TipTriggerAnalogSource)">
+            <summary>The on-disk name of an analog source.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.ParseSource(System.String)">
+            <summary>Read an on-disk analog source name; anything else is the movement stick.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioTrigger.FieldFor(FieldGuide.Tips.TipTriggerKind)">
+            <summary>Which authored box a kind actually reads, for the picker: it shows one field, not nine.
+            "none" means the kind takes no parameter (Always), "children" means it composes others.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipStudioJson">
+             <summary>
+             Writes and reads the <c>.tip</c> file format: the exact JSON the s&amp;box editor puts on disk for a
+             <see cref="T:FieldGuide.Tips.TipResource"/>. What the Tips Studio's Copy button puts on the clipboard, and what its Editor
+             menu action writes into <c>Assets/tips/</c>, is a file the editor will happily open, edit and re-save.
+            
+             THE SHAPE, derived from the shipped assets under <c>Assets/</c> and from <see cref="T:FieldGuide.Tips.TipResource"/> itself:
+             every <c>[Property]</c> in declaration order, then the two editor bookkeeping keys. Every trigger field is
+             written whether or not its kind reads it, because that is what a GameResource does (it serializes the
+             object, not the interesting parts of it), and a hand-written file missing those keys would gain them the
+             first time the editor saved it, producing a spurious diff.
+            
+             <code>
+             {
+               "Id": "jump",
+               "Text": "Press *Space* to jump.",
+               "TextPad": "",
+               "Icon": "",
+               "Priority": 100,
+               "PrerequisiteTipIds": [],
+               "Completion": { "Kind": "InputAction", "Action": "Jump", ... },
+               "MaxShowSeconds": 0,
+               "Relevance": { "Kind": "Always", ... },
+               "__references": [],
+               "__version": 0
+             }
+             </code>
+            
+             Enums go out as their names through hand-written maps rather than a converter, so the on-disk vocabulary
+             is a stated format instead of a by-product of how the enum happens to be spelled today. The round trip
+             (write then read) is asserted headlessly in <c>tools/tips_harness</c>.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipStudioJson.WriteOptions">
+            <summary>Two-space indentation, matching what the editor writes, so a Studio-authored file and an
+            editor-saved one diff cleanly against each other.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioJson.FileNameFor(System.String)">
+            <summary>The file name a draft bakes out to, <c>&lt;id&gt;.tip</c>, with anything awkward for a file
+            name folded to an underscore. A blank id yields null: an unnamed tip has nowhere to land.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioJson.Write(FieldGuide.Tips.TipStudioDraft)">
+            <summary>Serialize a draft as <c>.tip</c> JSON. Never throws: a null draft writes an empty tip.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioJson.RelaxEscapes(System.String)">
+             <summary>
+             Put back the characters the default JSON writer escapes but the editor does not. An icon of "✅" is
+             written to a <c>.tip</c> by the editor as that character; the default encoder emits <c>✅</c>,
+             which parses to the same string but is not the same FILE, so the first inspector save of a
+             Studio-written tip would show a diff on a line nobody touched. The same goes for the apostrophes and
+             angle brackets the default encoder escapes out of HTML caution, which a tip line is full of.
+            
+             Done as a pass over the finished text rather than by swapping in a relaxed encoder, so the writer
+             needs no API beyond the JSON serializer a sibling kit already ships. Escapes JSON actually requires
+             (the quote, the backslash, and the control characters below 0x20) are left exactly as they are, and an
+             escaped backslash is stepped over as a pair so <c>\\u0041</c> stays literal.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioJson.Read(System.String)">
+            <summary>Parse <c>.tip</c> JSON back into a draft. Returns null on malformed input rather than
+            throwing, so a hand-edited file with a stray comma reports a problem instead of taking the panel
+            down with it.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipStudioText">
+             <summary>
+             The authoring checks the Tips Studio runs on a draft while you type: the things that produce a card that
+             looks broken, or a tip that can never retire, and that are cheap to catch before the file is written.
+             Pure (no <c>Sandbox</c> reference, no engine state), so the harness asserts the same rules the panel shows.
+            
+             Every message is a NOTE, never a block. The Studio will happily bake a tip with warnings on it, because
+             several of them are legitimate on purpose (an empty <c>AllOf</c> is the documented "a world trigger
+             retires this one" shape).
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipStudioText.MaxRunLength">
+            <summary>
+            How long a single unbroken run of prose can get before the card is at risk of the grey-block quirk:
+            the style engine rasterizes a text run that overflows one card line as a solid filled rectangle
+            instead of wrapped glyphs. Chips break a line into separate runs, which is why a tip full of keycaps
+            stays safe while one long sentence does not. Roughly one line at the card's 500px width; deliberately
+            a round number rather than a measured one, because the real threshold moves with the wording.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioText.LongestRun(System.String)">
+            <summary>The length of the longest PLAIN run in a tip line. Chips (<c>*keycap*</c>,
+            <c>`padchip`</c>) are separate runs and never count toward it, which mirrors how the card lays out.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioText.RunTooLong(System.String)">
+            <summary>True when a line carries a run long enough to risk the grey-block quirk.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioText.RunWarning(System.String,System.String)">
+            <summary>The note for a too-long run, or null when the line is fine.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipStudioText.Warnings(FieldGuide.Tips.TipStudioDraft)">
+            <summary>
+            Every note for a draft, in the order the panel lists them. An empty list means nothing to flag.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsStudio">
+             <summary>
+             The Tips Studio's state and every action its panel takes. The panel
+             (<see cref="T:FieldGuide.Tips.TipsStudioPanel"/>) is markup over this; everything that decides something lives here, so the
+             razor stays readable and this stays testable by eye.
+            
+             WHAT IT IS. An authoring surface for tips that runs inside your game: list the merged catalog, open any
+             tip in an editor, watch the real card change as you type, fire the tip and its completion for real, and
+             bake the result out as a <c>.tip</c> file. Nothing here is part of a shipped game's runtime: the panel
+             only exists if you add it, it starts closed, and <c>fg_tips_studio</c> is off by default.
+            
+             TWO WAYS A DRAFT REACHES THE COACH, and they are deliberately different:
+             <list type="bullet">
+             <item>PREVIEW registers the draft under <see cref="F:FieldGuide.Tips.TipsStudio.PreviewId"/>, an id nothing else uses, and force-shows
+             it. It is a picture of the card. It cannot be shadowed by a real tip with the same id, which is what would
+             happen if it registered under the draft's own id (drafts are the lowest-precedence source), and it cannot
+             mark anything complete.</item>
+             <item>TEST FIRE registers the draft under its OWN id and shows it, so completing it retires the real tip
+             and the chain advances the way it will in the game. If a code or asset tip already owns that id, that one
+             wins, which is correct: you are testing the chain, not the draft.</item>
+             </list>
+            
+             CLEAN-UP. Everything it touches is static and would otherwise outlive the scene: the preview draft, the
+             test-fire draft, and the pinned preview device. <see cref="M:FieldGuide.Tips.TipsStudio.Shutdown"/> hands all of it back, and the panel
+             calls it from OnDestroy.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsStudio.PreviewId">
+            <summary>The id the live preview registers under. Long and namespaced on purpose: it must never
+            collide with a real tip, because a collision would silently show the real tip instead of the draft.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsStudio.StageFolder">
+            <summary>Folder under <c>FileSystem.Data</c> the Studio stages baked tips in, for the editor menu
+            action to pick up. Staging through a file rather than a live static is what lets you bake in play and
+            write the asset after you have stopped playing.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.Open">
+            <summary>Open or close the Tips Studio. Off by default, and the panel forces it off at boot: s&amp;box
+            persists convars between sessions, so without that a value set weeks ago would open an authoring panel
+            over someone's game.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.Tab">
+            <summary>Which tab is showing.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsStudio.StudioTab">
+            <summary>The Studio's three tabs.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsStudio.StudioTab.Tips">
+            <summary>The merged catalog, with source labels.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsStudio.StudioTab.Draft">
+            <summary>The draft editor: wording, order, triggers, preview and test fire.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsStudio.StudioTab.Bake">
+            <summary>The bake-out surface: the .tip JSON, Copy, and staging for the editor.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.Draft">
+            <summary>The tip being authored. Never null.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.OpenedFrom">
+            <summary>The catalog id the draft was opened from, or null for a new tip. Shown so it is obvious
+            whether you are editing something that already exists.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.NewDraft">
+            <summary>Start a new, empty tip.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.OpenTip(System.String)">
+            <summary>Open a catalog tip in the editor. The two code-only predicates have no authored form and are
+            dropped; <see cref="P:FieldGuide.Tips.TipsStudio.DroppedPredicates"/> says so on screen.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.DroppedPredicates">
+            <summary>True when the tip currently open was carrying a <c>Trigger</c> or <c>CompleteWhen</c>
+            predicate, which a <c>.tip</c> file cannot hold. Baking it out keeps the declarative triggers and
+            loses the predicate, so the panel warns before you do.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.Notes">
+            <summary>The authoring notes for the current draft (grey-block run lengths, triggers that can never
+            fire). Recomputed on read; the panel refreshes them when you press Enter in a box or click anything,
+            because rebuilding the panel while you type would take the cursor out of the box.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.Json">
+            <summary>The draft as <c>.tip</c> JSON: what Copy puts on the clipboard and what a bake writes.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.ShadowedBy">
+            <summary>True when the draft's id already names a tip from a HIGHER-precedence source, so a bake would
+            be shadowed until that source lets go. Worth saying out loud before someone wonders why their new file
+            does nothing.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.PreviewOn">
+            <summary>Whether the real card is mirroring the draft right now.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.PushPreview(Sandbox.Scene)">
+            <summary>Push the draft onto the real card, or refresh what is already there. Registers under
+            <see cref="F:FieldGuide.Tips.TipsStudio.PreviewId"/> so a draft of an existing tip is not shadowed by the tip it copies.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.StopPreview(Sandbox.Scene)">
+            <summary>Take the preview off the card and out of the catalog.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.PinnedDevice">
+            <summary>Which device the preview card is pinned to, or null for whatever the player last used.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.TestFire(Sandbox.Scene)">
+            <summary>
+            Make the draft the live tip UNDER ITS OWN ID and show it now. From here its completion is the real
+            thing: fire the trigger in the game, or press Complete, and the tip retires and the chain moves on.
+            Returns false when the draft has no id yet.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.CompleteNow">
+            <summary>Fire the draft's completion by hand, the same path a world trigger uses. The tip retires and
+            whatever waits on it becomes eligible.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.ActionNames">
+            <summary>
+            The project's real input actions, for the InputAction picker: <c>Input.ActionNames</c>, which is the
+            engine's list from the current game's input settings, the same list the <c>[InputAction]</c> inspector
+            dropdown draws from. Sorted, and empty rather than throwing outside a running game.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.CopyJson">
+            <summary>Copy the draft's <c>.tip</c> JSON to the system clipboard, from in game. Paste it into a new
+            file under your project's <c>Assets/</c> and the editor picks it up as a tip.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.Stage">
+            <summary>
+            Write the draft into <see cref="F:FieldGuide.Tips.TipsStudio.StageFolder"/> under <c>FileSystem.Data</c>, where the editor menu
+            action "Field Guide / Write staged tips" picks it up and writes the real asset. Two steps because game
+            code cannot write into a project's <c>Assets/</c> folder, and because staging survives the end of the
+            play session, so you can author in play and land the file afterwards.
+            </summary>
+            <returns>A line for the panel saying what happened.</returns>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudio.StagedCount">
+            <summary>How many tips are waiting in the staging folder, so the panel can say whether there is
+            anything for the editor action to do.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.ClearStaged">
+            <summary>Empty the staging folder, for when a bake was a mistake or the files have landed.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudio.Shutdown">
+            <summary>
+            Hand back everything the Studio pinned: the preview and test-fire drafts, and the pinned preview
+            device. Called from the panel's OnDestroy, because all of it is static and would otherwise follow the
+            developer into the next scene, exactly the trap a scene-registered code catalog falls into.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipCatalogView">
+            <summary>
+            The merged catalog as one value: the ordered tips and the label saying where each id came from, built
+            together so a reader can never pair a list from one build with labels from another.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipCatalogView.Tips">
+            <summary>The deduped, precedence-ordered tips.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipCatalogView.SourceById">
+            <summary>Tip id to source label ("code" / "asset" / "draft" / "example").</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipCatalogMerge">
+            <summary>
+            The pure merge rule behind <see cref="P:FieldGuide.Tips.TipsCatalog.Active"/>: which source wins an id collision, what order
+            the survivors come out in, and when the shipped example stands in. Lifted out of the catalog so it has no
+            <c>Sandbox</c> reference and the harness can assert precedence and dedupe without a running engine, which
+            is the half of the catalog that a typo actually breaks.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipCatalogMerge.Merge(System.Collections.Generic.IEnumerable{FieldGuide.Tips.TipDefinition},System.Collections.Generic.IEnumerable{FieldGuide.Tips.TipDefinition},System.Collections.Generic.IEnumerable{FieldGuide.Tips.TipDefinition},System.Collections.Generic.IEnumerable{FieldGuide.Tips.TipDefinition})">
+            <summary>
+            Merge the three sources into one view, highest precedence first: CODE, then ASSETS, then DRAFTS. The
+            first tip seen for an id wins and later ones are dropped, so a draft never shadows the real tip it is
+            a draft of. When all three come back empty, <paramref name="fallback"/> is used and labelled
+            "example". Null sources are treated as empty; a null tip, or one with a blank id, is skipped.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipCatalogStamp">
+             <summary>
+             What a built catalog view was built FROM: the code list it saw, and the draft / asset revision numbers at
+             the time. A read compares the stamp against the live sources; anything that moved means the view is stale
+             and gets rebuilt. Comparing is three field reads with no allocation, which is what lets the coach ask for
+             the catalog several times a frame without a rescan.
+            
+             The code source is compared BY REFERENCE, not by content: registering is a whole-list swap, so a new list
+             is a new catalog, and a caller mutating a list it already registered is expected to say so
+             (<see cref="M:FieldGuide.Tips.TipsCatalog.Rebuild"/>) the same way it always was.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipCatalogStamp.Code">
+            <summary>The code catalog this view merged.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipCatalogStamp.DraftRevision">
+            <summary>The draft revision this view merged.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipCatalogStamp.AssetRevision">
+            <summary>The asset revision this view merged.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipCatalogStamp.Matches(System.Object,System.Int32,System.Int32)">
+            <summary>True when nothing has moved since this view was built.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipContext">
+             <summary>
+             A cheap, per-frame snapshot of the local player and world that the consumer hands to
+             <see cref="M:FieldGuide.Tips.TipsCoach.Tick(FieldGuide.Tips.TipContext)"/> every frame. Each tip's
+             <see cref="P:FieldGuide.Tips.TipDefinition.Trigger"/> / <see cref="P:FieldGuide.Tips.TipDefinition.CompleteWhen"/> predicate reads
+             these fields.
+            
+             This struct is deliberately NEUTRAL: it holds plain values (bools, ints, fractions) and no game
+             types. The consumer builds it each frame from its own player components (stat sheet, spell book,
+             quest log, inventory, modal router, ...) and pushes it in. The kit never reaches into game state.
+            
+             UNIVERSAL vs GENRE-SHAPED fields. <see cref="F:FieldGuide.Tips.TipContext.HasPlayer"/>, <see cref="F:FieldGuide.Tips.TipContext.ModalOpen"/>,
+             <see cref="F:FieldGuide.Tips.TipContext.OverlayOpen"/> and <see cref="F:FieldGuide.Tips.TipContext.DialogueActive"/> apply to any game. The combat / spell /
+             quest / potion fields below are convenience shortcuts carried over from the kit's first consumer
+             (an action RPG): a game that has no such concept simply leaves them at their defaults. When your
+             game's vocabulary does not fit the named fields (a builder that mines, places or crafts; a racer
+             that drifts or boosts), reach for the GENERIC path instead: push live conditions with
+             <see cref="M:FieldGuide.Tips.TipContext.SetFlag(System.String,System.Boolean)"/> / <see cref="M:FieldGuide.Tips.TipContext.SetNumber(System.String,System.Single)"/> and read them in your predicates with
+             <see cref="M:FieldGuide.Tips.TipContext.Flag(System.String)"/> / <see cref="M:FieldGuide.Tips.TipContext.Number(System.String)"/>, and latch one-off behaviours with the string overload of
+             <see cref="M:FieldGuide.Tips.TipsCoach.Signal(System.String)"/>, read back with <see cref="M:FieldGuide.Tips.TipContext.Ever(System.String)"/>. That way a game
+             drives the coach entirely in its own words without the kit hard-coding any genre.
+            
+             The <c>Ever*</c> fields are LATCHED by <see cref="T:FieldGuide.Tips.TipsCoach"/>, not set by the consumer: once a
+             behaviour is signalled it stays true for the session, so a tip completes the moment its action is
+             observed. Leave them at their defaults when you build a context; the coach fills them before it
+             evaluates any predicate.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.HasPlayer">
+            <summary>True once a local player exists to coach. When false the coach shows nothing.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.HasInteractionTarget">
+            <summary>Aiming at an interactable right now (villager, pickup, ...).</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.ModalOpen">
+            <summary>A full-screen modal (character sheet, inventory) is up. The coach hides tips while true.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.OverlayOpen">
+            <summary>
+            The consumer sets this true while any full-screen dev/menu overlay is open. Replaces the game's
+            old dev-overlay flag: the coach hides its tips while it is true (same as a modal) and latches
+            <see cref="F:FieldGuide.Tips.TipContext.EverOpenedOverlay"/> from it. If your game has no such overlay, leave it false.
+            </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.DialogueActive">
+            <summary>A conversation is on screen for this player. The coach hides tips while true.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.InCombat">
+            <summary>The player is in combat (recently dealt or took damage).</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.EnemiesNearby">
+            <summary>At least one living hostile is close by.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.KnownSpellCount">
+            <summary>How many spells the player knows.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.ActiveQuestCount">
+            <summary>Quests currently active or ready to turn in.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.HasActionBarSpell">
+            <summary>At least one action-bar slot holds a spell.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.HasUnspentPoint">
+            <summary>The player has an unspent attribute point to spend.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.HoldingPotion">
+            <summary>The player is carrying a consumable (potion) in their bag.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.HealthFraction">
+            <summary>Current health as a 0..1 fraction of max. The consumer computes it off its own stat sheet.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.ManaFraction">
+            <summary>Current mana as a 0..1 fraction of max.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipContext.StaminaFraction">
+            <summary>Current stamina as a 0..1 fraction of max.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipContext.SetFlag(System.String,System.Boolean)">
+            <summary>Set a live custom flag for this frame, read in a predicate with <see cref="M:FieldGuide.Tips.TipContext.Flag(System.String)"/>. Use
+            for genre-specific conditions the named fields do not cover (e.g. <c>"NearWorkbench"</c>,
+            <c>"HoldingBlock"</c>).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipContext.Flag(System.String)">
+            <summary>Read a live custom flag set this frame with <see cref="M:FieldGuide.Tips.TipContext.SetFlag(System.String,System.Boolean)"/>. Unknown keys read false.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipContext.SetNumber(System.String,System.Single)">
+            <summary>Set a live custom number for this frame, read in a predicate with <see cref="M:FieldGuide.Tips.TipContext.Number(System.String)"/>.
+            Use for genre-specific quantities (e.g. <c>"BlocksPlaced"</c>, <c>"SpeedKph"</c>).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipContext.Number(System.String)">
+            <summary>Read a live custom number set this frame with <see cref="M:FieldGuide.Tips.TipContext.SetNumber(System.String,System.Single)"/>. Unknown keys read 0.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipContext.Ever(System.String)">
+            <summary>True once the given custom behaviour has been latched via
+            <see cref="M:FieldGuide.Tips.TipsCoach.Signal(System.String)"/> this session. The kit-genre equivalent of the
+            <c>Ever*</c> fields, for behaviours you name yourself (e.g. <c>Ever("PlacedBlock")</c>).</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipSignal">
+            <summary>
+            The set of observable player behaviours the coach latches. The consumer calls
+            <see cref="M:FieldGuide.Tips.TipsCoach.Signal(FieldGuide.Tips.TipSignal)"/> (or one of the named convenience wrappers) when it
+            observes one; the flag then stays latched for the session and the matching <c>Ever*</c> field on
+            <see cref="T:FieldGuide.Tips.TipContext"/> reads true. A few of these are ALSO auto-latched by the coach from the
+            neutral context each tick (see <see cref="T:FieldGuide.Tips.TipsCoach"/>), so a game that only pushes context still
+            advances.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipDefinition">
+             <summary>
+             One coaching tip: a short line, when it becomes relevant, and when the player has
+             *done the thing* (so it retires itself by observed behaviour, not a timer). Tips are
+             pure data, a game authors its whole tutorial by building a list of these and handing it to
+             <see cref="M:FieldGuide.Tips.TipsCatalog.Register(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})"/>, nothing else.
+            
+             Text markup: wrap a key/button name in asterisks and <see cref="T:FieldGuide.Tips.TipsDisplay"/> renders it as a
+             bolded keycap, e.g. <c>"Hold *B* to block."</c>. Everything outside the asterisks is plain text.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.Id">
+            <summary>Stable id (persisted once completed, and used as a prerequisite key). Keep it unique.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.Text">
+            <summary>The one-line tip. One action per tip. Wrap key names in *asterisks* to bold them.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.TextPad">
+            <summary>
+            Optional gamepad-specific wording, shown instead of <see cref="P:FieldGuide.Tips.TipDefinition.Text"/> while the player is on a
+            controller (the display picks off <see cref="P:FieldGuide.Tips.TipsCoach.ActiveDevice"/>). Null (the default) means
+            <see cref="P:FieldGuide.Tips.TipDefinition.Text"/> serves both devices, so a tip with no pad-specific line reads identically on either
+            (build plan point 3: the "either" idiom, <c>"Press *W* or `RT`"</c>, keeps rendering both chips; use
+            TextPad only when the pad needs different words). Uses the same markup as <see cref="P:FieldGuide.Tips.TipDefinition.Text"/>: mark a
+            gamepad button in `backticks`. For a whole-catalog keycap remap without authoring TextPad on every
+            tip, set <see cref="P:FieldGuide.Tips.TipsCoach.PadLabelFor"/> instead.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.Icon">
+            <summary>A small emoji glyph shown beside the text (optional).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.Priority">
+            <summary>Higher wins when several tips are eligible at once (an interrupt like "you're in a fight" outranks a calm walkthrough beat).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.PrerequisiteTipIds">
+            <summary>Tip ids that must be completed before this one is allowed to show, the backbone of the walkthrough order.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.Trigger">
+            <summary>When this returns true the tip is *relevant* and may be shown (its prerequisites permitting).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.CompleteWhen">
+            <summary>When this returns true the player has DONE the thing, the tip retires. This is the magic.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.MaxShowSeconds">
+            <summary>Safety valve: if &gt; 0, the tip auto-completes after this many visible seconds even if <see cref="P:FieldGuide.Tips.TipDefinition.CompleteWhen"/> never fires (used for "just glance at X" beats with no behavioural signal).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.Relevance">
+            <summary>
+            Optional declarative relevance trigger (v0.3). When set it NARROWS relevance: the tip is relevant
+            only when <see cref="P:FieldGuide.Tips.TipDefinition.Trigger"/> is true AND this trigger evaluates true. Null falls back to
+            <see cref="P:FieldGuide.Tips.TipDefinition.Trigger"/> alone, so an existing tip that leaves this unset behaves exactly as before.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipDefinition.Completion">
+            <summary>
+            Optional declarative completion trigger (v0.3). The tip retires when ANY completion path fires:
+            <see cref="P:FieldGuide.Tips.TipDefinition.CompleteWhen"/> returns true, this trigger evaluates true, <see cref="P:FieldGuide.Tips.TipDefinition.MaxShowSeconds"/>
+            elapses, or <see cref="M:FieldGuide.Tips.TipsCoach.Complete(System.String)"/> is called for this id. Null leaves the
+            predicate + timeout paths untouched, so this is purely additive.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipDevice">
+            <summary>
+            Which input device the player last used. Backed by <c>Input.UsingController</c>, which the engine
+            flaps to the last-used device (there is no event; it is polled per frame). The coach exposes the
+            live value as <see cref="P:FieldGuide.Tips.TipsCoach.ActiveDevice"/> and the display folds it into its BuildHash so a
+            device flip re-renders the active tip with the right wording and chips immediately.
+            </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipDevice.KeyboardMouse">
+            <summary>The player is on keyboard and mouse (the default when no controller has been used).</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipDevice.Gamepad">
+            <summary>The player is on a game controller (the last button pressed was a pad button).</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipDeviceText">
+            <summary>
+            Pure, engine-free render-time helpers for device-aware tip text: which wording a tip shows for a
+            device, and how a keycap label remaps when the player is on a pad. Kept free of any <c>Sandbox</c>
+            reference so the exact rules a game sees on screen can be exercised headlessly (the display calls
+            these; a harness calls them with fakes and asserts the truth table).
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipDeviceText.PadTextOr(System.String,System.String)">
+            <summary>
+            The pad-mode wording for a tip: its <paramref name="textPad"/> when authored, else its
+            <paramref name="text"/>. This is the single-text fallback (build plan point 3): a tip that leaves
+            TextPad unset reads identically from either device, so the "either" idiom
+            (<c>"Press *W* or `RT`"</c>) keeps rendering both chips with no auto-stripping.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipDeviceText.ForDevice(System.String,System.String,FieldGuide.Tips.TipDevice)">
+            <summary>
+            The wording a tip shows for <paramref name="device"/>: <paramref name="text"/> on keyboard/mouse,
+            and <see cref="M:FieldGuide.Tips.TipDeviceText.PadTextOr(System.String,System.String)"/> on a pad. A single seam so the device-to-text choice is
+            identical in the display and the harness.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipDeviceText.PadCap(System.String,System.Func{System.String,System.String})">
+            <summary>
+            Remap a keyboard keycap label for pad mode (build plan point 4), generalizing World Builder's
+            <c>Cap()</c>. Applied to keycap chips at render time only when the player is on a pad:
+            <list type="bullet">
+            <item><paramref name="padLabelFor"/> null: no map is set, the label passes through unchanged (the
+            single-text behaviour, so a game that never sets a map is unaffected).</item>
+            <item>the map returns the same or a different non-empty string: that label is shown (an unmapped
+            label the game's map passes through stays unchanged; a mapped one, e.g. "RMB" to "LT", swaps).</item>
+            <item>the map returns null or empty: the chip is unpressable on a pad and is skipped (the caller
+            renders nothing for it), matching WB's "skip the unpressable chip" behaviour.</item>
+            </list>
+            Returns the label to render, or null to skip the chip.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTriggerSpec">
+            <summary>
+            The editor-authored twin of the runtime <see cref="T:FieldGuide.Tips.TipTrigger"/> record. An author fills the fields
+            that match <see cref="P:FieldGuide.Tips.TipTriggerSpec.Kind"/>; <see cref="M:FieldGuide.Tips.TipTriggerSpec.ToTrigger"/> maps them to the runtime record. It carries no
+            delegates, so it serializes cleanly onto a <c>.tip</c> asset. <c>[InputAction]</c> renders the native
+            dropdown of the game's Input.config actions; <c>[ShowIf]</c> hides fields that do not apply to the
+            chosen kind (an editor nicety only, never load-bearing).
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerSpec.Action">
+            <summary>InputAction: native dropdown of the game's Input.config actions.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerSpec.Key">
+            <summary>Key: a raw key / mouse-button name, e.g. "space", "mouse1".</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerSpec.Name">
+            <summary>Signal / Ever / Flag / AtLeast key (the named condition this trigger reads).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerSpec.AnalogSource">
+            <summary>AnalogAxis: which stick to watch (its magnitude is compared against <see cref="P:FieldGuide.Tips.TipTriggerSpec.Magnitude"/>).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerSpec.Magnitude">
+            <summary>AnalogAxis: the stick magnitude (0..1) at or past which the trigger fires.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerSpec.Children">
+            <summary>Children for AnyOf / AllOf.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTriggerSpec.ToTrigger">
+            <summary>Map this authored spec to the runtime <see cref="T:FieldGuide.Tips.TipTrigger"/> record, recursing children.
+            The field-to-kind rule itself lives in the pure <see cref="M:FieldGuide.Tips.TipTriggerBuild.From(FieldGuide.Tips.TipTriggerKind,System.String,System.String,System.String,System.Single,System.Single,FieldGuide.Tips.TipTriggerAnalogSource,System.Single,System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipTrigger})"/>, shared with the
+            Tips Studio's picker so the asset and the panel build byte-identical triggers.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipResource">
+             <summary>
+             A tip authored as a <c>.tip</c> asset: the free authoring UI. Every field is an inspector control, so
+             creating a tip is creating an asset with no code. It mirrors <see cref="T:FieldGuide.Tips.TipDefinition"/> minus the two
+             arbitrary <c>Func</c> predicates (which stay code-only, section 6.3 of the spec). Modelled directly on
+             the RPG kit's <c>ItemDefinition</c> / <c>QuestDefinition</c>.
+            
+             The <c>.tip</c> asset covers the input / signal / timer / context trigger family. World-anchored
+             completion (proximity, look-at) lives on the <see cref="T:FieldGuide.Tips.TipTriggerObject"/> component, which needs a
+             scene anchor, so it is authored by dropping the component on the object rather than in this asset.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipResource.TextPad">
+            <summary>Optional gamepad wording, shown instead of <see cref="P:FieldGuide.Tips.TipResource.Text"/> on a controller. Leave blank to
+            use <see cref="P:FieldGuide.Tips.TipResource.Text"/> on both devices. Mark gamepad buttons in `backticks`, same as <see cref="P:FieldGuide.Tips.TipResource.Text"/>.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipResource.MaxShowSeconds">
+            <summary>Safety valve: auto-complete after this many visible seconds (0 = never on this path).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipResource.PostLoad">
+            <summary>Called when the asset is first loaded from disk (a fresh session, or a <c>.tip</c> created
+            while the editor is running). Fills the id fallback, then tells the catalog its asset source moved so
+            the new tip is in <see cref="P:FieldGuide.Tips.TipsCatalog.Active"/> without a restart.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipResource.PostReload">
+            <summary>
+            Called when the asset is recompiled / reloaded from disk: the engine's own live-reload hook, and the
+            one that makes editing a <c>.tip</c> in the inspector (or in a text editor) reach a running session.
+            The catalog caches its merged view, so without this an edited tip is invisible until something else
+            invalidates it. <c>ResourceLibrary.IEventListener</c> would be the general form of this hook but it is
+            internal to the engine, so a kit hooks the resource type it owns instead.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipResource.ToDefinition">
+            <summary>Map this authored asset to the runtime <see cref="T:FieldGuide.Tips.TipDefinition"/> the coach reads.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipSegmentKind">
+            <summary>
+            What a run of tip text renders as: plain prose, a keyboard keycap, or a gamepad button chip.
+            </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipSegmentKind.Plain">
+            <summary>Ordinary text, rendered as-is.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipSegmentKind.Key">
+            <summary>A keyboard key or mouse-button name, rendered as a square keycap. Markup: <c>*W*</c>.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipSegmentKind.GamepadButton">
+            <summary>A gamepad button or stick, rendered as a rounded controller chip. Markup: <c>`A`</c> (backticks).</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipSegment">
+             <summary>
+             One run of tip text: either plain prose, a keyboard key that renders as a square keycap, or a
+             gamepad button that renders as a rounded controller chip. <see cref="T:FieldGuide.Tips.TipsDisplay"/> walks a tip's
+             segments and styles each kind, so tip authors write a single string with markup around input names
+             instead of embedding UI.
+            
+             Markup:
+             <list type="bullet">
+             <item><c>*W*</c> (asterisks) is a keyboard / mouse keycap, e.g. <c>"Hold *B* to block."</c></item>
+             <item><c>`A`</c> (backticks) is a gamepad button, e.g. <c>"Press `A` to jump."</c></item>
+             </list>
+             The two are independent, so one line can carry both for a keyboard-and-gamepad prompt:
+             <c>"Attack with *LMB* / `RT`."</c>. Everything outside the markers is plain.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipSegment.#ctor(System.String,FieldGuide.Tips.TipSegmentKind)">
+             <summary>
+             One run of tip text: either plain prose, a keyboard key that renders as a square keycap, or a
+             gamepad button that renders as a rounded controller chip. <see cref="T:FieldGuide.Tips.TipsDisplay"/> walks a tip's
+             segments and styles each kind, so tip authors write a single string with markup around input names
+             instead of embedding UI.
+            
+             Markup:
+             <list type="bullet">
+             <item><c>*W*</c> (asterisks) is a keyboard / mouse keycap, e.g. <c>"Hold *B* to block."</c></item>
+             <item><c>`A`</c> (backticks) is a gamepad button, e.g. <c>"Press `A` to jump."</c></item>
+             </list>
+             The two are independent, so one line can carry both for a keyboard-and-gamepad prompt:
+             <c>"Attack with *LMB* / `RT`."</c>. Everything outside the markers is plain.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipSegment.IsKey">
+            <summary>True for a keyboard keycap run (<see cref="F:FieldGuide.Tips.TipSegmentKind.Key"/>). Kept for readers that
+            only distinguish keyboard chips from plain text.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipSegment.IsGamepadButton">
+            <summary>True for a gamepad button run (<see cref="F:FieldGuide.Tips.TipSegmentKind.GamepadButton"/>).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipSegment.Parse(System.String)">
+            <summary>
+            Split a tip line into alternating plain / key / gamepad runs. A matched pair of <c>*</c> marks a
+            keyboard keycap; a matched pair of <c>`</c> marks a gamepad button; everything else is plain. An
+            unmatched trailing marker degrades gracefully: its run stays plain.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTriggerKind">
+            <summary>
+            The observable condition a declarative trigger watches. A single kind drives both relevance
+            ("may this tip show?") and completion ("has the player done the thing?"). The kinds carry no
+            delegates, so the same shape serializes onto a <c>.tip</c> asset (see <see cref="T:FieldGuide.Tips.TipResource"/>).
+            </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.Always">
+            <summary>Always true. The relevance default; never used for completion.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.InputAction">
+            <summary>Any of <see cref="P:FieldGuide.Tips.TipTrigger.Actions"/> was pressed this frame (Input.Pressed).</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.Key">
+            <summary>Any of <see cref="P:FieldGuide.Tips.TipTrigger.Keys"/> was pressed this frame (Input.Keyboard.Pressed): keyboard keys plus "mouse1" / "mouse2".</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.Signal">
+            <summary>A named string signal has been latched this session (via <see cref="M:FieldGuide.Tips.TipsCoach.Signal(System.String)"/>).</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.Ever">
+            <summary>A custom behaviour was latched this session, read through <see cref="M:FieldGuide.Tips.TipContext.Ever(System.String)"/>.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.Flag">
+            <summary><see cref="M:FieldGuide.Tips.TipContext.Flag(System.String)"/> is true this frame.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.AtLeast">
+            <summary><see cref="M:FieldGuide.Tips.TipContext.Number(System.String)"/> is at least <see cref="P:FieldGuide.Tips.TipTrigger.Threshold"/>.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.Timer">
+            <summary>The tip has been visible at least <see cref="P:FieldGuide.Tips.TipTrigger.Seconds"/> seconds.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.AnalogAxis">
+            <summary>An analog stick (move or look) is pushed at or past <see cref="P:FieldGuide.Tips.TipTrigger.Threshold"/> magnitude (0..1). Completes a gamepad tip whose action has no digital press, e.g. a stick-throttle "accelerate".</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.AnyOf">
+            <summary>Any child trigger fires.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerKind.AllOf">
+            <summary>Every child trigger fires.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTriggerAnalogSource">
+            <summary>
+            Which analog stick an <see cref="F:FieldGuide.Tips.TipTriggerKind.AnalogAxis"/> trigger watches. Both read the default
+            input device, so the same trigger works on a controller stick or whatever else the engine maps to
+            the move / look axes.
+            </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerAnalogSource.AnalogMove">
+            <summary>The movement stick (Input.AnalogMove): forward / strafe.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerAnalogSource.AnalogLook">
+            <summary>The look stick (Input.AnalogLook): aim / camera.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTrigger">
+             <summary>
+             A declarative trigger. It holds no delegates, so it doubles as the serialized shape authored on a
+             <c>.tip</c> asset and evaluated by <see cref="T:FieldGuide.Tips.TipsCoach"/> each frame against <see cref="T:Sandbox.Input"/>
+             and the pushed (or synthesized) <see cref="T:FieldGuide.Tips.TipContext"/>.
+            
+             Build one with the ergonomic factories rather than hand-filling the record, e.g.
+             <c>TipTrigger.Action( "Jump" )</c> or <c>TipTrigger.Any( TipTrigger.Action( "Jump" ), TipTrigger.KeyPress( "space" ) )</c>.
+             Compose with <see cref="M:FieldGuide.Tips.TipTrigger.Any(FieldGuide.Tips.TipTrigger[])"/> / <see cref="M:FieldGuide.Tips.TipTrigger.All(FieldGuide.Tips.TipTrigger[])"/>.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.Kind">
+            <summary>Which observable condition this trigger watches.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.Actions">
+            <summary>Input.config action names (<see cref="F:FieldGuide.Tips.TipTriggerKind.InputAction"/>). Any one pressed fires the trigger.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.Keys">
+            <summary>Raw key / mouse-button names (<see cref="F:FieldGuide.Tips.TipTriggerKind.Key"/>), e.g. "w", "space", "mouse1". Any one fires.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.Key">
+            <summary>Key for <see cref="F:FieldGuide.Tips.TipTriggerKind.Signal"/> / <see cref="F:FieldGuide.Tips.TipTriggerKind.Ever"/> / <see cref="F:FieldGuide.Tips.TipTriggerKind.Flag"/> / <see cref="F:FieldGuide.Tips.TipTriggerKind.AtLeast"/>.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.Threshold">
+            <summary>Threshold for <see cref="F:FieldGuide.Tips.TipTriggerKind.AtLeast"/> (Number key at least Threshold).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.Seconds">
+            <summary>Seconds for <see cref="F:FieldGuide.Tips.TipTriggerKind.Timer"/>.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.AnalogSource">
+            <summary>Which stick an <see cref="F:FieldGuide.Tips.TipTriggerKind.AnalogAxis"/> trigger watches (magnitude compared against <see cref="P:FieldGuide.Tips.TipTrigger.Threshold"/>).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTrigger.Children">
+            <summary>Children for <see cref="F:FieldGuide.Tips.TipTriggerKind.AnyOf"/> / <see cref="F:FieldGuide.Tips.TipTriggerKind.AllOf"/>.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTrigger.Action(System.String[])">
+            <summary>Completes on any of the given Input.config actions (keyboard, mouse or pad, whatever they are bound to).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTrigger.KeyPress(System.String[])">
+            <summary>Completes on any of the given raw key / mouse-button names, e.g. "space", "mouse1".</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTrigger.Named(System.String)">
+            <summary>Completes once the named string signal has been latched this session.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTrigger.After(System.Single)">
+            <summary>Completes once the tip has been visible at least <paramref name="seconds"/> seconds.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTrigger.Analog(FieldGuide.Tips.TipTriggerAnalogSource,System.Single)">
+            <summary>Completes once the given analog stick is pushed at or past <paramref name="threshold"/> magnitude (0..1), e.g. a stick-throttle "accelerate" on a pad.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTrigger.Any(FieldGuide.Tips.TipTrigger[])">
+            <summary>Fires when any child fires.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTrigger.All(FieldGuide.Tips.TipTrigger[])">
+            <summary>Fires when every child fires.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTriggerBuild">
+            <summary>
+            The ONE rule that turns a set of authored trigger fields into a runtime <see cref="T:FieldGuide.Tips.TipTrigger"/>: which
+            fields a kind reads, and which it ignores. Two authoring surfaces feed it, the <c>.tip</c> asset's
+            <see cref="T:FieldGuide.Tips.TipTriggerSpec"/> inspector and the Tips Studio's <see cref="T:FieldGuide.Tips.TipStudioTrigger"/> picker, so the
+            mapping lives here once instead of being written twice and drifting. Pure (no <c>Sandbox</c> reference),
+            so the harness exercises the same code the editor and the panel do.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTriggerBuild.From(FieldGuide.Tips.TipTriggerKind,System.String,System.String,System.String,System.Single,System.Single,FieldGuide.Tips.TipTriggerAnalogSource,System.Single,System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipTrigger})">
+            <summary>
+            Build the runtime trigger a kind's fields describe. Fields that do not belong to
+            <paramref name="kind"/> are ignored, so an author who fills a box and then changes the kind never
+            ships a stale value. An empty action / key name yields an empty list, which never fires, matching the
+            asset path's long-standing behaviour. An unknown kind degrades to <see cref="F:FieldGuide.Tips.TipTriggerKind.Always"/>.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTriggerEnv">
+            <summary>
+            The environment a <see cref="T:FieldGuide.Tips.TipTrigger"/> is evaluated against: the four world reads plus the active
+            tip's elapsed visible time. <see cref="T:FieldGuide.Tips.TipsCoach"/> fills these from <see cref="T:Sandbox.Input"/>, the
+            pushed <see cref="T:FieldGuide.Tips.TipContext"/> and its own timer; a headless harness fills them with fakes. Keeping
+            the reads behind delegates is what lets the trigger truth table be unit-tested without the engine.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerEnv.ActionPressed">
+            <summary>Was the named Input.config action pressed this frame? (Input.Pressed)</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerEnv.KeyPressed">
+            <summary>Was the named raw key / mouse button pressed this frame? (Input.Keyboard.Pressed)</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerEnv.SignalLatched">
+            <summary>Has the named string signal been latched this session? (Signal / Ever kinds)</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerEnv.Flag">
+            <summary>Is the named custom context flag true this frame? (TipContext.Flag)</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerEnv.Number">
+            <summary>The named custom context number this frame. (TipContext.Number)</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerEnv.Elapsed">
+            <summary>Seconds the active tip has been visible, for the Timer kind.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerEnv.AnalogMagnitude">
+            <summary>The current magnitude (0..1-ish) of the given analog stick, for the AnalogAxis kind. (Input.AnalogMove / Input.AnalogLook length.)</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTriggerEval">
+            <summary>
+            The pure, engine-free evaluation core for a declarative <see cref="T:FieldGuide.Tips.TipTrigger"/>: the per-kind rule and
+            the AnyOf / AllOf recursion, with every world read behind a <see cref="T:FieldGuide.Tips.TipTriggerEnv"/> delegate. This
+            holds the whole completion/relevance truth table, so it can be exercised headlessly (the coach passes
+            real Input / context reads; a harness passes fakes) and stays identical between the two.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTriggerEval.Evaluate(FieldGuide.Tips.TipTrigger,FieldGuide.Tips.TipTriggerEnv)">
+            <summary>Evaluate a trigger against the given environment. Null trigger evaluates false.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipTriggerObject">
+             <summary>
+             Drop this on a GameObject (an NPC, a door, a pickup) to retire a tip when the player does something to
+             that object. Pick the tip id and the mode in the inspector; no code for the common cases. So "talk to
+             this NPC" is: add this component to the NPC, set <see cref="P:FieldGuide.Tips.TipTriggerObject.TipId"/>, set
+             <see cref="P:FieldGuide.Tips.TipTriggerObject.CompleteOn"/> = <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.Interacted"/>, and call <see cref="M:FieldGuide.Tips.TipTriggerObject.Interacted"/> (or the
+             static <see cref="M:FieldGuide.Tips.TipTriggerObject.NotifyInteracted(Sandbox.GameObject)"/>) from wherever your game already knows an interaction happened.
+            
+             <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.PlayerEntered"/> and <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.LookedAt"/> read the <see cref="T:FieldGuide.Tips.TipsWorld"/>
+             seams and are INERT until those seams are set (they never fire and never throw), so a game that skips
+             the seams still runs. Input, Signal and Timer completion do not use this component at all; they live on
+             the tip itself (declarative triggers or the coach's input pass).
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerObject.Mode.Interacted">
+            <summary>Your interaction code (or the fieldguide.interaction bridge) calls <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.Interacted"/>.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerObject.Mode.PlayerEntered">
+            <summary>The local player is within <see cref="P:FieldGuide.Tips.TipTriggerObject.Radius"/> of this object (needs <see cref="P:FieldGuide.Tips.TipsWorld.LocalPlayerPosition"/>).</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerObject.Mode.LookedAt">
+            <summary>The aim ray hits this object within <see cref="P:FieldGuide.Tips.TipTriggerObject.Radius"/> (needs <see cref="P:FieldGuide.Tips.TipsWorld.AimRay"/>).</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipTriggerObject.Mode.Signal">
+            <summary>Raise a named signal instead of completing directly (fans out to every coach's Signal).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerObject.Radius">
+            <summary>Trigger distance for PlayerEntered, and the aim-ray length for LookedAt, in world units.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipTriggerObject.SignalName">
+            <summary>Signal name raised in <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.Signal"/>.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTriggerObject.Interacted">
+            <summary>Call from your interaction code when this object is interacted with. Inert unless the mode
+            is <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.Interacted"/>.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipTriggerObject.NotifyInteracted(Sandbox.GameObject)">
+            <summary>
+            Convenience for an interaction bridge: fire the <see cref="M:FieldGuide.Tips.TipTriggerObject.Interacted"/> trigger on a target
+            GameObject if it carries a <see cref="T:FieldGuide.Tips.TipTriggerObject"/>. Null-safe on the target and on a missing
+            component, so a bridge can call it for every interacted object without guarding.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsCatalog">
+             <summary>
+             The registry the coach reads. Three sources merge into <see cref="P:FieldGuide.Tips.TipsCatalog.Active"/>, keyed by
+             <see cref="P:FieldGuide.Tips.TipDefinition.Id"/>, highest precedence first:
+             <list type="number">
+             <item>CODE: whatever the game passed to <see cref="M:FieldGuide.Tips.TipsCatalog.Register(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})"/>.</item>
+             <item>ASSETS: every <c>.tip</c> <see cref="T:FieldGuide.Tips.TipResource"/> found via
+             <c>ResourceLibrary.GetAll&lt;TipResource&gt;()</c>, mapped through <see cref="M:FieldGuide.Tips.TipResource.ToDefinition"/>.</item>
+             <item>DRAFTS: runtime tips injected via <see cref="M:FieldGuide.Tips.TipsCatalog.RegisterRuntime(FieldGuide.Tips.TipDefinition)"/> (a test-fire / dev
+             tool seam), lowest precedence.</item>
+             </list>
+             On an id collision CODE wins, then the asset, then the draft: a game's own code catalog is authored
+             intent, and assets are usually additive or mod content. This is the inverse of the RPG kit, where
+             authored assets override code demos. When all three sources are empty the shipped <see cref="P:FieldGuide.Tips.TipsCatalog.Example"/>
+             surfaces so the panel still does something before any content is wired in.
+            
+             Back-compat: <see cref="M:FieldGuide.Tips.TipsCatalog.Register(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})"/> and <see cref="P:FieldGuide.Tips.TipsCatalog.Active"/> keep their
+             v0.2 signatures. A game that only calls Register with no assets and no drafts reads exactly its own
+             list, in its own order, from <see cref="P:FieldGuide.Tips.TipsCatalog.Active"/> just as before.
+            
+             LIFETIME. Every source here is STATIC, so a catalog registered from a scene component outlives that
+             scene and that play session: load another scene in the same editor process and the old tips are still
+             the highest-priority thing the coach can pick, with nothing over there able to retire them. Register
+             from a component and you want <see cref="M:FieldGuide.Tips.TipsCatalog.RegisterScoped(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})"/>, which hands the
+             previous catalog back when you dispose it in OnDestroy. Runtime drafts have the same rule and the same
+             answer, <see cref="M:FieldGuide.Tips.TipsCatalog.ClearRuntime"/>.
+            
+             FRESHNESS. The merged view is DERIVED state: one <see cref="T:FieldGuide.Tips.TipCatalogView"/> holding the ordered list
+             and the id-to-source map together, rebuilt whenever a source moves and swapped in whole, so the two can
+             never disagree with each other. Sources announce their own moves: <see cref="M:FieldGuide.Tips.TipsCatalog.Register(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})"/> and the draft calls
+             invalidate directly, and <see cref="T:FieldGuide.Tips.TipResource"/> calls <see cref="M:FieldGuide.Tips.TipsCatalog.NoteAssetsChanged"/> from its PostLoad
+             / PostReload, which is what makes an edited <c>.tip</c> reach a running session. <c>fg_tips_rebuild</c> is
+             the manual reset for anything that slips past (a deleted asset, a code hotload).
+            
+             Game-specific tip text (which keys open which panels, what the dev overlay does, spell and
+             potion lines) belongs in YOUR catalog, not in the kit. The kit owns the mechanic (priority,
+             prerequisites, trigger, complete-when, timeout); you own the words.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCatalog.Active">
+            <summary>
+            The merged, deduped walkthrough the coach reads (code + assets + drafts by the precedence above),
+            or <see cref="P:FieldGuide.Tips.TipsCatalog.Example"/> when every source is empty. Priority breaks ties; PrerequisiteTipIds
+            sequences the spine. Derived and cached against the source revisions, so an edited or newly created
+            <c>.tip</c> shows up on the next read; <c>fg_tips_rebuild</c> forces a rescan by hand.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCatalog.View">
+            <summary>The merged catalog and its source labels together, for a reader that needs both and must not
+            see them from two different builds (the Tips Studio's tip list).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.Register(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})">
+             <summary>Install your own tutorial line (the CODE source). Call once at bootstrap; a null or empty
+             list is ignored. Additive to any <c>.tip</c> assets and drafts; code wins id collisions.
+            
+             The catalog is static and outlives the scene that registered it. Registering from a component that
+             can be destroyed (a scene bootstrap, a dev harness) wants
+             <see cref="M:FieldGuide.Tips.TipsCatalog.RegisterScoped(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})"/> instead.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.RegisterScoped(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})">
+             <summary>
+             Register a code catalog that HANDS ITSELF BACK. Dispose the returned token (from your component's
+             OnDestroy, or with a <c>using</c>) and whatever was registered before is restored, so a scene's tips
+             cannot follow the player into the next scene. Disposing twice is a no-op, and disposing out of order
+             still restores what this call displaced rather than clearing the catalog outright.
+            
+             This is the seam the kit's own demo bootstrap discipline generalizes: statics outlive scenes, so
+             whoever set one puts it back.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.RegisterRuntime(FieldGuide.Tips.TipDefinition)">
+            <summary>
+            Inject (or replace) a live runtime draft tip (the lowest-precedence DRAFT source). An id that also
+            names a code tip or an authored <c>.tip</c> asset resolves to that real tip, never the draft. The
+            seam a test-fire / dev tool uses so an in-progress tip is previewable without an editor compile.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.UnregisterRuntime(System.String)">
+            <summary>Remove a draft tip previously injected via <see cref="M:FieldGuide.Tips.TipsCatalog.RegisterRuntime(FieldGuide.Tips.TipDefinition)"/>.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.ClearRuntime">
+            <summary>Drop every runtime draft, leaving the code catalog and the <c>.tip</c> assets alone. The
+            Tips Studio calls this when it shuts down: an authoring draft must not follow the developer into
+            another scene or another session.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCatalog.RuntimeIds">
+            <summary>The ids of the live runtime drafts, so a dev tool can list or clean up exactly what it put
+            in. Ordered for a stable readout.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.Rebuild">
+            <summary>Force a fresh merge (rescans <c>.tip</c> assets). Call after hot-loading new tip assets;
+            otherwise the lazy build is enough. Code catalog and live drafts are preserved.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.NoteAssetsChanged">
+            <summary>
+            The <c>.tip</c> asset source moved: a tip was loaded for the first time, or recompiled from disk after
+            an edit. <see cref="T:FieldGuide.Tips.TipResource"/> calls this from its PostLoad / PostReload, which is the engine hook
+            a kit can reach (<c>ResourceLibrary.IEventListener</c> is internal), and it is what makes an edited tip
+            appear in a running session. Cheap and idempotent: it bumps a counter and drops the derived snapshot.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.RebuildCommand">
+            <summary>Rescan <c>.tip</c> assets and rebuild the merged catalog by hand, then print what came back.
+            The fallback for anything the automatic hooks cannot see: a deleted asset, or a code hotload that left
+            the derived view holding pre-hotload tips.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.Reset">
+            <summary>Clear the code catalog and drafts so <see cref="P:FieldGuide.Tips.TipsCatalog.Active"/> falls back to any authored assets,
+            or to the shipped <see cref="P:FieldGuide.Tips.TipsCatalog.Example"/> when there are none (mostly for tests / demos).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.Current">
+            <summary>The current derived view, rebuilt when any source has moved since it was made.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCatalog.SourceOf(System.String)">
+            <summary>Which source a tip id resolved from ("code" / "asset" / "draft" / "example"), or "unknown".
+            Used by the <c>fg_tips_list</c> console command and the Tips Studio's tip list, where the label is how
+            a tip left over from another scene gives itself away.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCatalog.Example">
+             <summary>
+             A minimal, GENERIC illustration, enough to show every mechanic (a completed-by-behaviour spine,
+             a prerequisite chain, a contextual interrupt via <see cref="P:FieldGuide.Tips.TipDefinition.Trigger"/>, and a
+             timed "glance" beat via <see cref="P:FieldGuide.Tips.TipDefinition.MaxShowSeconds"/>). It is meant to be REPLACED:
+             register your own game's tips with <see cref="M:FieldGuide.Tips.TipsCatalog.Register(System.Collections.Generic.IReadOnlyList{FieldGuide.Tips.TipDefinition})"/>.
+            
+             A computed property, not a <c>static readonly</c> field: a field's initializer runs once, so after a
+             code hotload the old list survives and an edit to these tips is invisible until the editor restarts.
+             A property is a method, and methods come back fresh from a hotload.
+             </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsCoach">
+             <summary>
+             The contextual onboarding coach: it decides which single tip is relevant right now and shows it in
+             a small calm panel (<see cref="T:FieldGuide.Tips.TipsDisplay"/>) until the player performs the action, then advances
+             straight to the next tip. It never fights the player's attention: it hides while a modal,
+             conversation or a dev/menu overlay is open.
+            
+             SEAM MODEL. The kit owns the engine, catalog types and display; the game owns the words and the
+             wiring. Because a library may not reach into game state, the coach is DRIVEN by the consumer:
+             <list type="bullet">
+             <item>Each frame the consumer builds a neutral <see cref="T:FieldGuide.Tips.TipContext"/> (vitals, quest count,
+             modal/overlay flags, ...) and calls <see cref="M:FieldGuide.Tips.TipsCoach.Tick(FieldGuide.Tips.TipContext)"/>.</item>
+             <item>When the consumer observes a one-off behaviour (the player moved, cast a spell, aggroed an
+             NPC) it calls <see cref="M:FieldGuide.Tips.TipsCoach.Signal(FieldGuide.Tips.TipSignal)"/> or one of the named wrappers. The coach latches it
+             and the matching <c>Ever*</c> field on the context reads true from then on.</item>
+             </list>
+             A few behaviours are ALSO auto-latched from the neutral context each tick (talking from
+             <see cref="F:FieldGuide.Tips.TipContext.DialogueActive"/>, quest-accept from <see cref="F:FieldGuide.Tips.TipContext.ActiveQuestCount"/>,
+             aggro from in-combat + enemies-nearby, overlay-opened from <see cref="F:FieldGuide.Tips.TipContext.OverlayOpen"/>,
+             panel-closed from a modal/overlay closing), so a game that only pushes context still advances.
+            
+             It is a plain <see cref="T:Sandbox.Component"/> (all logic + state) that lives beside its
+             <see cref="T:FieldGuide.Tips.TipsDisplay"/> PanelComponent on one <see cref="T:Sandbox.ScreenPanel"/>; the display reads the
+             statics this component publishes. Everything is client-local, tips are a personal UX layer and
+             never touch networking or gameplay state.
+            
+             Progress (completed tip ids + a "dismissed for good" flag) persists to
+             <c>FileSystem.Data</c> so returning players aren't re-taught.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.TipsEnabled">
+            <summary>Master switch. Set <c>fg_tips 0</c> in the console to turn the coach off entirely.
+            Named <c>TipsEnabled</c> (not <c>Enabled</c>) so this static convar doesn't hide the inherited
+            instance <see cref = "P:Sandbox.Component.Enabled"/>.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.ResetProgress">
+            <summary>Forget all tip progress and start the walkthrough over (also re-enables the coach).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.ListTips">
+            <summary>Print the active device, then every tip in the merged catalog: id, source, completed state,
+            priority, prerequisites, and a live relevance verdict from the first live coach.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.DeviceInfo">
+            <summary>Print the active input device and how the on-screen tip resolved for it: which text field
+            (Text or TextPad) drives the wording, the parsed chip segments, the hide-chip label, and whether a pad
+            label map / hide seam is wired. Closes the dogfood finding that a device-gated tip was indistinguishable
+            from a broken input bridge.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.ShowTip(System.String)">
+            <summary>Force the given tip active on every live coach, for preview. It shows until it completes
+            (or you complete/reset it); a completed tip previews for the readable window then retires.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.CompleteTip(System.String)">
+            <summary>Fire completion for the given tip id (the same path a world trigger uses). Proves a
+            trigger end to end from the console.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.ActiveTip">
+            <summary>The tip to render right now, or null when nothing should show.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.Visible">
+            <summary>True when the panel should be visible (an active tip, and not suppressed).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.ActiveSegments">
+            <summary>The active tip's text split into keycap/plain segments (bold-key rendering). Never null. This
+            is the KEYBOARD/MOUSE list; the display renders it while <see cref="P:FieldGuide.Tips.TipsCoach.ActiveDevice"/> is
+            <see cref="F:FieldGuide.Tips.TipDevice.KeyboardMouse"/>.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.ActivePadSegments">
+            <summary>The active tip's PAD-MODE variant, parsed the same way as <see cref="P:FieldGuide.Tips.TipsCoach.ActiveSegments"/> but from
+            <see cref="P:FieldGuide.Tips.TipDefinition.TextPad"/> when set, else the same <see cref="P:FieldGuide.Tips.TipDefinition.Text"/> (so a tip
+            with no pad-specific wording reads identically from either list). Published alongside
+            <see cref="P:FieldGuide.Tips.TipsCoach.ActiveSegments"/> everywhere it changes; the display picks between the two off
+            <see cref="P:FieldGuide.Tips.TipsCoach.ActiveDevice"/>. Never null.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.ActiveDevice">
+            <summary>
+            The device the player last used, from <c>Input.UsingController</c> (the engine flaps it to the
+            last-used device; it is polled, there is no event). The display folds this into its BuildHash so a
+            device flip re-renders the active tip with the right wording and chips immediately. A library may read
+            <c>Input</c> directly (the coach already does for its input triggers), so this needs no bridge.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.PreviewDevice">
+            <summary>
+            Pin <see cref="P:FieldGuide.Tips.TipsCoach.ActiveDevice"/> to one device regardless of what the player last touched. An AUTHORING
+            seam: the Tips Studio uses it so you can read a tip's pad wording, and its pad chips, without owning a
+            controller. Null (the default) is the live value from <c>Input.UsingController</c>, which is what a
+            shipped game always runs with. Whoever sets it puts it back; the Studio clears it when it closes.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.PadLabelFor">
+            <summary>
+            Optional whole-catalog keycap remap for pad mode (build plan point 4), generalizing World Builder's
+            <c>Cap()</c>. Null (the default) leaves keycaps untouched. When set, the display passes each keyboard
+            keycap label through this map while the player is on a pad: return a controller label to swap the chip
+            (e.g. "RMB" to "LT"), return the label unchanged to pass it through, or return null/empty to skip a
+            chip that has no pad equivalent. It is the alternative to authoring <see cref="P:FieldGuide.Tips.TipDefinition.TextPad"/>
+            on every tip: map the handful of labels once. Applied at render time via
+            <see cref="M:FieldGuide.Tips.TipDeviceText.PadCap(System.String,System.Func{System.String,System.String})"/>.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.HideKeyLabel">
+            <summary>
+            Optional consumer-set labels for a card "hide tips" chip: the keyboard key name (e.g. "Y") and the
+            gamepad button name (e.g. "B"). The display shows the one that matches <see cref="P:FieldGuide.Tips.TipsCoach.ActiveDevice"/>, next
+            to the built-in close affordance; a null/empty label hides that chip variant. The kit itself has no
+            keybind opinion (SEAM MODEL: the game owns the words), so the chip does not appear until a game sets a
+            label. Set once at bootstrap. Upstreamed from the World Builder vendored copy under the same names.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.HidePadLabel">
+            <inheritdoc cref="P:FieldGuide.Tips.TipsCoach.HideKeyLabel"/>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.HideAll">
+            <summary>
+            What "hide tips" MEANS belongs to the game (SEAM MODEL): a library cannot reference the game's controls
+            or its persisted preferences. When set, the card's hide affordance (the close chip, and the optional
+            <see cref="P:FieldGuide.Tips.TipsCoach.HideKeyLabel"/>/<see cref="P:FieldGuide.Tips.TipsCoach.HidePadLabel"/> chip) invokes this instead of dismissing only the
+            current tip, so a game can route the button at a persisted "tips off" preference. Null (the default)
+            leaves the close affordance dismissing the current tip, the v0.1-v0.3 behaviour. Assign once at init.
+            Upstreamed from the World Builder vendored copy under the same name and semantics.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsCoach.SaveFileName">
+            <summary>
+            The <see cref="P:Sandbox.FileSystem.Data"/> file tip progress persists to. <see cref="P:Sandbox.FileSystem.Data"/> is
+            already sandboxed per game (each published package gets its own data folder), so the default name
+            never collides across two games on one machine. Override it before <see cref="M:FieldGuide.Tips.TipsCoach.Ensure(Sandbox.Scene)"/>
+            only if you want an explicit namespace (e.g. one game hosting several distinct tip tracks). Set it
+            before the first <see cref="M:FieldGuide.Tips.TipsCoach.Ensure(Sandbox.Scene)"/> / <see cref="M:FieldGuide.Tips.TipsCoach.Signal(FieldGuide.Tips.TipSignal)"/> call so the initial
+            load reads the right file.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsCoach.TipsSave">
+            <summary>Serializable progress blob.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.MigrateProgressFrom(System.String)">
+            <summary>
+            One-time forward migration for a game that used to persist tip progress under a different file
+            name (before adopting this kit, or before changing <see cref="P:FieldGuide.Tips.TipsCoach.SaveFileName"/>). If the current
+            <see cref="P:FieldGuide.Tips.TipsCoach.SaveFileName"/> does not exist yet but <paramref name="legacyFileName"/> does, its
+            contents are copied forward so returning players keep their completed tips. The legacy file is
+            left untouched. Idempotent and safe to call every bootstrap; call it before
+            <see cref="M:FieldGuide.Tips.TipsCoach.Ensure(Sandbox.Scene)"/> so the first load reads the migrated file.
+            </summary>
+            <param name="legacyFileName">The old <see cref="P:Sandbox.FileSystem.Data"/> file to copy forward, e.g.
+            <c>"my_game_tips.json"</c>.</param>
+            <returns>True when a migration was performed this call; false when there was nothing to migrate.</returns>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.Ensure(Sandbox.Scene)">
+            <summary>
+            Ensure a single coach exists in the scene, on its own <see cref="T:Sandbox.ScreenPanel"/> alongside the
+            <see cref="T:FieldGuide.Tips.TipsDisplay"/> view. Idempotent, safe to call from a client bootstrap every load.
+            The consumer still has to drive it every frame with <see cref="M:FieldGuide.Tips.TipsCoach.Tick(FieldGuide.Tips.TipContext)"/>.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.Signal(FieldGuide.Tips.TipSignal)">
+            <summary>Latch an observed behaviour. Idempotent; once latched it stays for the session.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.Signal(System.String)">
+            <summary>
+            Latch an observed behaviour named by your own string key, for games whose vocabulary does not fit
+            the built-in <see cref="T:FieldGuide.Tips.TipSignal"/> set (a builder placing a block, a racer landing a drift).
+            Idempotent; once latched it stays for the session and reads true from
+            <see cref="M:FieldGuide.Tips.TipContext.Ever(System.String)"/> in your predicates. Choose stable keys, they are matched
+            verbatim.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.SignalNpcAggro">
+            <summary>The player drew a hostile's attention. Wire your game's "NPC aggro" event to this.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.SignalQuestStarted">
+            <summary>The player accepted / started a quest. Wire your game's "quest started" event to this.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.SignalSpellCast">
+            <summary>The player cast a spell. Wire your game's "spell cast" event to this.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.SignalInteraction">
+            <summary>The player talked to / interacted with a character. Wire your game's "interaction" event to this.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.Tick(FieldGuide.Tips.TipContext)">
+             <summary>
+             Drive the coach for one frame with a freshly-built neutral context. Applies latches, decides
+             which single tip is relevant, completes the active one when its behaviour is observed, and
+             publishes <see cref="P:FieldGuide.Tips.TipsCoach.ActiveTip"/> / <see cref="P:FieldGuide.Tips.TipsCoach.Visible"/> / <see cref="P:FieldGuide.Tips.TipsCoach.ActiveSegments"/> for the
+             display.
+            
+             OPTIONAL since v0.3: a game whose tips complete only on input, signals, timers or world triggers
+             need not call this at all; the coach self-drives from <see cref="M:FieldGuide.Tips.TipsCoach.OnUpdate"/>. Call it when your
+             tips read live game context (vitals, modal/overlay flags, custom flags and numbers). Calling it
+             every frame is the v0.2 pattern and keeps the coach fully consumer-driven, which is byte-identical
+             to prior behaviour.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.OnUpdate">
+            <summary>
+            The self-driving path (v0.3). On any frame the game did not call <see cref="M:FieldGuide.Tips.TipsCoach.Tick(FieldGuide.Tips.TipContext)"/>,
+            the coach evaluates on its own, reading <see cref="T:Sandbox.Input"/> directly for declarative input triggers
+            and synthesizing a context from the <see cref="T:FieldGuide.Tips.TipsWorld"/> seams. The guard makes a Tick-driven
+            game behave exactly as before: Tick sets a flag every frame it runs, and this pass skips whenever
+            that flag is set. It is cleared here so the next tickless frame self-drives.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.Evaluate">
+            <summary>
+            The single per-frame evaluation body shared by <see cref="M:FieldGuide.Tips.TipsCoach.Tick(FieldGuide.Tips.TipContext)"/> and the self-driving
+            <see cref="M:FieldGuide.Tips.TipsCoach.OnUpdate"/>. Reads <see cref="F:FieldGuide.Tips.TipsCoach._ctx"/> (already assigned by the caller).
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.SynthContext">
+            <summary>
+            Synthesize a neutral context for the self-driving path from the <see cref="T:FieldGuide.Tips.TipsWorld"/> seams.
+            Only <see cref="F:FieldGuide.Tips.TipContext.HasPlayer"/> is derived (from <see cref="P:FieldGuide.Tips.TipsWorld.HasLocalPlayer"/>,
+            default true); the live game fields stay at their defaults because a game that self-drives has not
+            pushed them. Fail-inert: a throwing seam is treated as "player present" rather than crashing.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.EvalTrigger(FieldGuide.Tips.TipTrigger)">
+            <summary>
+            Evaluate a declarative <see cref="T:FieldGuide.Tips.TipTrigger"/> against live <see cref="T:Sandbox.Input"/>, the pushed (or
+            synthesized) <see cref="T:FieldGuide.Tips.TipContext"/> and the active tip's timer, via the pure
+            <see cref="T:FieldGuide.Tips.TipTriggerEval"/> core. Input / Key kinds read the edge
+            (<see cref="M:Sandbox.Input.Pressed(System.String)"/> / <see cref="T:Sandbox.Input.Keyboard"/>) so they must be evaluated in a
+            per-frame pass, which both callers (Tick, OnUpdate) are.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.CurrentEnv">
+            <summary>Bind the trigger evaluation environment to this coach's live reads.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.ApplyLatches">
+            <summary>
+            Auto-latch the behaviours that can be derived from the neutral context (belt-and-suspenders, as
+            the original coach derived these from replicated state so a non-host client still advanced), then
+            merge every latched signal into the context the tip predicates read.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.RetireActive(FieldGuide.Tips.TipDefinition)">
+            <summary>Retire the active tip: mark it done, persist, and clear it, the next evaluation advances
+            straight to the next eligible tip (no completion flourish; the card's rise-in animation on the new
+            tip is transition enough).</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.Complete(System.String)">
+            <summary>
+            Mark a tip complete from anywhere and persist it (v0.3). This is the seam a
+            <see cref="T:FieldGuide.Tips.TipTriggerObject"/> world trigger, a cutscene, or any custom game logic uses to retire a
+            tip by id without building a context. Idempotent: completing an already-complete tip does nothing.
+            If the tip is the one on screen, it retires on the next evaluation, subject to the same
+            MinShowSeconds readable-window guard as every other completion path.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.IsCompleted(System.String)">
+            <summary>Has this tip already been retired? Read by the Tips Studio's list so a tip that will never
+            show again is visibly done rather than mysteriously absent.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.Uncomplete(System.String)">
+            <summary>
+            Mark a tip NOT complete again and persist it: the undo of <see cref="M:FieldGuide.Tips.TipsCoach.Complete(System.String)"/>. The seam the
+            Tips Studio test-fire uses, because a tip you already retired this session would otherwise vanish the
+            instant you tried to look at it again. <c>fg_tips_reset</c> is the whole-walkthrough version.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.DropActive">
+            <summary>Take the current tip off the card WITHOUT marking it complete, so the coach picks the next
+            eligible one on its next evaluation. <see cref="M:FieldGuide.Tips.TipsCoach.DismissCurrent"/> is the player-facing affordance and
+            retires the tip for good; this is the dev-tool one, for pulling a preview back off the screen.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.SelectNext">
+            <summary>Pick the highest-priority tip that isn't done, whose prerequisites are done and whose trigger passes.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.RelevanceVerdict(FieldGuide.Tips.TipDefinition)">
+            <summary>
+            A one-word live verdict for why a tip is or is not showing right now, read against this coach's
+            last-evaluated context (whatever the game pushed with <see cref="M:FieldGuide.Tips.TipsCoach.Tick(FieldGuide.Tips.TipContext)"/>, or the
+            self-driven synth context). Used by the <c>fg_tips_list</c> diagnostics so a withheld tip is
+            distinguishable from a broken bridge: "done" (completed), "active" (on screen now),
+            "prereqs-pending" (a prerequisite is not complete), "trigger-false" / "relevance-false" (a gate is
+            not met this frame), or "relevant" (eligible, waiting its turn by priority).
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.ForceShow(System.String)">
+            <summary>Force a specific tip active for preview (the <c>fg_tips_show</c> seam). Returns false when
+            the id is not in the merged catalog. Bypasses relevance and prerequisites on purpose so a developer
+            can preview any tip; the next evaluation resumes normal completion/selection from there.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsCoach.DismissCurrent">
+            <summary>The × affordance: skip the current tip for good (marks it complete).</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsWorld">
+             <summary>
+             Optional world seams a game sets once at bootstrap so world-anchored triggers can read the local
+             player. A library cannot reach into a game's player, so these stay null until the game wires them.
+            
+             All are fail-inert: a trigger that needs an unset seam is simply INERT (it never fires and never
+             throws), so nothing crashes when a game skips them. Input, Signal and Timer triggers need no seam at
+             all. Set the seams you use, leave the rest null.
+            
+             <code>
+             using Sandbox;
+             using FieldGuide.Tips;
+            
+             TipsWorld.LocalPlayerPosition = () => MyLocalPlayer.WorldPosition;
+             TipsWorld.AimRay = () => new Ray( MyCamera.WorldPosition, MyCamera.WorldRotation.Forward );
+             </code>
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsWorld.HasLocalPlayer">
+            <summary>Whether a local player exists to coach. Read by the self-driving coach when no context is
+            pushed. Default: always true, so input-only tips show without any bootstrap wiring.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsWorld.LocalPlayerPosition">
+            <summary>Local player world position, for <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.PlayerEntered"/> triggers.
+            Null leaves those triggers inert.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsWorld.AimRay">
+            <summary>Camera / aim ray, for <see cref="F:FieldGuide.Tips.TipTriggerObject.Mode.LookedAt"/> triggers. Null leaves
+            those triggers inert.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.OpenKey">
+            <summary>The raw key that OPENS the Studio. A plain letter on purpose: the editor eats F1 to F12 in
+            play-in-editor. It only opens, never closes, so pressing it inside a text box just types the letter.
+            Close with the header's × or <c>fg_tips_studio 0</c>.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.OpenOnStart">
+            <summary>Whether the Studio starts open. Off by default: an authoring panel that appears unbidden over
+            a game is a bug. This, and only this, decides the boot state; the persisted convar never does.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.EditorOnly">
+            <summary>Force the Studio shut anywhere but the editor. On by default: it is an authoring tool, and a
+            published build has nothing to author. Turn it off if you want it in your own standalone dev build.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsStudioPanel._openDrop">
+            <summary>Which dropdown is showing its options, or null. One at a time: the lists sit in flow under
+            their field, so two open at once would push the column around for no reason.</summary>
+        </member>
+        <member name="F:FieldGuide.Tips.TipsStudioPanel.PrereqDrop">
+            <summary>The prerequisite picker's key. The trigger pickers key off their slot name.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsStudioPanel.Entry">
+            <summary>One row of the tip list. A struct of finished strings so the markup interpolates single
+            identifiers only, never a chained member read (which renders blank in several razor cases).</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.Entries">
+            <summary>Every tip in the merged catalog, read fresh (so an edited .tip appears the moment the
+            catalog rebuilds), labelled with the source it resolved from and ordered the way the coach picks
+            them: highest priority first.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.HeaderMeta">
+            <summary>The header's one line: the package, the catalog, and what the middle column is editing.
+            One interpolated string rather than three text nodes, because the in-editor codegen drops the
+            whitespace between a literal and an expression.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.CatalogSummary">
+            <summary>How many tips and where they came from. A source you did not expect is a tip left over
+            from somewhere else.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.PrereqFace">
+            <summary>What the prerequisite field reads at rest. The list underneath ADDS one; the chips below the
+            row remove them, which is the only honest shape for a field that holds several values.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.AvailablePrerequisites">
+            <summary>Catalog ids this tip could wait on: everything except itself, the preview id, and the ones it
+            already waits on.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsStudioPanel.TriggerSlot">
+            <summary>The Completion and Relevance pickers as data, so ONE block of markup renders both. A
+            RenderFragment would be the other way to share it, and RenderFragments under-measure here.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudioPanel.ChildValue(FieldGuide.Tips.TipStudioTrigger)">
+            <summary>A composed child edits its one parameter through a single box, whichever box its kind reads.
+            Nesting a full picker per child would triple the panel for a case the format barely uses.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsStudioPanel.PreviewCard">
+            <summary>One rendered card in the rail: the label above it and the runs inside it. Finished data, so
+            the markup walks a list rather than calling into the parser mid-tree.</summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.PreviewCards">
+            <summary>The draft as the player will read it on each device, side by side. The pad card runs the same
+            keycap remap the shipped display does (TipsCoach.PadLabelFor), so a chip with no controller equivalent
+            disappears here exactly as it would in the game.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudioPanel.PadRuns(System.String,System.String)">
+            <summary>The pad-mode runs for a wording: its pad text when authored, then every keycap put through
+            the game's pad label map. A mapped label reads as a controller chip; an unmappable one is dropped, the
+            same two rules the shipped card follows.</summary>
+        </member>
+        <member name="T:FieldGuide.Tips.TipsStudioPanel.NoteBlock">
+            <summary>One authoring note, already broken into lines that fit.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudioPanel.Tall(System.Int32)">
+            <summary>An option list longer than this scrolls at a fixed height instead of growing the column.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudioPanel.Lines(System.String)">
+            <summary>
+            Chunk a sentence into lines short enough to lay out as text. A run that overflows its box does not
+            wrap here: the style engine rasterizes it as a solid grey block, or drops it to an empty box. 46
+            characters is one comfortable line in the widest box this panel has, and it is the same ceiling
+            TipStudioText warns tip authors about.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Tips.TipsStudioPanel.StatusLine">
+            <summary>The one-line status under the bake buttons: whatever the last bake action said, or what
+            is waiting in the staging folder when it has said nothing yet.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudioPanel.Refresh">
+            <summary>Bump the panel's own revision so the next frame rebuilds it. Every click calls this; typing
+            into the id box does NOT, because a rebuild would take the cursor out of the box you are typing in.</summary>
+        </member>
+        <member name="M:FieldGuide.Tips.TipsStudioPanel.Commit">
+            <summary>Enter in a text box: push the wording at the preview card and refresh everything derived
+            from it.</summary>
+        </member>
+    </members>
+</doc>

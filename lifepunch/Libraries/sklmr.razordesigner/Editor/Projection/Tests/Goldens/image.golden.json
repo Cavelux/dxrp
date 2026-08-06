@@ -1,0 +1,43 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Image",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000009",
+    "kind": "Image",
+    "className": "logo",
+    "appearance": {
+      "width": "64px",
+      "height": "64px"
+    },
+    "payload": {
+      "source": "ui/logo.png"
+    },
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000009",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetAttribute",
+        "value": "ui/logo.png",
+        "name": "src"
+      }
+    ],
+    "scssLines": [
+      "width: 64px;",
+      "height: 64px;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000009\u0022",
+      "src=\u0022ui/logo.png\u0022"
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Checkbox",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000013",
+    "kind": "Checkbox",
+    "className": "cb1",
+    "appearance": {},
+    "payload": {
+      "checkboxSize": "24px",
+      "content": "Enable"
+    },
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000013",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "\u003E .checkmark {",
+      "    width: 24px;",
+      "    height: 24px;",
+      "    font-size: 18px;",
+      "}"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000013\u0022"
+    ]
+  }
+}

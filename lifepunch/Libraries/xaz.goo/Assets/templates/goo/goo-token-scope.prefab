@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "64ea3740-4646-4f0d-9f23-167fbbe48b13",
+    "Flags": 0,
+    "Name": "Token Scope",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.GooTokenScope",
+        "__guid": "27c3107a-9c9a-4e82-bbbe-d16eed544ea3"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Token Scope",
+  "MenuIcon": "data_object",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

@@ -1,0 +1,39 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-state-only",
+  "namespaceFallback": "Test",
+  "classNameFallback": "StateOnly",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "StateOnly",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "State",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Count",
+        "type": "int",
+        "initial": {
+          "$type": "Literal",
+          "id": "00000000-0000-0000-0000-000000000010",
+          "typeId": "int",
+          "value": 0
+        },
+        "visibility": "Private"
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "StateOnly", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "StateOnly", "baseClass": "PanelComponent" },
+      { "$type": "FieldDecl", "visibility": "private", "fieldType": "int", "name": "Count", "initialExpr": "0", "isParameter": false },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

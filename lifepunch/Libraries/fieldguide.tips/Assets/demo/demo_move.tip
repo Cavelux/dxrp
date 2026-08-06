@@ -1,0 +1,89 @@
+{
+  "Id": "demo_move",
+  "Text": "Move the citizen with *W* *A* *S* *D* or the `Left Stick`.",
+  "TextPad": "",
+  "Icon": "🧭",
+  "Priority": 140,
+  "PrerequisiteTipIds": [],
+  "Completion": {
+    "Kind": "AnyOf",
+    "Action": "",
+    "Key": "",
+    "Name": "",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": [
+      {
+        "Kind": "AnalogAxis",
+        "Action": "",
+        "Key": "",
+        "Name": "",
+        "Threshold": 0,
+        "Seconds": 0,
+        "AnalogSource": "AnalogMove",
+        "Magnitude": 0.4,
+        "Children": []
+      },
+      {
+        "Kind": "Key",
+        "Action": "",
+        "Key": "w",
+        "Name": "",
+        "Threshold": 0,
+        "Seconds": 0,
+        "AnalogSource": "AnalogMove",
+        "Magnitude": 0,
+        "Children": []
+      },
+      {
+        "Kind": "Key",
+        "Action": "",
+        "Key": "a",
+        "Name": "",
+        "Threshold": 0,
+        "Seconds": 0,
+        "AnalogSource": "AnalogMove",
+        "Magnitude": 0,
+        "Children": []
+      },
+      {
+        "Kind": "Key",
+        "Action": "",
+        "Key": "s",
+        "Name": "",
+        "Threshold": 0,
+        "Seconds": 0,
+        "AnalogSource": "AnalogMove",
+        "Magnitude": 0,
+        "Children": []
+      },
+      {
+        "Kind": "Key",
+        "Action": "",
+        "Key": "d",
+        "Name": "",
+        "Threshold": 0,
+        "Seconds": 0,
+        "AnalogSource": "AnalogMove",
+        "Magnitude": 0,
+        "Children": []
+      }
+    ]
+  },
+  "MaxShowSeconds": 0,
+  "Relevance": {
+    "Kind": "Flag",
+    "Action": "",
+    "Key": "",
+    "Name": "fg_tips_demo",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "__references": [],
+  "__version": 0
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.fwotsoft.rotsoftlighting</name>
+    </assembly>
+    <members>
+        <member name="T:RotSoft.KelvinTemperatureAttribute">
+            <summary>
+            A Spotlight with a kelvin temperature gradient bar.
+            </summary>
+        </member>
+        <member name="M:RotSoft.KelvinSpot.KelvinToColor(System.Single)">
+            <summary>
+            Approximate kelvin → sRGB. Based on Tanner Helland's algorithm.
+            </summary>
+        </member>
+    </members>
+</doc>

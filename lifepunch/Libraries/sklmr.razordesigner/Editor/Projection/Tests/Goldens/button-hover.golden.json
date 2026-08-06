@@ -1,0 +1,55 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Button",
+  "node": {
+    "id": "b1b2c3d4-0000-0000-0000-000000000001",
+    "kind": "Button",
+    "className": "primary-btn",
+    "appearance": {
+      "overrideBackground": true,
+      "backgroundColor": "#2A6FB8"
+    },
+    "payload": {
+      "content": "Go"
+    },
+    "children": [],
+    "slots": {},
+    "states": [
+      {
+        "state": "Hover",
+        "nthChildArg": 1,
+        "delta": {
+          "overrideBackground": true,
+          "backgroundColor": "#3A8FD8"
+        }
+      }
+    ]
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "b1b2c3d4-0000-0000-0000-000000000001",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "Go"
+      }
+    ],
+    "scssLines": [
+      "background-color: #2A6FB8;",
+      "background-image: none;",
+      "\u0026:hover {",
+      "    background-color: #3A8FD8;",
+      "}"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022b1b2c3d4-0000-0000-0000-000000000001\u0022"
+    ],
+    "razorInnerText": "Go"
+  }
+}

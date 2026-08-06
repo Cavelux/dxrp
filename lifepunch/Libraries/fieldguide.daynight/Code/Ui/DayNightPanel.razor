@@ -1,0 +1,493 @@
+@using Sandbox
+@using Sandbox.UI
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@namespace FieldGuide.DayNight
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+@*
+	The kit's dev tuning surface for the day/night cycle: scrub the clock, change the pace, jump to an
+	hour, pin the weather, hold and resume time, and copy the resulting config as a paste-ready C# block.
+	Every write goes through DayNightClock's authority-guarded setters, so this panel is safe to leave in
+	a networked session: on a client the setters are quiet no-ops and the card says so instead of
+	pretending the drag did something.
+
+	Optional. Delete Code/Ui if you would rather drive the clock from your own UI; nothing else in the kit
+	references this file.
+
+	Rows render in MAIN markup (no RenderFragment) per the fragment-undermeasure gotcha, and each slider
+	is a shape pair (track + fill), which keeps the text-run count low. Toggle with N (a raw letter key,
+	never an F key: the editor eats those in play), the 42px x in the header, or the `daynight_panel`
+	console convar. Starts closed unless OpenOnStart is set; see the boot block in OnUpdate.
+
+	Look and layout follow the Field Kit UI system: docs/design/ui-system/daynight-kit.dc.html for this
+	screen, tokens.dc.html for the values. The stylesheet carries this kit's own copy of those tokens
+	(kits cannot import each other) and lists the engine-legality translations at its head, including the
+	inline-unquoted font-family rule that a $variable silently breaks.
+
+	One deliberate departure from the mockup: the weather group carries a fourth segment, "auto". The
+	mockup shows three pinned kinds, but the clock's deterministic roll is the DEFAULT state and a panel
+	with no way back to it can only pin, never release. Auto writes the -1 override.
+*@
+
+<root>
+@if ( PanelOpen )
+{
+	<div class="dn-card">
+		<div class="dn-hdr">
+			<span class="dn-title">DAY / NIGHT · dev</span>
+			<div class="dn-hr">
+				<span class="dn-key">N</span>
+				<div class="dn-x" onclick=@ClosePanel>×</div>
+			</div>
+		</div>
+
+		@if ( Clock is null )
+		{
+			<div class="dn-empty">No DayNightClock in this scene. Add one to your session GameObject and this panel drives it.</div>
+		}
+		else
+		{
+			@* ---- hero readout: the whole point of the kit, in one line ---- *@
+			<div class="dn-hero">
+				<span class="dn-hl">Clock</span>
+				<span class="dn-hv">@ClockText</span>
+			</div>
+
+			<div class="dn-meta">
+				<span class="dn-mk">@DayText</span>
+				<span class="dn-mk">@WeatherText</span>
+				<span class="dn-mk">@PaceText</span>
+			</div>
+
+			@if ( !IsAuthority )
+			{
+				<div class="dn-note">The host owns the clock. This card reads the replicated time; the controls below do nothing here.</div>
+			}
+
+			@* ---- the two dials ---- *@
+			@foreach ( var d in Dials )
+			{
+				var dial = d;
+				string lab = dial.label;      // plain locals before interpolating: an inline field read can render blank
+				string val = ValueText( dial.kind );
+				int fillPct = (int)( Frac( dial ) * 100f );
+				<div class="dn-row">
+					<div class="dn-rlab">
+						<span class="dn-rl">@lab</span>
+						<span class="dn-rv">@val</span>
+					</div>
+					<div class="dn-slider">
+						<span class="dn-stp" onclick=@(() => Nudge( dial, -dial.step ))>−</span>
+						<div class="dn-hit"
+							onmousedown=@(e => TrackPointer( e, dial, true ))
+							onmousemove=@(e => TrackPointer( e, dial, false ))>
+							<div class="dn-track"
+								onmousedown=@(e => TrackPointer( e, dial, true ))
+								onmousemove=@(e => TrackPointer( e, dial, false ))>
+								<div class="dn-fill" style="width: @(fillPct)%;"></div>
+							</div>
+						</div>
+						<span class="dn-stp" onclick=@(() => Nudge( dial, dial.step ))>+</span>
+					</div>
+				</div>
+			}
+
+			@* ---- jump to a named hour ---- *@
+			<div class="dn-row">
+				<span class="dn-rl">Jump to</span>
+				<div class="dn-chips">
+					@foreach ( var j in Jumps )
+					{
+						var jump = j;
+						string jl = jump.label;
+						<div class="dn-chip @(IsAtHour( jump.hour ) ? "on" : "")" onclick=@(() => JumpTo( jump.hour ))>@jl</div>
+					}
+				</div>
+			</div>
+
+			@* ---- weather: three pins plus a way back to the deterministic roll ---- *@
+			<div class="dn-row">
+				<span class="dn-rl">Weather</span>
+				<div class="dn-seg-group wide">
+					<div class="dn-seg grow @(WeatherPin == -1 ? "on" : "")" onclick=@(() => PinWeather( -1 ))>auto</div>
+					<div class="dn-seg grow @(WeatherPin == 0 ? "on" : "")" onclick=@(() => PinWeather( 0 ))>clear</div>
+					<div class="dn-seg grow @(WeatherPin == 1 ? "on" : "")" onclick=@(() => PinWeather( 1 ))>cloudy</div>
+					<div class="dn-seg grow @(WeatherPin == 2 ? "on" : "")" onclick=@(() => PinWeather( 2 ))>rain</div>
+				</div>
+			</div>
+
+			@* ---- hold or resume ---- *@
+			<div class="dn-inline">
+				<span class="dn-rl">Clock running</span>
+				<div class="dn-seg-group">
+					<div class="dn-seg tight @(Paused ? "" : "on")" onclick=@(() => SetPaused( false ))>run</div>
+					<div class="dn-seg tight @(Paused ? "on" : "")" onclick=@(() => SetPaused( true ))>pause</div>
+				</div>
+			</div>
+
+			@* ---- actions ---- *@
+			<div class="dn-btns">
+				<div class="dn-btn" onclick=@ResetAll>Reset</div>
+				<div class="dn-btn primary" onclick=@CopyConfig>@_copyLabel</div>
+			</div>
+		}
+	</div>
+}
+</root>
+
+@code
+{
+	// ---- toggle state (N raw key + `daynight_panel` convar fallback) ----
+	static bool _open;
+
+	/// <summary>Console fallback: `daynight_panel 1` / `daynight_panel 0` opens or closes the time panel
+	/// (N also toggles).</summary>
+	[ConVar( "daynight_panel", Help = "Open or close the day/night time panel (same as the N key)" )]
+	public static bool PanelOpen { get => _open; set => _open = value; }
+
+	/// <summary>
+	/// Whether this panel starts open. Off by default: a dev tuning surface that appears unbidden over a
+	/// consumer's game is a bug, not a feature. Turn it on for a scene whose whole point is the panel, the
+	/// way the kit's own demo does.
+	///
+	/// This is what decides the panel's boot state, and it is the ONLY thing that decides it. See the boot
+	/// block in OnUpdate for why that matters.
+	/// </summary>
+	[Property] public bool OpenOnStart { get; set; }
+
+	/// <summary>Shortest in-game day the pace slider allows, in real minutes at the night pace.</summary>
+	[Property] public float MinDayLengthMinutes { get; set; } = 1f;
+
+	/// <summary>Longest in-game day the pace slider allows, in real minutes at the night pace.</summary>
+	[Property] public float MaxDayLengthMinutes { get; set; } = 60f;
+
+	string _copyLabel = "Copy config";
+	bool _wasOpen;
+	bool _booted;
+
+	DayNightClock _clock;
+
+	/// <summary>The scene's clock, re-resolved while it is missing so a panel built before the clock still
+	/// finds it. Null until one exists, which the markup handles with an explicit empty state.</summary>
+	DayNightClock Clock
+	{
+		get
+		{
+			if ( _clock.IsValid() ) return _clock;
+			_clock = DayNightClock.For( Scene );
+			return _clock;
+		}
+	}
+
+	/// <summary>Single-player, or the host of a live session. Only here do the clock's setters do anything,
+	/// so the card states the case rather than letting a drag fail silently.</summary>
+	static bool IsAuthority => !Networking.IsActive || Networking.IsHost;
+
+	// ---- readouts ----
+
+	float TotalHours => Clock?.GetTimeHours() ?? 0f;
+	float HourOfDay => TotalHours - MathF.Floor( TotalHours / 24f ) * 24f;
+
+	/// <summary>The hero readout, HH:MM on a 24-hour clock. Minutes floor rather than round so the display
+	/// never shows :60 at the top of an hour.</summary>
+	string ClockText
+	{
+		get
+		{
+			float h = HourOfDay;
+			int hh = (int)MathF.Floor( h );
+			int mm = (int)MathF.Floor( (h - hh) * 60f );
+			if ( mm >= 60 ) { mm = 0; hh = (hh + 1) % 24; }
+			return $"{hh:00}:{mm:00}";
+		}
+	}
+
+	string DayText => $"DAY {Clock?.CurrentDay ?? 0}";
+
+	/// <summary>Names the weather AND where it came from, because "rain" alone does not tell you whether the
+	/// deterministic roll produced it or somebody pinned it.</summary>
+	string WeatherText
+	{
+		get
+		{
+			var c = Clock;
+			if ( c is null ) return "WEATHER ?";
+			string kind = c.CurrentWeather.ToString().ToUpperInvariant();
+			return WeatherPin < 0 ? $"{kind} · ROLLED" : $"{kind} · PINNED";
+		}
+	}
+
+	/// <summary>The pace the clock is running at right now, as the rate multiplier the daylight ramp applies.
+	/// Reads 1.00x through the night and DayRateScale at midday.</summary>
+	string PaceText
+	{
+		get
+		{
+			var c = Clock;
+			if ( c is null ) return "PACE ?";
+			var cfg = c.Config;
+			return $"PACE {SkyGrade.ClockRateScale( HourOfDay, cfg ):0.00}x";
+		}
+	}
+
+	int WeatherPin => Clock?.NetWeatherOverride ?? -1;
+	bool Paused => Clock?.TimePaused ?? false;
+
+	// ---- the two dials ----
+
+	enum Dial { TimeOfDay, DayLength }
+
+	struct DialRow { public Dial kind; public string label; public float step; }
+
+	/// <summary>Built per read rather than held in a static, so the pace row always reflects the current
+	/// MinDayLengthMinutes / MaxDayLengthMinutes properties.</summary>
+	static List<DialRow> Dials => new()
+	{
+		new DialRow { kind = Dial.TimeOfDay, label = "Time of day", step = 0.25f },
+		new DialRow { kind = Dial.DayLength, label = "Day length",  step = 1f },
+	};
+
+	/// <summary>Row value text. Time of day reads as the 0..1 fraction the slider is at (the readable clock
+	/// is the hero line above it); day length reads in real minutes.</summary>
+	string ValueText( Dial kind )
+	{
+		var c = Clock;
+		if ( c is null ) return "-";
+		return kind switch
+		{
+			Dial.TimeOfDay => (HourOfDay / 24f).ToString( "0.00" ),
+			Dial.DayLength => $"{c.Config.DayLengthMinutes:0} min",
+			_ => "-",
+		};
+	}
+
+	float Get( Dial kind )
+	{
+		var c = Clock;
+		if ( c is null ) return 0f;
+		return kind switch
+		{
+			Dial.TimeOfDay => HourOfDay,
+			Dial.DayLength => c.Config.DayLengthMinutes,
+			_ => 0f,
+		};
+	}
+
+	float Min( Dial kind ) => kind == Dial.TimeOfDay ? 0f : MathF.Max( 0.1f, MinDayLengthMinutes );
+	float Max( Dial kind ) => kind == Dial.TimeOfDay ? 24f : MathF.Max( Min( kind ) + 0.1f, MaxDayLengthMinutes );
+
+	float Frac( DialRow row )
+	{
+		float min = Min( row.kind ), max = Max( row.kind );
+		return Math.Clamp( (Get( row.kind ) - min) / MathF.Max( max - min, 0.0001f ), 0f, 1f );
+	}
+
+	void Set( Dial kind, float value )
+	{
+		var c = Clock;
+		if ( c is null ) return;
+		switch ( kind )
+		{
+			case Dial.TimeOfDay:
+				// Day-preserving, so scrubbing inside a day never re-rolls that day's weather. The top of the
+				// range is 23:59, not 24:00: hour 24 IS the next day's midnight, so a full-right drag would
+				// tip the day index over, re-roll the weather and snap the slider back to the far left. This
+				// panel scrubs within a day; the clock is what advances days.
+				c.SetTimeOfDay( Math.Clamp( value, 0f, 24f - (1f / 60f) ) );
+				break;
+			case Dial.DayLength:
+				WriteDayLength( Math.Clamp( value, Min( kind ), Max( kind ) ) );
+				break;
+		}
+	}
+
+	void Nudge( DialRow row, float delta ) => Set( row.kind, Get( row.kind ) + delta );
+
+	/// <summary>
+	/// Draggable track: onmousedown JUMPS to the click, onmousemove SCRUBS while the panel is Active.
+	///
+	/// Both the 28px transparent grab wrapper and the 14px visible track carry this handler, and a press on
+	/// the track bubbles to the wrapper as well, so a single click can run it twice. That is harmless
+	/// BECAUSE the write is absolute (set to the value under the cursor), not relative: two runs of the same
+	/// press land on the same value. Keep it absolute if you touch this.
+	/// </summary>
+	void TrackPointer( PanelEvent ev, DialRow row, bool jump )
+	{
+		if ( ev is not MousePanelEvent e ) return;
+		var track = e.This;
+		if ( track is null ) return;
+		if ( !jump && !track.PseudoClass.HasFlag( PseudoClass.Active ) ) return;
+
+		float w = track.Box.Rect.Width;
+		if ( w <= 0f ) return;
+		float frac = Math.Clamp( e.LocalPosition.x / w, 0f, 1f );
+
+		if ( row.kind == Dial.TimeOfDay )
+		{
+			// Quantized to one in-game minute by the kit's own pure helper, so a drag emits at most one
+			// distinct value per minute of readout instead of one per pixel.
+			Set( Dial.TimeOfDay, TimeMath.ComputeSliderHour( frac ) );
+			return;
+		}
+
+		float min = Min( row.kind ), max = Max( row.kind );
+		float target = min + frac * (max - min);
+		if ( row.step > 0f ) target = MathF.Round( target / row.step ) * row.step;
+		Set( row.kind, target );
+	}
+
+	// ---- jump chips ----
+
+	struct JumpRow { public string label; public float hour; }
+
+	/// <summary>The four named hours, read off the clock's own config so a game with a different daylight
+	/// window still gets its real dawn and dusk rather than 6 and 18.</summary>
+	List<JumpRow> Jumps
+	{
+		get
+		{
+			var cfg = Clock?.Config ?? DayNightConfig.Default;
+			return new List<JumpRow>
+			{
+				new JumpRow { label = "dawn",     hour = cfg.SunriseHour },
+				new JumpRow { label = "noon",     hour = (cfg.SunriseHour + cfg.SunsetHour) * 0.5f },
+				new JumpRow { label = "dusk",     hour = cfg.SunsetHour },
+				new JumpRow { label = "midnight", hour = 0f },
+			};
+		}
+	}
+
+	/// <summary>Is the clock within a minute of this named hour? A jump lands exactly, so a one-minute window
+	/// is enough to light the chip and narrow enough that it goes out as soon as time moves on.</summary>
+	bool IsAtHour( float hour ) => MathF.Abs( HourOfDay - hour ) < (1f / 60f);
+
+	void JumpTo( float hour ) => Set( Dial.TimeOfDay, hour );
+
+	// ---- weather, pause, config writes ----
+
+	void PinWeather( int kind ) => Clock?.SetWeatherOverride( kind );
+
+	void SetPaused( bool paused ) => Clock?.SetPaused( paused );
+
+	/// <summary>
+	/// Write a new day length onto the clock AND every driver in the scene.
+	///
+	/// DayNightConfig is a STRUCT, so `clock.Config.DayLengthMinutes = x` would mutate a temporary copy and
+	/// change nothing. Read, edit, write back. The drivers get the same value because a consumer is told to
+	/// keep clock and driver config identical, and a tuning panel that quietly desynchronised them would be
+	/// the exact bug the docs warn about.
+	///
+	/// AUTHORITY-GUARDED, unlike the clock's own setters which guard themselves. Config is authoring data and
+	/// is NOT replicated, so a client that changed its own day length would extrapolate at a different pace
+	/// than the host and drift between every snapshot. The guard has to live here.
+	/// </summary>
+	void WriteDayLength( float minutes )
+	{
+		if ( !IsAuthority ) return;
+		var c = Clock;
+		if ( c is null ) return;
+		var cfg = c.Config;
+		cfg.DayLengthMinutes = minutes;
+		c.Config = cfg;
+
+		foreach ( var driver in Scene.GetAllComponents<DayNightDriver>() )
+		{
+			var dcfg = driver.Config;
+			dcfg.DayLengthMinutes = minutes;
+			driver.Config = dcfg;
+		}
+	}
+
+	/// <summary>Back to the shipped reference grade: default config on the clock and every driver, weather
+	/// released to the deterministic roll, clock running, time at the config's start hour.</summary>
+	void ResetAll()
+	{
+		if ( !IsAuthority ) return;   // same reason as WriteDayLength: config is authoring data, not session state
+		var c = Clock;
+		if ( c is null ) return;
+		var def = DayNightConfig.Default;
+		c.Config = def;
+		foreach ( var driver in Scene.GetAllComponents<DayNightDriver>() )
+			driver.Config = def;
+
+		c.SetWeatherOverride( -1 );
+		c.SetPaused( false );
+		c.SetTimeOfDay( def.StartHours );
+		_copyLabel = "Copy config";
+	}
+
+	/// <summary>Put the tuned config on the system clipboard as a paste-ready C# block. Game-side
+	/// Sandbox.UI.Clipboard.SetText, so it works in play without an editor round trip. Only the fields this
+	/// panel can move are emitted; everything else stays whatever Default gives you.</summary>
+	void CopyConfig()
+	{
+		var c = Clock;
+		if ( c is null ) return;
+		var cfg = c.Config;
+		string text =
+			"var cfg = DayNightConfig.Default;\n"
+			+ $"cfg.DayLengthMinutes = {cfg.DayLengthMinutes.ToString( "0.###" )}f;\n"
+			+ $"cfg.StartHours = {HourOfDay.ToString( "0.###" )}f;\n"
+			+ $"cfg.StartPaused = {(Paused ? "true" : "false")};\n"
+			+ "clock.Config = cfg;";
+		Sandbox.UI.Clipboard.SetText( text );
+		_copyLabel = "Copied!";
+	}
+
+	// ---- boot state, N toggle, cursor while open ----
+
+	protected override void OnUpdate()
+	{
+		// BOOT. `daynight_panel` is a convar and s&box PERSISTS convars across sessions, so a session can
+		// otherwise come up with the panel logically open from whatever someone left set weeks ago. The rule
+		// that prevents it: this component's own OpenOnStart decides the boot state, and the persisted value
+		// never does. Default off means a consumer game still cannot be pre-opened by a stale convar; a scene
+		// that wants the panel up says so explicitly.
+		//
+		// Deliberately in the FIRST UPDATE rather than OnStart. A panel built in code is configured by the
+		// component that created it, and doing this in OnStart would race that assignment: whichever ran
+		// first would win. The first update is after every OnStart in the frame, so the setting is always
+		// read, never half-applied.
+		if ( !_booted )
+		{
+			_booted = true;
+			if ( PanelOpen && !OpenOnStart )
+				Log.Info( "[daynight] time panel was OPEN at session start (persisted convar), forcing closed" );
+			PanelOpen = OpenOnStart;
+		}
+
+		if ( Input.Keyboard.Pressed( "N" ) )
+			PanelOpen = !PanelOpen;
+
+		if ( PanelOpen )
+		{
+			Mouse.Visibility = MouseVisibility.Visible;   // keep the cursor usable over the panel
+			_wasOpen = true;
+		}
+		else if ( _wasOpen )
+		{
+			_wasOpen = false;
+			_copyLabel = "Copy config";   // closing clears the flash, so a reopen never claims a copy that was not made
+		}
+	}
+
+	void ClosePanel()
+	{
+		PanelOpen = false;
+		_copyLabel = "Copy config";
+	}
+
+	// Fold the toggle, the clock (to the displayed minute), the pace, the weather pin, the pause state and
+	// the copy label. Miss one and that readout freezes on screen while the world keeps moving.
+	protected override int BuildHash()
+	{
+		var c = Clock;
+		int minute = (int)MathF.Round( HourOfDay * 60f );
+		int pace = c is null ? 0 : (int)MathF.Round( SkyGrade.ClockRateScale( HourOfDay, c.Config ) * 1000f );
+		int length = c is null ? 0 : (int)MathF.Round( c.Config.DayLengthMinutes * 100f );
+		return HashCode.Combine( PanelOpen, c is not null, minute, pace, length, WeatherPin, Paused, _copyLabel );
+	}
+}

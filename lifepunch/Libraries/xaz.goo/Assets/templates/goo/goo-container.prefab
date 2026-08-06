@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "d9787b4b-1736-4ec1-becf-6ae89ec05ba7",
+    "Flags": 0,
+    "Name": "Container",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.ContainerNode",
+        "__guid": "6132d414-2c4c-4e46-b875-e1f8fb926f97"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Container",
+  "MenuIcon": "check_box_outline_blank",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

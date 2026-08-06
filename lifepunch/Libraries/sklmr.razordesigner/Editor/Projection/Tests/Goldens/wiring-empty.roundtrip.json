@@ -1,0 +1,197 @@
+{
+  "localization": {
+    "kind": "none"
+  },
+  "metadata": {},
+  "root": {
+    "appearance": {
+      "align": "Stretch",
+      "alignSelf": "Auto",
+      "backgroundColor": "#FFFFFF",
+      "backgroundImage": "",
+      "backgroundPosition": "",
+      "backgroundRepeat": "",
+      "backgroundSize": "",
+      "borderColor": "#00000000",
+      "borderRadius": {
+        "unit": "Px",
+        "value": 0
+      },
+      "borderWidth": {
+        "unit": "Px",
+        "value": 0
+      },
+      "bottom": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "boxShadowBlur": {
+        "unit": "Px",
+        "value": 4
+      },
+      "boxShadowColor": "#000000",
+      "boxShadowInset": false,
+      "boxShadowX": {
+        "unit": "Px",
+        "value": 0
+      },
+      "boxShadowY": {
+        "unit": "Px",
+        "value": 2
+      },
+      "color": "#FFFFFF",
+      "cursor": "Auto",
+      "direction": "Row",
+      "flexBasis": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "flexGrow": 0,
+      "flexShrink": 1,
+      "fontFamily": "",
+      "fontSize": {
+        "unit": "Px",
+        "value": 14
+      },
+      "fontStyleItalic": false,
+      "fontWeight": 400,
+      "gap": 0,
+      "height": {
+        "unit": "Percent",
+        "value": 100
+      },
+      "justify": "Start",
+      "left": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "letterSpacing": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "lineHeight": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "margin": {
+        "bottom": {
+          "unit": "Px",
+          "value": 0
+        },
+        "isAllAuto": false,
+        "isDefaultZero": true,
+        "isSymmetric": false,
+        "isUniform": true,
+        "left": {
+          "unit": "Px",
+          "value": 0
+        },
+        "right": {
+          "unit": "Px",
+          "value": 0
+        },
+        "top": {
+          "unit": "Px",
+          "value": 0
+        }
+      },
+      "maxHeight": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "maxWidth": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "minHeight": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "minWidth": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "opacity": 1,
+      "overflow": "Visible",
+      "overrideBackground": false,
+      "overrideBorder": false,
+      "overrideConstraints": false,
+      "overrideEffects": false,
+      "overrideInteraction": false,
+      "overrideTypography": false,
+      "padding": {
+        "bottom": {
+          "unit": "Px",
+          "value": 0
+        },
+        "isAllAuto": false,
+        "isDefaultZero": true,
+        "isSymmetric": false,
+        "isUniform": true,
+        "left": {
+          "unit": "Px",
+          "value": 0
+        },
+        "right": {
+          "unit": "Px",
+          "value": 0
+        },
+        "top": {
+          "unit": "Px",
+          "value": 0
+        }
+      },
+      "pointerEvents": true,
+      "position": "Relative",
+      "right": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "textAlign": "Left",
+      "textTransform": "None",
+      "top": {
+        "unit": "Auto",
+        "value": 0
+      },
+      "width": {
+        "unit": "Percent",
+        "value": 100
+      },
+      "wrap": "NoWrap",
+      "zIndex": 0
+    },
+    "bindings": [],
+    "children": [],
+    "className": "root",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "kind": "Panel",
+    "metadata": {},
+    "payload": {
+      "$type": "PanelPayload",
+      "checkboxSize": {
+        "unit": "Px",
+        "value": 16
+      },
+      "content": "",
+      "iconName": "",
+      "placeholder": "",
+      "source": ""
+    },
+    "slots": {}
+  },
+  "schemaVersion": 4,
+  "themeRef": {
+    "kind": "none"
+  },
+  "viewportProfile": {
+    "height": "auto",
+    "width": "auto"
+  },
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "",
+    "namespace": "",
+    "symbols": [],
+    "usings": []
+  }
+}

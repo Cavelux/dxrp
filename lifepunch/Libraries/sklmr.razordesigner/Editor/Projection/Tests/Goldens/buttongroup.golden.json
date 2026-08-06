@@ -1,0 +1,33 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "ButtonGroup",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000012",
+    "kind": "ButtonGroup",
+    "className": "bg1",
+    "appearance": {
+      "height": "32px"
+    },
+    "payload": {},
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000012",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "height: 32px;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000012\u0022"
+    ]
+  }
+}

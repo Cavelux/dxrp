@@ -1,0 +1,43 @@
+@* ─────────────────────────────────────────────────────────────────────────────
+   PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+
+   "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* · addon ident: lifepunch) is the sole-owned
+   intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+   sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+   LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+   Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+   Presence in this repository or on the DXRP portal grants no rights to anyone else.
+   ───────────────────────────────────────────────────────────────────────────── *@
+@namespace LifePunch.DXRP.Addons
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+@attribute [StyleSheet]
+
+<root class="lp-source-footer">
+    <span class="lp-mark">@LifePunchSourceMark.UiFooterMark</span>
+    <button class="lp-url-copy @(_urlCopied ? "copied" : "")"
+            tooltip="@($"Copy {LifePunchSourceMark.UiFooterUrl}")"
+            onclick="@CopySourceUrl">
+        @( _urlCopied ? "Link copied!" : LifePunchSourceMark.UiFooterUrl )
+    </button>
+</root>
+
+@code {
+    private bool _urlCopied;
+
+    private void CopySourceUrl()
+    {
+        Clipboard.SetText( LifePunchSourceMark.UiFooterUrl );
+        _urlCopied = true;
+        StateHasChanged();
+        _ = RevertCopyLabel();
+    }
+
+    private async System.Threading.Tasks.Task RevertCopyLabel()
+    {
+        await GameTask.DelayRealtimeSeconds( 1.8f );
+        _urlCopied = false;
+        StateHasChanged();
+    }
+}

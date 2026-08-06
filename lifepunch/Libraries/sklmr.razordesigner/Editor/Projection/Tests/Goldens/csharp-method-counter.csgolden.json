@@ -1,0 +1,81 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-method-counter",
+  "namespaceFallback": "Test",
+  "classNameFallback": "Counter",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "Counter",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "State",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Count",
+        "type": "int",
+        "initial": {
+          "$type": "Literal",
+          "id": "00000000-0000-0000-0000-000000000010",
+          "typeId": "int",
+          "value": 0
+        },
+        "visibility": "Private"
+      },
+      {
+        "$type": "Method",
+        "id": "00000000-0000-0000-0000-000000000002",
+        "name": "Increment",
+        "visibility": "Private",
+        "returnType": "void",
+        "parameters": [],
+        "body": [
+          {
+            "$type": "Set",
+            "id": "00000000-0000-0000-0000-000000000020",
+            "target": {
+              "$type": "Symbol",
+              "symbolId": "00000000-0000-0000-0000-000000000001"
+            },
+            "value": {
+              "$type": "BinaryOp",
+              "id": "00000000-0000-0000-0000-000000000021",
+              "op": "Add",
+              "left": {
+                "$type": "SymbolRef",
+                "id": "00000000-0000-0000-0000-000000000022",
+                "symbolId": "00000000-0000-0000-0000-000000000001"
+              },
+              "right": {
+                "$type": "Literal",
+                "id": "00000000-0000-0000-0000-000000000023",
+                "typeId": "int",
+                "value": 1
+              }
+            }
+          },
+          {
+            "$type": "StateHasChanged",
+            "id": "00000000-0000-0000-0000-000000000030"
+          }
+        ]
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "Counter", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "Counter", "baseClass": "PanelComponent" },
+      { "$type": "FieldDecl", "visibility": "private", "fieldType": "int", "name": "Count", "initialExpr": "0", "isParameter": false },
+      { "$type": "MethodOpen", "visibility": "private", "isOverride": false, "isAsync": false, "returnType": "void", "name": "Increment", "parameterList": "" },
+      { "$type": "Statement", "code": "Count = (Count + 1)" },
+      { "$type": "Statement", "code": "StateHasChanged()" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

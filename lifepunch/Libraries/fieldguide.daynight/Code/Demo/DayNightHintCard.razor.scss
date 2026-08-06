@@ -1,0 +1,168 @@
+// ================================================================================================
+// FIELD KIT UI SYSTEM · Day / Night Kit · demo key-hint card
+//
+// SOURCE OF TRUTH: docs/design/ui-system/tokens.dc.html
+//                  (+ components.dc.html for the parts, daynight-kit.dc.html for this screen)
+//
+// DRIFT NOTE. s&box cannot express a library-to-library dependency, so a kit must never @import
+// another kit's stylesheet. Every kit carries its OWN copy of the token values below, and this
+// kit's two panels each carry a copy. Nothing syncs them: if a value moves on the tokens page,
+// hand-update it here, in Ui/DayNightPanel.razor.scss, and in every other kit.
+//
+// ENGINE-LEGAL SUBSET (the mockups are browser HTML and contain CSS this engine cannot parse):
+// border-width + border-color only, never `border: 1px solid x` (border-style is a parse error
+// that aborts the whole stylesheet); no box-shadow; no letter-spacing; no `inset` shorthand; no
+// percent max-height on an absolute card; explicit px line-heights; font sizes only from
+// {12, 13, 14, 16}.
+//
+// FONT DECLARATIONS ARE INLINE AND UNQUOTED, AND THAT IS LOAD-BEARING. `font-family: Poppins,
+// sans-serif;` and `font-family: Roboto Mono, monospace;` written out at every site. A SCSS
+// variable holding the family, or a quoted family name, does not survive this engine's stylesheet
+// parse: the rule is dropped and the card silently falls back to the default face.
+//
+// CONTRAST LAW (overrides the mockups wherever they are dimmer): nothing a player reads is dimmer
+// than #E8EAED, key badges are pure #FFFFFF at weight 700. The 42px close x is the only close
+// affordance on this card; there is no ESC badge, here or anywhere.
+// ================================================================================================
+
+// ---- base tokens (shared across kits, copied per kit) ----
+$fk-panel-bg:     rgba( 15, 17, 21, 0.92 );
+$fk-border:       rgba( 255, 255, 255, 0.08 );
+$fk-border-hi:    rgba( 255, 255, 255, 0.12 );
+$fk-row:          rgba( 255, 255, 255, 0.05 );
+$fk-hover:        rgba( 255, 255, 255, 0.10 );
+
+$fk-text-hi:      #F2F4F7;
+$fk-text:         #E8EAED;
+$fk-key-glyph:    #FFFFFF;
+
+// No accent token here on purpose: this card is entirely neutral, the way the placement kit's hint
+// card is. Tinting the key chips would compete with the time panel, which is where the violet
+// (#C9AEF2) does its work.
+
+DayNightHintCard {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	font-family: Poppins, sans-serif;
+
+	// Only the card takes clicks, so the scene keeps the cursor everywhere else.
+	.dh-card {
+		position: absolute;
+		top: 40px;
+		left: 40px;
+		width: 440px;
+		flex-direction: column;
+		gap: 12px;
+		padding: 20px;
+		pointer-events: all;
+		background-color: $fk-panel-bg;
+		border-width: 1px;
+		border-color: $fk-border;
+		border-radius: 16px;
+		color: $fk-text;
+	}
+
+	.dh-hdr {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.dh-title {
+		font-size: 16px;
+		line-height: 22px;
+		font-weight: 700;
+		color: $fk-text-hi;
+	}
+	// 42px hit target on a 16px glyph, matching the time panel. The negative margins pull it back into
+	// the card's 20px padding so the header row stays compact.
+	.dh-x {
+		font-size: 16px;
+		line-height: 22px;
+		color: $fk-text-hi;
+		width: 42px;
+		height: 42px;
+		margin: -8px -12px -8px 0px;
+		justify-content: center;
+		align-items: center;
+		border-radius: 6px;
+		cursor: pointer;
+		pointer-events: all;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+	}
+
+	.dh-lede {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text;
+	}
+
+	.dh-rows {
+		flex-direction: column;
+		gap: 8px;
+	}
+	.dh-row {
+		flex-direction: row;
+		// flex-start, not centre: the longer hints wrap to two lines, and a key chip floating half
+		// way down its own explanation is the one place this card stops looking like the mockup.
+		// Same correction the placement kit's hint card carries.
+		align-items: flex-start;
+		gap: 12px;
+	}
+	// Fixed-width chip so every key column lines up and a chip never splits across a wrapped line.
+	// Width is the whole box (no horizontal padding), which keeps the column exact.
+	.dh-key {
+		font-family: Roboto Mono, monospace;
+		font-size: 14px;
+		line-height: 20px;
+		font-weight: 700;
+		color: $fk-key-glyph;
+		width: 110px;
+		flex-shrink: 0;
+		padding: 3px 0px;
+		justify-content: center;
+		align-items: center;
+		background-color: $fk-row;
+		border-width: 1px;
+		border-color: $fk-border-hi;
+		border-radius: 5px;
+	}
+	.dh-what {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text;
+		flex-grow: 1;
+	}
+
+	// Live status strip: short atomic mono runs, each unshrinkable and nowrap, so a wrap never splits
+	// one mid-word.
+	// Single-value gap on purpose: nothing shipped in these kits uses the two-value `gap: 3px 8px` form
+	// and this engine's parser is not proven on it. One value is the safe subset.
+	.dh-live {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 8px;
+		border-top-width: 1px;
+		border-top-color: $fk-border;
+		padding-top: 12px;
+	}
+	.dh-lk {
+		font-family: Roboto Mono, monospace;
+		font-size: 12px;
+		line-height: 16px;
+		font-weight: 500;
+		color: $fk-text;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.dh-foot {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text;
+	}
+}

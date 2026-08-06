@@ -1,0 +1,329 @@
+// ============================================================================================
+// THEME TOKENS. This is the whole override surface for the toast's look.
+//
+// A consumer that vendors this kit themes the panel by editing the values in THIS block and
+// nothing else, every rule below reads these variables, so a game (World Builder, say) drops in
+// its own palette here without hunting through the stylesheet. They are plain SCSS variables held
+// in this one file on purpose: s&box compiles SCSS per file at runtime, and an `@import` of a
+// game-side `_theme.scss` was deliberately avoided so the kit renders correctly wherever it is
+// vendored. Keep tip text BRIGHT (never dim gray) so it stays legible over any HUD.
+//
+// The values are the approved Field Kits toast (docs/design/ui-system): a 3px accent stripe, a
+// mono kicker, a wrap row of short prose runs and atomic key chips, and a 42px close x.
+// ============================================================================================
+
+$fg-tips-panel-bg:        rgba( 15, 17, 21, 0.92 );  // card background
+$fg-tips-border:          rgba( 255, 255, 255, 0.08 );// card hairline
+$fg-tips-radius:          10px;                        // card corner radius
+$fg-tips-accent:          #e3c85e;                     // left accent stripe
+$fg-tips-accent-hover:    #edd478;                     // the kit's hover accent, for a retint
+$fg-tips-accent-ink:      #1a160a;                     // text that sits ON the accent
+
+$fg-tips-glyph:           #e8eaed;                     // the leading emoji glyph
+$fg-tips-kicker:          #f2f4f7;                     // the "GUIDE" label
+$fg-tips-text:            #e8eaed;                     // the tip body text
+
+// Keyboard keycap chip (square, monospace): *W* markup.
+$fg-tips-key-bg:          rgba( 255, 255, 255, 0.05 );
+$fg-tips-key-border:      rgba( 255, 255, 255, 0.12 );
+$fg-tips-key-text:        #ffffff;
+$fg-tips-key-radius:      5px;
+
+// Gamepad button chip (pill, controller-feel): `A` backtick markup.
+$fg-tips-pad-bg:          rgba( 60, 70, 90, 0.60 );
+$fg-tips-pad-border:      rgba( 150, 190, 240, 0.65 );
+$fg-tips-pad-text:        #ffffff;
+$fg-tips-pad-radius:      99px;
+
+$fg-tips-close:           #f2f4f7;                     // the × affordance at rest
+$fg-tips-close-hover-bg:  rgba( 255, 255, 255, 0.10 );
+
+// FONTS ARE DECLARED INLINE, never through a variable, and the UI family is the BARE name. The engine
+// auto-registers fonts by family name and resolves them itself; the working precedent everywhere in the
+// kits is `font-family: Poppins, sans-serif;` and `font-family: "Roboto Mono", monospace;`. A quoted
+// "Poppins" behind a "Segoe UI" fallback did not resolve, and every element that should have been
+// Poppins fell back to the engine default, which reads as mono. Owner caught it on a real screen; a
+// capture cannot show it (font FACE resolution is not screenshot-verifiable).
+
+// ============================================================================================
+// TYPE. This sheet ships the Field Kits type scale: 12 / 13 / 14 / 16 with exact px line heights
+// (12/16, 13/20, 14/18, 16/22), the same four sizes and the same pairings the Sound Mixer,
+// Placement and Day/Night kits ship. Four distinct sizes, inside the engine's per-assembly budget.
+// No letter-spacing anywhere, that one really does corrupt glyphs.
+//
+// AN EARLIER NOTE HERE CLAIMED font-size RENDERS TEXT AS SOLID BLOCKS, AND STRIPPED EVERY SIZE
+// OUT OF THIS SHEET. That claim was wrong and it is retracted. It was read off MCP camera
+// captures: the capture path rasterizes sized text as filled grey blocks, so a screenshot of any
+// panel that declares font-size looks corrupted. On the physical screen those same panels render
+// pin sharp, owner-verified on engine 26.07.22 (2026-07-31) against the Sound Mixer panels, which
+// declare all four sizes.
+//
+// So a capture cannot verify TEXT. Geometry is judgeable in a capture (boxes, spacing, corners,
+// fills); glyphs are not, and the check for text is the owner's eye on a real screen. Never
+// delete a font-size on screenshot evidence again.
+//
+// LAYOUT. Structural rules below; colours all come from the tokens above. s&box compiles SCSS in
+// the editor/runtime, not in the headless dotnet build, so style errors are invisible to a build.
+// Never use `border-style` or the `border:` shorthand: a parse error there aborts the whole
+// stylesheet and collapses the panel to 0x0. No box-shadow.
+// ============================================================================================
+
+.tips-root {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+
+	.tip {
+		position: absolute;
+		// Anchored to the left edge and lifted clear of a vitals stack (bottom-left) and an action bar
+		// (bottom-centre), well away from a minimap (bottom-right). Move it wherever suits your HUD.
+		left: 24px;
+		bottom: 220px;
+		width: 500px;
+		// The card grows to fit its tip. This was a hard 96px, which holds the kicker and about one and a
+		// half lines, so a tip that wrapped lost the bottom of its last line: border-radius makes the
+		// style engine clip children to the rounded box, so the overflow was sliced rather than spilled.
+		// The demo's "Stand in the ring and press Space to switch the marker on." is the reported case.
+		//
+		// An older note here recorded the style engine UNDER-measuring the auto height of this shape (an
+		// absolutely-positioned, transform-animated flex column), painting the chrome but dropping the
+		// content. Re-verified on engine 26.07.22 (2026-07-31) across one and two line tips, repeated
+		// forced re-renders, a code hotload and a fresh play session: the measurement is correct now.
+		// min-height keeps a floor under it anyway, so a regression costs a slightly tall card rather
+		// than an empty one.
+		height: auto;
+		min-height: 64px;
+		// A ROW now: the accent stripe, then the content. align-items stretch is what gives the stripe
+		// the full height of a card whose height is its content's.
+		flex-direction: row;
+		align-items: stretch;
+		pointer-events: all;
+		background-color: $fg-tips-panel-bg;
+		border-width: 1px;
+		border-color: $fg-tips-border;
+		border-radius: $fg-tips-radius;
+		// The card clips its own children, which is what rounds the ends of the accent stripe. Verified
+		// at 8x on a live capture: without it the square stripe pokes out past the card's corner curve.
+		// The card's height is its content's, so there is nothing else here for the clip to cut.
+		overflow: hidden;
+		// Gentle single-play rise: BuildHash only changes on tip/visibility, so this replays once per
+		// new tip, not every frame.
+		animation: tipRise 0.18s ease-out both;
+	}
+
+	// The accent stripe, built exactly as the mockup builds it: a square 3px bar, and the card's
+	// `overflow: hidden` above rounds its ends against the card's own corner. It carried its own 9px
+	// left radius before, and that is what the owner saw as a notch: a radius is scaled down until it
+	// fits its own box, so 9px on a 3px-wide bar comes out as a 3px curve, and that small curve inside
+	// the card's 10px one reads as a step at the top-left and bottom-left. One curve, not two.
+	.stripe {
+		width: 3px;
+		flex-basis: 3px;
+		flex-shrink: 0;
+		background-color: $fg-tips-accent;
+	}
+
+	// The content beside the stripe. A little extra left padding so the text clears the stripe by the
+	// same amount it clears the other three edges.
+	.row {
+		flex-grow: 1;
+		flex-direction: row;
+		align-items: flex-start;
+		padding: 12px 12px 12px 14px;
+		gap: 10px;
+	}
+
+	.glyph {
+		font-family: Poppins, sans-serif;
+		font-size: 14px;
+		line-height: 18px;
+		color: $fg-tips-glyph;
+		flex-shrink: 0;
+	}
+
+	.body {
+		flex-direction: column;
+		flex-grow: 1;
+	}
+
+	.kicker {
+		font-family: "Roboto Mono", monospace;
+		font-size: 12px;
+		line-height: 16px;
+		font-weight: 700;
+		text-transform: uppercase;   // hierarchy via weight + case; letter-spacing corrupts glyphs
+		color: $fg-tips-kicker;
+		margin-bottom: 3px;
+	}
+
+	.text {
+		font-family: Poppins, sans-serif;
+		font-size: 13px;
+		font-weight: 500;
+		// 13/20, the scale's body metric. Every child of this wrapping row carries it too, so a tip
+		// that wraps onto a second line clears the key chips on the line above by the same 20px
+		// rhythm the mockup draws. (The old unitless 1.25 was a workaround for having no sizes.)
+		line-height: 20px;
+		// Bright body text, the tip line must always read clearly.
+		color: $fg-tips-text;
+		// The row-of-spans layout (plain runs + key chips) needs to wrap BETWEEN spans when the line
+		// runs out of room (the standard s&box wrap-row recipe), without this the row stays a single
+		// nowrap line and the engine falls back to breaking mid-word/mid-chip. A wrapping row spaces
+		// its children with margins; gap under-measures here.
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+
+		span {
+			font-size: 13px;
+			line-height: 20px;
+			color: $fg-tips-text;
+			// The mockup spaces every child of this row by 3px. A wrapping row cannot use gap, so each
+			// child carries the same right margin instead: a run against a chip gets the same air as a
+			// chip against a run, and the pad pill stops touching the word after it.
+			margin-right: 3px;
+		}
+
+		// Keycap: a small bright pill so key names read at a glance. flex + nowrap + no-shrink keep the
+		// whole label, e.g. "RMB", one atomic, never-splitting chip even on a wrapped line. (s&box
+		// panel CSS has no inline-flex; plain flex on a wrap-row parent behaves inline here.)
+		.key {
+			display: flex;
+			align-items: center;
+			flex-shrink: 0;
+			white-space: nowrap;
+			font-family: "Roboto Mono", monospace;
+			font-size: 14px;
+			line-height: 18px;
+			font-weight: 700;
+			color: $fg-tips-key-text;
+			background-color: $fg-tips-key-bg;
+			border-width: 1px;
+			border-color: $fg-tips-key-border;
+			border-radius: $fg-tips-key-radius;
+			padding-left: 7px;
+			padding-right: 7px;
+			margin-left: 0px;
+			margin-right: 3px;
+		}
+
+		// Gamepad button: the same atomic chip, rounded into a pill and tinted a cooler shade so a `A`
+		// prompt is instantly distinct from a *W* keycap. Authors write gamepad button names in
+		// backticks (see TipSegment). Same wrap-row / no-shrink rules as the keycap.
+		.pad {
+			display: flex;
+			align-items: center;
+			flex-shrink: 0;
+			white-space: nowrap;
+			font-family: "Roboto Mono", monospace;
+			font-size: 14px;
+			line-height: 18px;
+			font-weight: 700;
+			color: $fg-tips-pad-text;
+			background-color: $fg-tips-pad-bg;
+			border-width: 1px;
+			border-color: $fg-tips-pad-border;
+			border-radius: $fg-tips-pad-radius;
+			padding-left: 10px;
+			padding-right: 10px;
+			margin-left: 0px;
+			margin-right: 3px;
+		}
+	}
+
+	// Optional "hide tips" advertise chip, beside the close affordance. Only rendered when the game set a
+	// device-matching label (HideKeyLabel / HidePadLabel). It reuses the same chip language as the inline
+	// key/pad runs so the label reads as a real button, plus the word itself in the kicker's voice.
+	.hint {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		gap: 4px;
+		padding: 2px 6px;
+		border-radius: 5px;
+		pointer-events: all;
+		transition: all 0.1s ease;
+
+		&:hover {
+			background-color: $fg-tips-close-hover-bg;
+		}
+
+		.hint-label {
+			font-family: "Roboto Mono", monospace;
+			font-size: 12px;
+			line-height: 16px;
+			font-weight: 700;
+			text-transform: uppercase;   // hierarchy via weight + case; letter-spacing corrupts glyphs
+			color: $fg-tips-kicker;
+		}
+
+		// Same keycap / pad-chip look as the inline runs (the .text scope's chips don't reach here, so the
+		// visual is restated from the shared tokens; keep the two in sync when retheming).
+		.key {
+			display: flex;
+			align-items: center;
+			flex-shrink: 0;
+			white-space: nowrap;
+			font-family: "Roboto Mono", monospace;
+			font-size: 14px;
+			line-height: 18px;
+			font-weight: 700;
+			color: $fg-tips-key-text;
+			background-color: $fg-tips-key-bg;
+			border-width: 1px;
+			border-color: $fg-tips-key-border;
+			border-radius: $fg-tips-key-radius;
+			padding-left: 7px;
+			padding-right: 7px;
+		}
+
+		.pad {
+			display: flex;
+			align-items: center;
+			flex-shrink: 0;
+			white-space: nowrap;
+			font-family: "Roboto Mono", monospace;
+			font-size: 14px;
+			line-height: 18px;
+			font-weight: 700;
+			color: $fg-tips-pad-text;
+			background-color: $fg-tips-pad-bg;
+			border-width: 1px;
+			border-color: $fg-tips-pad-border;
+			border-radius: $fg-tips-pad-radius;
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+	}
+
+	// A generous target: this is the close affordance, and a small one is a fight. The negative margins
+	// pull the 42px hit box back into the card's corner so the glyph still sits where the mockup puts it.
+	.close {
+		width: 42px;
+		flex-basis: 42px;
+		height: 42px;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		margin-top: -8px;
+		margin-right: -8px;
+		margin-bottom: -8px;
+		border-radius: 6px;
+		font-family: Poppins, sans-serif;
+		font-size: 16px;
+		line-height: 22px;
+		color: $fg-tips-close;
+		pointer-events: all;
+		transition: all 0.1s ease;
+
+		&:hover {
+			background-color: $fg-tips-close-hover-bg;
+		}
+	}
+}
+
+@keyframes tipRise {
+	0%   { opacity: 0; transform: translateY( 8px ); }
+	100% { opacity: 1; transform: translateY( 0px ); }
+}

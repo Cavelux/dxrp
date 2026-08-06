@@ -1,0 +1,66 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Label",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000014",
+    "kind": "Label",
+    "className": "badge",
+    "appearance": {
+      "position": "Absolute",
+      "top": "10px",
+      "left": "20px",
+      "overrideTypography": true,
+      "fontSize": "16px",
+      "color": "#00FF00",
+      "fontStyleItalic": true,
+      "textTransform": "Uppercase",
+      "letterSpacing": "2px",
+      "lineHeight": "1.5em",
+      "overrideInteraction": true,
+      "zIndex": 5,
+      "pointerEvents": false
+    },
+    "payload": {
+      "content": "new"
+    },
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000014",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "new"
+      }
+    ],
+    "scssLines": [
+      "position: absolute;",
+      "top: 10px;",
+      "left: 20px;",
+      "font-size: 16px;",
+      "font-weight: 400;",
+      "color: #00FF00;",
+      "text-align: left;",
+      "font-style: italic;",
+      "text-transform: uppercase;",
+      "letter-spacing: 2px;",
+      "line-height: 1.5em;",
+      "cursor: auto;",
+      "overflow: visible;",
+      "z-index: 5;",
+      "pointer-events: none;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000014\u0022"
+    ],
+    "razorInnerText": "new"
+  }
+}

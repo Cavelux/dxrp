@@ -1,0 +1,703 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.fieldguide.placement</name>
+    </assembly>
+    <members>
+        <member name="T:FieldGuide.Placement.AttachedTweakTarget">
+             <summary>
+             A tweak target whose frame label comes from a live <see cref="T:FieldGuide.Placement.CharacterAttachPoint"/> rather than a
+             string fixed at registration. Use this for anything hanging off a character.
+            
+             Why it exists: an attach point resolves LATE (the model has to pose before its attachment objects
+             and bones can be read), so a frame string captured at registration would say "citizen/root" forever
+             even after the hand attachment came good. Reading it through the mount means the panel sub-line, the
+             export, and the bake comment all name the frame the accessory actually ended up on.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.AttachedTweakTarget.Target">
+            <summary>The accessory whose LOCAL transform the panel edits. Parent it under
+            <see cref="P:FieldGuide.Placement.AttachedTweakTarget.Mount"/> before registering, or its offsets mean nothing.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.AttachedTweakTarget.Mount">
+            <summary>The mount the offset is measured from. Its resolved frame is read live.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.AttachedTweakTarget.Symbol">
+            <summary>The id the bake line names. Leave null to derive it from <see cref="P:FieldGuide.Placement.AttachedTweakTarget.DisplayName"/>.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.AttachedTweakTarget.Ranges">
+            <summary>Slider bounds and steps. Accessory scale by default, which is the point of this type.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.CharacterAttachPoint">
+             <summary>
+             A mount frame on a skinned character: this GameObject rides a named ATTACHMENT (a hand hold point,
+             a hat point) or, failing that, a named BONE, so anything parented under it inherits that frame and
+             can be positioned with a plain LocalPosition / LocalRotation.
+            
+             This is the piece the accessory-fitting flow is built on. Put this component on an empty child of
+             the character, list the attachment and bone names you want in preference order, then parent your
+             model under it and register the model with the <see cref="T:FieldGuide.Placement.TweakSession"/>. The offsets you drag in
+             the panel are then genuinely relative to the hand or the spine, which is what
+             <see cref="T:FieldGuide.Placement.PlacedOffset"/> bakes and what your game code will reproduce.
+            
+             Resolution is DEFERRED and RETRIED, not done once at start: a skinned model created this frame has no
+             attachment objects yet, and reading a bone before the first pose evaluates gives the bind pose. The
+             component keeps trying for <see cref="P:FieldGuide.Placement.CharacterAttachPoint.ResolveTimeout"/> seconds, then settles on the character root
+             and says so in the console. A renamed or missing attachment therefore degrades to a visible,
+             diagnosable fallback instead of a null reference.
+             </summary>
+        </member>
+        <member name="T:FieldGuide.Placement.CharacterAttachPoint.MountKind">
+            <summary>How the mount ended up anchored, once resolution settles.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.CharacterAttachPoint.MountKind.Unresolved">
+            <summary>Still looking (the model may not have posed yet).</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.CharacterAttachPoint.MountKind.Attachment">
+            <summary>Parented to a model attachment object; the engine drives it.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.CharacterAttachPoint.MountKind.Bone">
+            <summary>Re-pinned to a bone transform every frame before render.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.CharacterAttachPoint.MountKind.Root">
+            <summary>Nothing resolved; sitting on the character root so the accessory is still visible.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.Renderer">
+            <summary>The skinned model to mount against. Left null, the component searches its ancestors and
+            then their descendants, which covers "empty child of the character GameObject".</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.AttachmentNames">
+            <summary>Attachment names to try, in order. Casing varies between models, so list both forms
+            (for example "hold_R" then "hold_r"). Tried before <see cref="P:FieldGuide.Placement.CharacterAttachPoint.BoneNames"/>.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.BoneNames">
+            <summary>Bone names to try if no attachment resolves. A bone mount is re-pinned every frame, so the
+            accessory bobs and leans with the animation instead of sliding with the root.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.CharacterName">
+            <summary>Label for the character in the frame string, e.g. "citizen" gives "citizen/hold_R". This is
+            what ends up in the export and the bake comment, so name it the way your code talks about it.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.ResolveTimeout">
+            <summary>Seconds to keep retrying before giving up and falling back to the character root.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.Kind">
+            <summary>How this mount is anchored right now.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.ResolvedName">
+            <summary>The attachment or bone name that actually resolved, or "root" on the fallback.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.CharacterAttachPoint.FrameName">
+            <summary>The frame string to hand <see cref="M:FieldGuide.Placement.TweakSession.Add(Sandbox.GameObject,System.String,System.String,FieldGuide.Placement.TweakRanges)"/>:
+            "citizen/hold_R", "citizen/spine_2", "citizen/root". Safe to read before resolution settles; it just
+            reports the fallback until then.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.CharacterAttachPoint.OnPreRender">
+            <summary>A bone mount is re-pinned here rather than in OnUpdate: PreRender runs after the pose is
+            evaluated, so the accessory sits on the bone position that will actually be drawn this frame.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.CharacterAttachPoint.TryResolve">
+            <summary>One resolution attempt. Attachments win (the engine parents and drives them for free);
+            bones are the fallback that still tracks the animation. Returns true once anchored.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.DemoBootstrap">
+             <summary>
+             Wires the demo scene in code so the whole kit is exercised from one component.
+            
+             The scene it builds is the kit's hero case: a dressed stock citizen standing in the middle, with
+             three accessories parented to mounts on its skeleton (a tool in the right hand, a hat on the head, a
+             pack on the spine). Each is registered with the <see cref="T:FieldGuide.Placement.TweakSession"/>, so pressing P gives you
+             three tabs of sliders that move the accessory RELATIVE to the bone it hangs from, and Copy hands you
+             the paste-ready offset for your own game code. Everything ships with the engine: the citizen model,
+             its clothing, and the dev primitives standing in for your accessories.
+            
+             TWO-LEVEL ACCESSORY SHAPE. Each accessory is a bare root GameObject holding one or more child parts
+             that carry the models. The split is load-bearing: the tweak panel's Scale row writes a UNIFORM
+             LocalScale on the root, so any non-uniform proportions put there would be flattened the first time
+             someone touched the slider. Proportions live on the children, authored directly in engine units; the
+             root's scale stays a clean multiplier that reads 1 at the authored size.
+            
+             The ghost-placement flow is still here as the second beat: press B and drop boxes on the ground, and
+             they export as world-space placements alongside the accessory offsets.
+            
+             Not part of the kit's runtime surface: delete Code/Demo when you drop the kit into your own project.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.DemoBootstrap.DemoValidRadius">
+            <summary>Radius (engine units) inside which the demo validity seam reports a spot as valid, to show
+            the ghost's green/red tint switching. Set to 0 or negative to allow placement anywhere.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.DemoBootstrap.CitizenYaw">
+            <summary>Yaw the demo citizen faces. 225 puts its front toward the orbit camera's starting angle.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.DemoBootstrap.Outfit">
+            <summary>A plain outfit from the shipped citizen clothing resources. Each item is null-checked, so a
+            missing asset degrades to a barer citizen rather than a broken spawn.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.DemoBootstrap._pending">
+            <summary>Accessories waiting for their mount to resolve before their starting transform is applied.
+            See <see cref="M:FieldGuide.Placement.DemoBootstrap.SeedPending"/>.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.DemoBootstrap.Pending">
+            <summary>One accessory's starting transform, with two paths. <see cref="P:FieldGuide.Placement.DemoBootstrap.Pending.TunedFrame"/> plus
+            <see cref="P:FieldGuide.Placement.DemoBootstrap.Pending.TunedPosition"/> are the values the owner dialled in on the stock citizen and are applied
+            verbatim when the mount resolves to exactly that bone. <see cref="P:FieldGuide.Placement.DemoBootstrap.Pending.BodySeed"/> is the generic
+            fallback for every other outcome, because bone-local numbers mean nothing on a rig they were not
+            measured on.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.DemoBootstrap.Pending.#ctor(Sandbox.GameObject,FieldGuide.Placement.CharacterAttachPoint,System.String,Vector3,Angles,System.Single,Vector3)">
+            <summary>One accessory's starting transform, with two paths. <see cref="P:FieldGuide.Placement.DemoBootstrap.Pending.TunedFrame"/> plus
+            <see cref="P:FieldGuide.Placement.DemoBootstrap.Pending.TunedPosition"/> are the values the owner dialled in on the stock citizen and are applied
+            verbatim when the mount resolves to exactly that bone. <see cref="P:FieldGuide.Placement.DemoBootstrap.Pending.BodySeed"/> is the generic
+            fallback for every other outcome, because bone-local numbers mean nothing on a rig they were not
+            measured on.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.DemoBootstrap.Part">
+            <summary>One primitive making up an accessory's silhouette. <see cref="P:FieldGuide.Placement.DemoBootstrap.Part.SizeUnits"/> is the part's
+            intended size in ENGINE UNITS per axis; the builder divides it by the model's own bounds to get the
+            scale, so the numbers below read as real dimensions rather than model-relative multipliers.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.DemoBootstrap.Part.#ctor(System.String,Vector3,Vector3)">
+            <summary>One primitive making up an accessory's silhouette. <see cref="P:FieldGuide.Placement.DemoBootstrap.Part.SizeUnits"/> is the part's
+            intended size in ENGINE UNITS per axis; the builder divides it by the model's own bounds to get the
+            scale, so the numbers below read as real dimensions rather than model-relative multipliers.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.DemoBootstrap.Register(FieldGuide.Placement.TweakSession,FieldGuide.Placement.CharacterAttachPoint,System.String,System.String,Vector3,Angles,System.Single,Vector3,Color,FieldGuide.Placement.DemoBootstrap.Part[])">
+             <summary>
+             Build one accessory under a mount and register it for tweaking. The root is a bare GameObject: it
+             owns the offset the panel edits and a uniform scale that starts at 1, and nothing else. The parts
+             hang under it carrying the models and the proportions.
+            
+             The starting transform is applied later, once the mount resolves. See <see cref="M:FieldGuide.Placement.DemoBootstrap.SeedPending"/>.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.DemoBootstrap.BuildPart(Sandbox.GameObject,System.String,FieldGuide.Placement.DemoBootstrap.Part,Color)">
+             <summary>
+             One primitive under an accessory root, sized in engine units.
+            
+             The scale is the requested size divided by the model's OWN bounds, per axis, rather than a
+             hand-tuned multiplier. That keeps the part table readable as real dimensions and survives the engine
+             changing what a dev primitive measures: the shipped box is 50 units and the sphere is 64, and
+             nothing here has to know that.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.DemoBootstrap.SeedPending">
+             <summary>
+             Apply each accessory's starting transform once its mount has resolved, then re-baseline it as the
+             authored default so the panel's Reset comes back here.
+            
+             Two paths, and which one runs depends on what the rig gave us:
+            
+              - The mount landed on exactly the bone the demo values were measured against: apply them verbatim.
+                These are real numbers, dialled in on the stock citizen, so the demo opens already fitted and the
+                first thing you see is the finished result rather than three primitives in a heap.
+              - Anything else, including the character-root fallback and any renamed or substituted bone: fall
+                back to a seed expressed in the CHARACTER's frame (x forward, y left, z up) and let the engine
+                convert it to local. Bone-local numbers are only valid on the rig they were measured on; reusing
+                them elsewhere buries an accessory in the chest on one rig and flings it into orbit on the next.
+                The character frame is not accurate, but it is always visible, which is all a fallback owes you.
+            
+             The frame test requires a BONE mount, not just a matching name. An attachment that happens to be
+             called "head" is a different transform from the head bone, and the tuned numbers would be wrong on it.
+             </summary>
+        </member>
+        <member name="T:FieldGuide.Placement.BakeFormat">
+            <summary>
+            The text rules every export path shares: how a float becomes a C# literal, how a string is escaped,
+            and how a display name becomes a code-safe id. One home for them so the JSON file, the C# snippet,
+            and the panel's Copy button cannot drift apart in formatting.
+            </summary>
+        </member>
+        <member name="F:FieldGuide.Placement.BakeFormat.LocalFrame">
+            <summary>The <see cref="P:FieldGuide.Placement.ITweakTarget.FrameName"/> default: "this object's parent", nothing more
+            specific known.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.BakeFormat.F(System.Single)">
+            <summary>A float as a C# literal body: up to six decimals, invariant culture so a decimal never
+            localises to a comma and breaks the pasted code. Callers append the "f" suffix.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.BakeFormat.Escape(System.String)">
+            <summary>Escape a string for a C# / JSON double-quoted literal.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.BakeFormat.SymbolFrom(System.String)">
+            <summary>
+            Squash a display name into a code-safe id: lowercase, non-alphanumerics collapsed to single
+            underscores, no leading or trailing underscore. "Back Pack" becomes "back_pack", "Hat (left)"
+            becomes "hat_left". Falls back to "item" for an empty or fully-stripped name.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Placement.PlacedItem">
+             <summary>
+             One exported transform. <see cref="P:FieldGuide.Placement.PlacedItem.Frame"/> says what <see cref="P:FieldGuide.Placement.PlacedItem.Position"/> / <see cref="P:FieldGuide.Placement.PlacedItem.Rotation"/>
+             / <see cref="P:FieldGuide.Placement.PlacedItem.Scale"/> are measured against, and it is the field that makes an export useful in two
+             very different jobs:
+            
+              - <see cref="F:FieldGuide.Placement.PlacedItem.WorldFrame"/> ("world"): a scene-authoring placement. The values are WORLD space, read
+                off a <see cref="T:FieldGuide.Placement.PlacedInstance"/> the ghost placer stamped.
+              - anything else (e.g. "citizen/hold_R", "citizen/spine_2", "local"): a LOCAL offset relative to the
+                named parent frame, read off a live <see cref="T:FieldGuide.Placement.ITweakTarget"/> in the tweak session. This is the
+                hero case: an accessory hanging off a character, tuned live and baked into game code.
+            
+             <see cref="P:FieldGuide.Placement.PlacedItem.Id"/> is the stable key: the catalog id for a placed object, the target's bake id for a
+             tweaked one. Both export paths emit this same record so JSON and the C# snippet stay one shape.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacedItem.#ctor(System.String,Vector3,Angles,System.Single,System.String)">
+             <summary>
+             One exported transform. <see cref="P:FieldGuide.Placement.PlacedItem.Frame"/> says what <see cref="P:FieldGuide.Placement.PlacedItem.Position"/> / <see cref="P:FieldGuide.Placement.PlacedItem.Rotation"/>
+             / <see cref="P:FieldGuide.Placement.PlacedItem.Scale"/> are measured against, and it is the field that makes an export useful in two
+             very different jobs:
+            
+              - <see cref="F:FieldGuide.Placement.PlacedItem.WorldFrame"/> ("world"): a scene-authoring placement. The values are WORLD space, read
+                off a <see cref="T:FieldGuide.Placement.PlacedInstance"/> the ghost placer stamped.
+              - anything else (e.g. "citizen/hold_R", "citizen/spine_2", "local"): a LOCAL offset relative to the
+                named parent frame, read off a live <see cref="T:FieldGuide.Placement.ITweakTarget"/> in the tweak session. This is the
+                hero case: an accessory hanging off a character, tuned live and baked into game code.
+            
+             <see cref="P:FieldGuide.Placement.PlacedItem.Id"/> is the stable key: the catalog id for a placed object, the target's bake id for a
+             tweaked one. Both export paths emit this same record so JSON and the C# snippet stay one shape.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Placement.PlacedItem.WorldFrame">
+            <summary>The <see cref="P:FieldGuide.Placement.PlacedItem.Frame"/> value meaning "these are world-space coordinates".</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlacedItem.IsLocalOffset">
+            <summary>True when this record is a local offset relative to a named parent frame, false when it
+            is a world-space placement. Drives which block the C# export writes it into.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.PlacedOffset">
+             <summary>
+             The paste target for a baked accessory offset: what the tweak panel's Copy button and the C# export
+             construct, and what your own code holds once the numbers are final. It is deliberately small so a
+             baked line drops into a game project with nothing else attached.
+            
+             The values are LOCAL to whatever the accessory is parented to (a hand attachment, a bone-follow
+             mount, the character root). The kit does not store which frame that was, because your code already
+             knows where it parents the object; the export writes the frame name into the comment above the line
+             so the paste has that context in front of you.
+            
+             <code>
+             // hat: offset from citizen/head
+             static readonly PlacedOffset HatOffset =
+                 new PlacedOffset( "hat", new Vector3( 0.5f, 0f, 3.25f ), new Angles( 0f, 90f, 0f ), 1f );
+            
+             hat.SetParent( headMount, false );
+             HatOffset.ApplyTo( hat );
+             </code>
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacedOffset.#ctor(System.String,Vector3,Angles,System.Single)">
+             <summary>
+             The paste target for a baked accessory offset: what the tweak panel's Copy button and the C# export
+             construct, and what your own code holds once the numbers are final. It is deliberately small so a
+             baked line drops into a game project with nothing else attached.
+            
+             The values are LOCAL to whatever the accessory is parented to (a hand attachment, a bone-follow
+             mount, the character root). The kit does not store which frame that was, because your code already
+             knows where it parents the object; the export writes the frame name into the comment above the line
+             so the paste has that context in front of you.
+            
+             <code>
+             // hat: offset from citizen/head
+             static readonly PlacedOffset HatOffset =
+                 new PlacedOffset( "hat", new Vector3( 0.5f, 0f, 3.25f ), new Angles( 0f, 90f, 0f ), 1f );
+            
+             hat.SetParent( headMount, false );
+             HatOffset.ApplyTo( hat );
+             </code>
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacedOffset.ApplyTo(Sandbox.GameObject)">
+            <summary>Write this offset onto a GameObject's LOCAL transform. Call it after parenting the object
+            to its mount, and the object lands exactly where the tweak panel had it. No-op on an invalid object.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.PlacementExport">
+             <summary>
+             Bakes what you tuned in-game into text you can paste into your own project. Two populations are
+             collected, because the kit serves two jobs and both end at "get these numbers into my code":
+            
+              1. TWEAK TARGETS (the hero case). Every <see cref="T:FieldGuide.Placement.ITweakTarget"/> registered with the scene's
+                 <see cref="T:FieldGuide.Placement.TweakSession"/>, exported as a LOCAL offset tagged with the frame it hangs off
+                 ("citizen/hold_R", "citizen/spine_2", ...). This is the accessory-fitting path: parent a custom
+                 model to a character, drag it into place, bake the offset.
+              2. PLACED INSTANCES (scene authoring). Every object carrying a <see cref="T:FieldGuide.Placement.PlacedInstance"/>, exported
+                 in WORLD space. This is the ghost-placer path: lay a scene out, bake the coordinates.
+            
+             <see cref="M:FieldGuide.Placement.PlacementExport.WriteAll(Sandbox.Scene)"/> writes a JSON file and a C# file into FileSystem.Data (per-project,
+             writable) and logs their full paths. The panel's Copy button does the single-target version:
+             <see cref="M:FieldGuide.Placement.PlacementExport.BakeLine(FieldGuide.Placement.ITweakTarget)"/> straight onto the clipboard.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.Collect(Sandbox.Scene)">
+            <summary>Both populations in one list: tweak-session offsets first (ordered by frame then id), then
+            world-space placed instances. This is what the JSON and C# exports write.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.CollectOffsets(Sandbox.Scene)">
+            <summary>The tweak session's targets as LOCAL offsets, each tagged with its frame. Empty when the
+            scene has no <see cref="T:FieldGuide.Placement.TweakSession"/> or the session holds no valid targets.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.CollectPlaced(Sandbox.Scene)">
+            <summary>Every object tagged with a <see cref="T:FieldGuide.Placement.PlacedInstance"/>, in WORLD space, ordered by catalog
+            id then x for stable output.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.ToItem(FieldGuide.Placement.ITweakTarget)">
+            <summary>One tweak target's live LOCAL transform as a record: its bake id, its local position /
+            rotation / uniform scale, and the frame it hangs off. Null for an invalid target.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.BakeLine(FieldGuide.Placement.ITweakTarget)">
+            <summary>
+            The paste-ready C# for ONE tweak target. A target that implements
+            <see cref="M:FieldGuide.Placement.ITweakTarget.FormatBakeLine(FieldGuide.Placement.PlacedItem)"/> shapes its own line (bake straight into your real data
+            shape); otherwise the kit's default form is used. Returns an empty string for an invalid target.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.DefaultBakeLine(FieldGuide.Placement.PlacedItem)">
+            <summary>
+            The kit's default bake line: a comment naming the id and the frame the offset is measured from,
+            then a <see cref="T:FieldGuide.Placement.PlacedOffset"/> constructor with the live numbers. Two lines, because the comment
+            is what makes the numbers mean something once they are sitting in a file three weeks later.
+            <code>
+            // hat: offset from citizen/head
+            new PlacedOffset( "hat", new Vector3( 0.5f, 0f, 3.25f ), new Angles( 0f, 90f, 0f ), 1f ),
+            </code>
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.OffsetCtor(FieldGuide.Placement.PlacedItem)">
+            <summary>Just the constructor expression, no comment and no trailing comma. The building block the
+            default line and the C# file share.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.ToJson(System.Collections.Generic.IEnumerable{FieldGuide.Placement.PlacedItem})">
+            <summary>An indented JSON array of { id, frame, position {x,y,z}, rotation {pitch,yaw,roll}, scale }.
+            "frame" is "world" for a placed instance and the target's frame name for a tuned offset.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.ToCSharp(System.Collections.Generic.IEnumerable{FieldGuide.Placement.PlacedItem})">
+            <summary>
+            A paste-ready C# file with up to two blocks, each written only when it has entries:
+            a <c>PlacedOffset[]</c> of character-relative offsets (one commented line per accessory, naming the
+            frame it hangs off), and a <c>PlacedItem[]</c> of world-space placements. Both record types ship
+            with the kit, so the paste compiles as-is against <c>FieldGuide.Placement</c>.
+            </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.PlacementExport.WriteAll(Sandbox.Scene)">
+            <summary>Collect both populations and write the JSON and C# exports to FileSystem.Data, logging the
+            paths and the per-population counts. Returns the total number of records written.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.OrbitCamera">
+             <summary>
+             Orbit / pan / zoom tool camera for scene authoring. Hold RIGHT mouse (the "attack2"
+             action, mouse2 by default) to orbit yaw/pitch around a ground-plane focus point; the
+             scroll wheel zooms (exponential, clamped); WASD pans the focus point relative to the
+             camera's current yaw; Q / E orbit the view left / right from the keyboard. The cursor
+             stays visible the whole time (MouseVisibility.Visible), because this is a cursor-driven
+             authoring camera, not an FPS look camera, so the manipulator UI stays clickable.
+            
+             Ported near drop-in from World Builder's OrbitCamera. The two tuning constants it used to
+             read from a project-global god-object (units-per-meter and the keyboard orbit rate) are
+             now <see cref="P:FieldGuide.Placement.OrbitCamera.UnitsPerMeter"/> and <see cref="P:FieldGuide.Placement.OrbitCamera.OrbitKeyRotateDegS"/> [Property] fields with
+             the same defaults, so the component carries its own config and reaches into nothing else.
+            
+             Distances and pan speeds are expressed in METERS and multiplied by <see cref="P:FieldGuide.Placement.OrbitCamera.UnitsPerMeter"/>
+             to reach engine units. If your scene is authored directly in engine units (1 unit == 1),
+             set <see cref="P:FieldGuide.Placement.OrbitCamera.UnitsPerMeter"/> to 1 and treat the "M" fields as plain units.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.OrbitCamera.UnitsPerMeter">
+            <summary>Engine units per meter. World Builder read this from a global constant (39.37,
+            one inch per unit); it is lifted here so the camera carries its own scale. Set to 1 to
+            author directly in engine units.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.OrbitCamera.OrbitKeyRotateDegS">
+            <summary>Degrees/second the Q / E keys sweep the view around the focus (keyboard yaw,
+            composes with RMB-drag orbit and WASD pan). Lifted from the World Builder tuning global.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.OrbitCamera.WorldWidthM">
+            <summary>Scene extent in meters, used to pick the starting zoom distance. Assign right after
+            Components.Create (before OnStart fires) if you build the camera in code.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.OrbitCamera.FocusStartM">
+            <summary>Where the camera starts looking, in the same METERS the rest of this component uses.
+            Zero (the ground origin) is right for a scene-authoring pass; raise the z to frame a subject that
+            stands up off the ground, such as a character, instead of putting its feet in the middle of the
+            view. WASD panning moves off from here.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.OrbitCamera.FocusWorldM">
+            <summary>The camera's ground-plane focus point in METERS (the point it orbits/pans over),
+            mirrored to a public static so an overlay can draw a "you are looking here" marker without
+            reaching into a private field. Read-only to the outside; only this component writes it.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.GhostPlacer">
+             <summary>
+             Aim-follow ghost placement, pattern-rebuilt from World Builder's prop placer, minus all networking:
+             this is a single-player authoring driver. Toggle placement mode with B (or the `placement_place`
+             convar); a tinted, colliderless GHOST of the current catalog entry follows the aim ray (green =
+             valid spot, red = invalid, per <see cref="P:FieldGuide.Placement.PlacementCatalog.ValidityCheck"/>). Bracket keys cycle
+             the catalog, R rotates the ghost, left mouse places, G deletes the placed object under the cursor.
+            
+             Placed objects get a <see cref="T:FieldGuide.Placement.PlacedInstance"/> tag so <see cref="T:FieldGuide.Placement.PlacementExport"/> can find them.
+             Works in engine units throughout (no meter scaling), so it composes with any camera setup.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.GhostPlacer.RotateStepDeg">
+            <summary>Rotation step (degrees) applied by the R key.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.GhostPlacer.SinkDepth">
+            <summary>How far the placed/ghost object sinks along -Z from the aim hit (engine units).</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.GhostPlacer.AimReach">
+            <summary>Max aim-ray length in engine units.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.PlaceableEntry">
+             <summary>
+             One entry in a <see cref="T:FieldGuide.Placement.PlacementCatalog"/>: an id, a display name, and what to spawn. Supply
+             either a <see cref="P:FieldGuide.Placement.PlaceableEntry.ModelPath"/> (the object is built as a GameObject + ModelRenderer, the light
+             path the ghost preview also uses) or a <see cref="P:FieldGuide.Placement.PlaceableEntry.Prefab"/> template GameObject (cloned on place,
+             carrying all its components). If both are set, <see cref="P:FieldGuide.Placement.PlaceableEntry.Prefab"/> wins for the placed object.
+            
+             <see cref="P:FieldGuide.Placement.PlaceableEntry.Id"/> is the stable key written into the export (JSON/C# snippet), so keep it terse and
+             unique within a catalog (e.g. "box", "sphere", "crate_a").
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlaceableEntry.Id">
+            <summary>Stable key written to the export. Unique within the catalog.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlaceableEntry.DisplayName">
+            <summary>Label shown in the placement HUD / logs.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlaceableEntry.ModelPath">
+            <summary>Engine model path, e.g. "models/dev/box.vmdl". Used for the ghost preview and, when no
+            <see cref="P:FieldGuide.Placement.PlaceableEntry.Prefab"/> is set, for the placed object (a GameObject with a single ModelRenderer).</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlaceableEntry.Prefab">
+            <summary>Optional template GameObject cloned on place (a disabled prefab instance in the scene works
+            well). Overrides <see cref="P:FieldGuide.Placement.PlaceableEntry.ModelPath"/> for the placed object; the ghost still uses ModelPath if set.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.PlacedInstance">
+            <summary>
+            Tags a placed object with the catalog id it came from, so <see cref="T:FieldGuide.Placement.PlacementExport"/> can collect
+            every placed object in the scene and record which entry produced it. <see cref="T:FieldGuide.Placement.GhostPlacer"/> adds
+            this on place; you can also add it by hand (or in a prefab) to make an object show up in exports.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlacedInstance.CatalogId">
+            <summary>The <see cref="P:FieldGuide.Placement.PlaceableEntry.Id"/> this object was placed from.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.PlacementCatalog">
+            <summary>
+            The consumer-supplied set of placeable things, plus the validity seam the ghost uses to tint valid
+            vs invalid spots. Populate <see cref="P:FieldGuide.Placement.PlacementCatalog.Entries"/> in code (e.g. from a bootstrap) and, optionally, set
+            <see cref="P:FieldGuide.Placement.PlacementCatalog.ValidityCheck"/> to gate where placement is allowed (default: anywhere the aim ray hits).
+            Publishes itself through a static <see cref="P:FieldGuide.Placement.PlacementCatalog.Instance"/> so <see cref="T:FieldGuide.Placement.GhostPlacer"/> needs no handle.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlacementCatalog.Entries">
+            <summary>The placeable entries, in cycle order. Filled by the consumer at runtime.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.PlacementCatalog.ValidityCheck">
+            <summary>
+            Seam: return true if an object may be placed at the given world position and rotation. Null means
+            "always valid" (the default). The ghost tints green when this returns true, red when false, and a
+            click only places on a valid spot.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Placement.ITweakTarget">
+             <summary>
+             The seam the tweak panel edits. A target is a display name plus the GameObject whose LOCAL transform
+             (position, rotation as pitch/yaw/roll, uniform scale) the panel nudges.
+            
+             Only <see cref="P:FieldGuide.Placement.ITweakTarget.DisplayName"/> and <see cref="P:FieldGuide.Placement.ITweakTarget.Target"/> are required. Everything below is
+             default-implemented, so an existing implementation keeps compiling and gets sensible behaviour:
+             accessory-scale sliders, a "local" frame label, a bake id derived from the display name, and the
+             kit's standard bake line. Override the ones you care about.
+            
+             Implement this to expose your own objects to the panel, or use the built-in <see cref="T:FieldGuide.Placement.TweakTarget"/>
+             wrapper around a plain GameObject.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.ITweakTarget.DisplayName">
+            <summary>The label shown on this target's tab in the panel.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.ITweakTarget.Target">
+            <summary>The object whose LocalPosition / LocalRotation / LocalScale the panel edits.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.ITweakTarget.FrameName">
+            <summary>
+            What the edited offset is measured against: the parent this object hangs from, named in words your
+            game code recognises. "citizen/hold_R", "citizen/spine_2", "turret/muzzle". It shows on the panel's
+            sub-line and goes into the export and the bake comment, so a pasted offset says what it is relative
+            to. Defaults to <see cref="F:FieldGuide.Placement.BakeFormat.LocalFrame"/>, which just means "this object's parent".
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.ITweakTarget.BakeSymbol">
+            <summary>
+            The identifier the bake line names, e.g. "hat" in <c>new PlacedOffset( "hat", ... )</c>. Defaults to
+            a code-safe squashing of <see cref="P:FieldGuide.Placement.ITweakTarget.DisplayName"/>, so "Back Pack" bakes as "back_pack".
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.ITweakTarget.Ranges">
+            <summary>Slider bounds and steps for this target's rows. Defaults to
+            <see cref="F:FieldGuide.Placement.TweakRanges.Accessory"/>; use <see cref="F:FieldGuide.Placement.TweakRanges.Scene"/> for a placed prop.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.ITweakTarget.FormatBakeLine(FieldGuide.Placement.PlacedItem)">
+            <summary>
+            Optional shaping hook for the paste-ready bake line. Return null (the default) for the kit's
+            standard two-line form, or return your own text to bake straight into your project's real shape,
+            e.g. <c>ItemMounts.HatOffset = new Vector3( ... );</c>. The <paramref name="item"/> handed in
+            already carries this target's live local transform, its <see cref="P:FieldGuide.Placement.ITweakTarget.BakeSymbol"/> as the id, and its
+            <see cref="P:FieldGuide.Placement.ITweakTarget.FrameName"/>; format it with <see cref="M:FieldGuide.Placement.BakeFormat.F(System.Single)"/> to match the kit's
+            invariant-culture float style.
+            </summary>
+        </member>
+        <member name="T:FieldGuide.Placement.TweakTarget">
+            <summary>
+            A minimal <see cref="T:FieldGuide.Placement.ITweakTarget"/> that wraps a GameObject, defaulting its label to the object's
+            name. Convenience for the common case where a target is just "this GameObject", with the optional
+            interface members lifted to settable properties so a caller can fill them at registration.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakTarget.Frame">
+            <summary>What the offset is relative to, shown on the panel sub-line and written into the export.
+            Leave null for the "local" default.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakTarget.Symbol">
+            <summary>The id the bake line names. Leave null to derive it from <see cref="P:FieldGuide.Placement.TweakTarget.DisplayName"/>.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakTarget.Ranges">
+            <summary>Slider bounds and steps. Defaults to accessory scale.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.TweakRanges">
+             <summary>
+             Slider bounds and step sizes for one tweak target's rows, in ENGINE UNITS and degrees.
+            
+             Why this is per-target and not a constant: fitting a hat to a head and laying out a building are the
+             same three sliders over wildly different ranges. A position row spanning +/-1024 units at step 1 (the
+             kit's original fixed range) cannot seat an accessory at all: one pixel of drag is several units, and
+             the value you want lives in the first half-percent of the track. The accessory default below spans
+             +/-48 units at step 0.25, so the xfine step (÷10) reaches 0.025 units and a full drag still covers a
+             character-sized volume.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakRanges.#ctor(System.Single,System.Single,System.Single,System.Single,System.Single,System.Single)">
+             <summary>
+             Slider bounds and step sizes for one tweak target's rows, in ENGINE UNITS and degrees.
+            
+             Why this is per-target and not a constant: fitting a hat to a head and laying out a building are the
+             same three sliders over wildly different ranges. A position row spanning +/-1024 units at step 1 (the
+             kit's original fixed range) cannot seat an accessory at all: one pixel of drag is several units, and
+             the value you want lives in the first half-percent of the track. The accessory default below spans
+             +/-48 units at step 0.25, so the xfine step (÷10) reaches 0.025 units and a full drag still covers a
+             character-sized volume.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.Placement.TweakRanges.Accessory">
+            <summary>The default: character-accessory scale. +/-48 units at 0.25 (xfine reaches 0.025), rotation
+            at 1 degree, scale 0.05 to 4. This is what an unconfigured target gets.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.TweakRanges.Scene">
+            <summary>Scene-authoring scale, for tweaking a placed prop rather than a worn accessory:
+            +/-1024 units at step 1, scale up to 8.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.TweakRanges.Prop">
+            <summary>Room-scale, between the two: +/-256 units at 0.5.</summary>
+        </member>
+        <member name="T:FieldGuide.Placement.TweakSession">
+             <summary>
+             Holds the list of objects the <see cref="T:FieldGuide.Placement.TweakPanel"/> can edit, and publishes itself through a
+             static <see cref="P:FieldGuide.Placement.TweakSession.Instance"/> so the panel needs no component handle. Two ways to fill it:
+            
+              1. Wire GameObjects into <see cref="P:FieldGuide.Placement.TweakSession.Objects"/> in the scene inspector (the simple path).
+              2. Call <see cref="M:FieldGuide.Placement.TweakSession.Add(FieldGuide.Placement.ITweakTarget)"/> / <see cref="M:FieldGuide.Placement.TweakSession.Add(Sandbox.GameObject,System.String)"/> at runtime for
+                 code-supplied or custom targets. This is the path the accessory-fitting flow uses: parent your
+                 model to a character mount, then register it with a frame name so the bake says what the offset
+                 is relative to.
+            
+             <see cref="P:FieldGuide.Placement.TweakSession.Targets"/> merges both into the effective list the panel tabs across.
+            
+             The session also remembers each target's AUTHORED transform, captured the moment it is registered, so
+             the panel's Reset restores what you started with rather than slamming the object to zero (which for a
+             hand-mounted accessory means "collapsed into the wrist", never what you wanted).
+             </summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakSession.Objects">
+            <summary>Scene-wired targets: drop GameObjects here in the inspector to make them tweakable.</summary>
+        </member>
+        <member name="F:FieldGuide.Placement.TweakSession._seeds">
+            <summary>The authored local transform of each registered target, captured at registration. Keyed by
+            GameObject so a custom ITweakTarget and a wrapped GameObject share one entry.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakSession.Targets">
+            <summary>The effective, de-duplicated target list the panel tabs across: code-supplied targets
+            first, then the scene-wired <see cref="P:FieldGuide.Placement.TweakSession.Objects"/> (skipping any invalid or already-listed ones).</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakSession.Add(FieldGuide.Placement.ITweakTarget)">
+            <summary>Register a custom target (your own <see cref="T:FieldGuide.Placement.ITweakTarget"/> implementation).</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakSession.Add(Sandbox.GameObject,System.String)">
+            <summary>Register a GameObject as a target, wrapped in a <see cref="T:FieldGuide.Placement.TweakTarget"/>.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakSession.Add(Sandbox.GameObject,System.String,System.String,FieldGuide.Placement.TweakRanges)">
+            <summary>Register a GameObject with the frame its offset is measured against and, optionally, the
+            slider ranges its rows should use. The frame name shows on the panel sub-line and lands in the
+            export and the bake comment, which is the whole reason a baked offset is readable later.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakSession.Remove(Sandbox.GameObject)">
+            <summary>Drop a previously-registered code-supplied target (does not affect scene-wired Objects).</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakSession.CaptureSeed(Sandbox.GameObject)">
+            <summary>Record this object's CURRENT local transform as its authored default, overwriting any
+            earlier capture. Call it after you finish positioning an object in code if you want Reset to come
+            back to that pose rather than the one it had at registration.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakSession.ResetToSeed(Sandbox.GameObject)">
+            <summary>Restore a target to the transform captured when it was registered. Returns false if the
+            object is invalid or was never registered here, so a caller can fall back if it wants to.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.DemoHintCard.CardOpen">
+            <summary>Console fallback: `placement_hint 1` / `placement_hint 0` shows or hides the card (H also
+            toggles). Starts SHOWN, unlike the tweak panel, because it is the thing that tells you the tweak
+            panel exists.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakPanel.PanelOpen">
+            <summary>Console fallback: `placement_panel 1` / `placement_panel 0` toggles the panel (P also toggles).</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakPanel.OpenOnStart">
+             <summary>
+             Whether this panel starts open. Off by default: a tuning panel that appears unbidden over a
+             consumer's game is a bug, not a feature. Turn it on for a scene whose whole point is the panel, the
+             way the kit's own demo does.
+            
+             This is what decides the panel's boot state, and it is the ONLY thing that decides it. See the boot
+             block in OnUpdate for why that matters.
+             </summary>
+        </member>
+        <member name="T:FieldGuide.Placement.TweakPanel.StepSize">
+            <summary>Three-state stepper size (owner ruling, ported from the World Builder mount tuner): xfine for
+            final seating, fine for normal work, coarse for getting into the neighbourhood.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakPanel.ActiveName">
+            <summary>The active target's label, resolved to a single-identifier property so the markup never
+            interpolates a chained member read (which renders blank in several razor cases).</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakPanel.FrameNote">
+            <summary>The sub-line under the tabs: what the numbers below are measured against. This is the one
+            piece of context that makes a baked offset readable later, so the panel shows it while you drag.</summary>
+        </member>
+        <member name="P:FieldGuide.Placement.TweakPanel.Rows">
+            <summary>The seven rows for the ACTIVE target, bounded by that target's TweakRanges. Built per read
+            rather than held in a static array, because an accessory and a scene prop want very different
+            ranges out of the same three sliders.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakPanel.TrackPointer(Sandbox.UI.PanelEvent,FieldGuide.Placement.TweakPanel.Row,System.Boolean)">
+            <summary>Draggable track (World Builder left-UI idiom): onmousedown JUMPS to the click, onmousemove
+            SCRUBS while Active. Snaps to the row's fine step, applies as a DELTA through Nudge so the same
+            write path runs whether you drag or step.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakPanel.ResetActive">
+            <summary>Restore the transform the target was REGISTERED with, not zero. Zeroing a hand-mounted
+            accessory collapses it into the wrist, which is never the thing you wanted back.</summary>
+        </member>
+        <member name="M:FieldGuide.Placement.TweakPanel.CopyActive">
+            <summary>Copy the active target's paste-ready bake line to the system clipboard. Game-side
+            Sandbox.UI.Clipboard.SetText, so this works in play without an editor round trip.</summary>
+        </member>
+    </members>
+</doc>

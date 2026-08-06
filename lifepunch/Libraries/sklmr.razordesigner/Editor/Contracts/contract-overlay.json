@@ -1,0 +1,61 @@
+{
+  "_readme": "Hand-authored overlay layer on top of ContractScanner's reflection output. Carries engine knowledge that [Parameter] reflection cannot reach: named slots auto-created by the engine, SetProperty / runtime-API patterns, inner elements set via string fields, and alias-tag mappings. GOVERNANCE RULE: every entry MUST have a non-empty '_cite' naming the engine type / method / behaviour it encodes. The loader throws InvalidDataException if any entry is missing '_cite'. Merge semantics: additive + override only — the overlay can add or replace fields but NEVER deletes a reflected field.",
+  "version": 1,
+  "entries": [
+    {
+      "kind": "SplitContainer",
+      "_cite": "Sandbox.UI.SplitContainer — engine constructor auto-creates three child panels: Left (css class 'left'), a drag splitter panel, and Right (css class 'right'). These are not [Parameter] properties; they are auto-created in SplitContainer.OnParametersSet / constructor. Source: sbox-public/engine/Sandbox.UI/Panels/SplitContainer.cs.",
+      "slots": [
+        {
+          "name": "Left",
+          "cssClass": "left",
+          "description": "Left (or top in vertical orientation) slot. Engine creates this automatically; designer adds children here."
+        },
+        {
+          "name": "Right",
+          "cssClass": "right",
+          "description": "Right (or bottom in vertical orientation) slot. Engine creates this automatically; designer adds children here."
+        }
+      ]
+    },
+    {
+      "kind": "DropDown",
+      "_cite": "Sandbox.UI.DropDown — options are added at runtime via DropDown.AddOption(string label, string value, string icon) or DropDown.SetOptions(IEnumerable<Option>), not via a [Parameter] property. The engine also exposes SetProperty('value', ...) and an OnValueChanged callback. Source: sbox-public/engine/Sandbox.UI/Panels/DropDown.cs.",
+      "payloadFields": [
+        {
+          "name": "OptionsNote",
+          "clrTypeName": "String",
+          "group": "Content",
+          "isOverrideGate": false,
+          "gatedByGroup": ""
+        }
+      ]
+    },
+    {
+      "kind": "IconPanel",
+      "_cite": "Sandbox.UI.IconPanel — the visible glyph is set on an inner Label child element created by the engine (not a [Parameter]). The string passed to IconPanel.Text (mapped from our IconName payload field) becomes the Material Symbols ligature text of that inner label. The inner element is engine-owned and cannot be accessed as a designer slot. Source: sbox-public/engine/Sandbox.UI/Panels/IconPanel.cs.",
+      "payloadFields": [
+        {
+          "name": "InnerGlyphNote",
+          "clrTypeName": "String",
+          "group": "Icon",
+          "isOverrideGate": false,
+          "gatedByGroup": ""
+        }
+      ]
+    },
+    {
+      "kind": "Button",
+      "_cite": "Sandbox.UI.Button — exposes an icon slot via SetProperty('icon', glyphName) (a Material Symbols name) in addition to the label text. The icon is displayed as a child IconPanel sibling to the label, auto-created by the engine when the 'icon' property is non-empty. This is a SetProperty / runtime-API pattern, not a [Parameter]; ButtonPayload currently models only Content (label text) — the icon gap is tracked in ButtonPayload.cs TODO. Source: sbox-public/engine/Sandbox.UI/Panels/Button.cs.",
+      "payloadFields": [
+        {
+          "name": "ButtonIconNote",
+          "clrTypeName": "String",
+          "group": "Content",
+          "isOverrideGate": false,
+          "gatedByGroup": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "Title": "Adaptive Director",
+  "Type": "library",
+  "Org": "notpointless",
+  "Ident": "chomnr_adaptive_director",
+  "Schema": 1,
+  "IncludeSourceFiles": false,
+  "Resources": null,
+  "PackageReferences": [],
+  "EditorReferences": null,
+  "Mounts": null,
+  "IsStandaloneOnly": false,
+  "Metadata": {
+    "Summary": "Deterministic adaptive pacing, encounters, placement, and music for s&box.",
+    "Description": "A generalized adaptive Director library for campaign, continuous, objective, extraction, arena, and round-based games. Deterministic cores emit declarative spawn, mixer, and music decisions; hosts remain responsible for navigation, entities, replication, and audio.",
+    "WebsiteUrl": "https://github.com/zeljkovranjes/sbox-adaptive-director"
+  }
+}

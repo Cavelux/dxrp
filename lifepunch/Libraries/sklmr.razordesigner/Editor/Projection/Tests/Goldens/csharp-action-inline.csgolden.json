@@ -1,0 +1,44 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-action-inline",
+  "namespaceFallback": "Test",
+  "classNameFallback": "InlineRaw",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "InlineRaw",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "Method",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Test",
+        "visibility": "Private",
+        "returnType": "void",
+        "parameters": [],
+        "body": [
+          {
+            "$type": "Inline",
+            "id": "00000000-0000-0000-0000-000000000020",
+            "code": "first;\nsecond;\n"
+          }
+        ]
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "InlineRaw", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "InlineRaw", "baseClass": "PanelComponent" },
+      { "$type": "MethodOpen", "visibility": "private", "isOverride": false, "isAsync": false, "returnType": "void", "name": "Test", "parameterList": "" },
+      { "$type": "Statement", "code": "first" },
+      { "$type": "Statement", "code": "second" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

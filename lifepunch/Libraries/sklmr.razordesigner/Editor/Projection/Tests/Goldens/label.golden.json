@@ -1,0 +1,49 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Label",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000001",
+    "kind": "Label",
+    "className": "title",
+    "appearance": {
+      "width": "100px",
+      "overrideTypography": true,
+      "color": "#FF0000",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "textAlign": "Center"
+    },
+    "payload": {
+      "content": "Hello \u0026 \u003Cworld\u003E"
+    },
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000001",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "Hello \u0026 \u003Cworld\u003E"
+      }
+    ],
+    "scssLines": [
+      "width: 100px;",
+      "font-size: 18px;",
+      "font-weight: 600;",
+      "color: #FF0000;",
+      "text-align: center;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000001\u0022"
+    ],
+    "razorInnerText": "Hello \u0026amp; \u0026lt;world\u0026gt;"
+  }
+}

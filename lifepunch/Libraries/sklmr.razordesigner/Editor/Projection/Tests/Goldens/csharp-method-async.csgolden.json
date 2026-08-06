@@ -1,0 +1,48 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-method-async",
+  "namespaceFallback": "Test",
+  "classNameFallback": "AsyncRun",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "AsyncRun",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "Method",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Run",
+        "visibility": "Private",
+        "returnType": "void",
+        "parameters": [],
+        "body": [
+          {
+            "$type": "Call",
+            "id": "00000000-0000-0000-0000-000000000020",
+            "callee": {
+              "$type": "Inline",
+              "code": "DoStuff"
+            },
+            "args": [],
+            "await": true
+          }
+        ]
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "AsyncRun", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "AsyncRun", "baseClass": "PanelComponent" },
+      { "$type": "MethodOpen", "visibility": "private", "isOverride": false, "isAsync": true, "returnType": "void", "name": "Run", "parameterList": "" },
+      { "$type": "Statement", "code": "await DoStuff()" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

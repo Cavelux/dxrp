@@ -1,0 +1,360 @@
+@using Sandbox
+@using Sandbox.UI
+@using System
+@using System.Collections.Generic
+@namespace FieldGuide.Placement
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+@*
+	A live transform tuner for objects hanging off something else: an accessory on a character mount, a
+	part on a vehicle, a prop in a scene. One tab per ITweakTarget supplied by the scene's TweakSession;
+	the active tab edits that target GameObject's LocalPosition, LocalRotation (as pitch / yaw / roll) and
+	uniform LocalScale, so what you drag is the OFFSET, which is the number your game code wants.
+
+	Each row is a draggable slider (click-jump + drag-scrub, the engine SliderControl mechanic) with a
+	small +/- stepper beside it for precision a drag can't hit; the three-state step toggle divides or
+	multiplies that stepper by ten. Row ranges come from the target's TweakRanges, so an accessory gets
+	character-scale sliders and a scene prop gets scene-scale ones.
+
+	Copy puts the active target's paste-ready bake line on the clipboard (game-side Clipboard.SetText).
+	Export writes every target and every placed object into FileSystem.Data as JSON plus a C# snippet.
+	Reset restores the transform captured when the target was registered, never zero.
+
+	Rows render in MAIN markup via @foreach (not a RenderFragment) per the fragment-undermeasure gotcha,
+	and add shapes only (track/fill), keeping the text-run count low. Toggle with P (raw key, letter,
+	never an F key), the 42px x in the header, or the `placement_panel` console convar. Starts closed
+	unless OpenOnStart is set; see the boot block in OnUpdate.
+
+	Look and layout follow the Field Kit UI system: docs/design/ui-system/placement-kit.dc.html for
+	this screen, tokens.dc.html for the values. The stylesheet carries this kit's own copy of those
+	tokens (kits cannot import each other) and lists the engine-legality translations at its head.
+*@
+
+<root>
+@if ( PanelOpen )
+{
+	<div class="tp-card">
+		<div class="tp-hdr">
+			<span class="tp-title">TRANSFORM TWEAK</span>
+			<div class="tp-hr">
+				<span class="tp-key">P</span>
+				<div class="tp-x" onclick=@ClosePanel>×</div>
+			</div>
+		</div>
+
+		@if ( TargetList.Count == 0 )
+		{
+			<div class="tp-empty">No targets. Add GameObjects to a TweakSession (Objects list) or call TweakSession.Add(...).</div>
+		}
+		else
+		{
+			@* ---- one tab per target ---- *@
+			<div class="tp-tabs">
+				@for ( int i = 0; i < TargetList.Count; i++ )
+				{
+					var idx = i;
+					string tab = TargetList[idx].DisplayName;
+					<div class="tp-tab @(idx == ActiveIndex ? "on" : "")" onclick=@(() => SelectTab( idx ))>@tab</div>
+				}
+			</div>
+
+			<div class="tp-sub">
+				<span class="tp-item">@ActiveName</span>
+				<span class="tp-note">@FrameNote</span>
+			</div>
+
+			@* ---- step-size toggle (segments live inside a pill group per the design system) ---- *@
+			<div class="tp-steprow">
+				<span class="tp-sl">Step</span>
+				<div class="tp-seg-group">
+					<div class="tp-seg @(_step == StepSize.XFine ? "on" : "")" onclick=@(() => _step = StepSize.XFine)>xfine ÷10</div>
+					<div class="tp-seg @(_step == StepSize.Fine ? "on" : "")" onclick=@(() => _step = StepSize.Fine)>fine</div>
+					<div class="tp-seg @(_step == StepSize.Coarse ? "on" : "")" onclick=@(() => _step = StepSize.Coarse)>coarse ×10</div>
+				</div>
+			</div>
+
+			@* ---- editable rows (draggable slider + stepper) ---- *@
+			<div class="tp-rows">
+				@foreach ( var r in Rows )
+				{
+					var row = r;
+					float cur = Get( ActiveTarget, row.field );
+					string val = cur.ToString( row.fmt );
+					string lab = row.label;   // plain local before interpolating: an inline field read can render blank
+					int fillPct = (int)( Frac( cur, row ) * 100f );
+					<div class="tp-row @(row.header ? "hdr" : "")">
+						<div class="tp-rlab">
+							<span class="tp-rl">@lab</span>
+							<span class="tp-rv">@val</span>
+						</div>
+						<div class="tp-slider">
+							<span class="tp-stp" onclick=@(() => Nudge( row.field, -row.step * StepMult ))>−</span>
+							<div class="tp-track"
+								onmousedown=@(e => TrackPointer( e, row, true ))
+								onmousemove=@(e => TrackPointer( e, row, false ))>
+								<div class="tp-fill" style="width: @(fillPct)%;"></div>
+							</div>
+							<span class="tp-stp" onclick=@(() => Nudge( row.field, row.step * StepMult ))>+</span>
+						</div>
+					</div>
+				}
+			</div>
+
+			@* ---- actions ---- *@
+			<div class="tp-btns">
+				<div class="tp-btn" onclick=@ResetActive>Reset</div>
+				<div class="tp-btn primary" onclick=@CopyActive>@_copyLabel</div>
+			</div>
+			<div class="tp-btns">
+				<div class="tp-btn" onclick=@ExportNow>Export all to Data</div>
+			</div>
+		}
+	</div>
+}
+</root>
+
+@code
+{
+	// ---- toggle state (P raw key + `placement_panel` convar fallback) ----
+	static bool _open;
+
+	/// <summary>Console fallback: `placement_panel 1` / `placement_panel 0` toggles the panel (P also toggles).</summary>
+	[ConVar( "placement_panel", Help = "Open or close the transform tweak panel (same as the P key)" )]
+	public static bool PanelOpen { get => _open; set => _open = value; }
+
+	/// <summary>
+	/// Whether this panel starts open. Off by default: a tuning panel that appears unbidden over a
+	/// consumer's game is a bug, not a feature. Turn it on for a scene whose whole point is the panel, the
+	/// way the kit's own demo does.
+	///
+	/// This is what decides the panel's boot state, and it is the ONLY thing that decides it. See the boot
+	/// block in OnUpdate for why that matters.
+	/// </summary>
+	[Property] public bool OpenOnStart { get; set; }
+
+	int _activeIndex;
+	string _copyLabel = "Copy";
+	bool _wasOpen;
+	bool _booted;
+
+	/// <summary>Three-state stepper size (owner ruling, ported from the World Builder mount tuner): xfine for
+	/// final seating, fine for normal work, coarse for getting into the neighbourhood.</summary>
+	enum StepSize { XFine, Fine, Coarse }
+	StepSize _step = StepSize.Fine;
+
+	IReadOnlyList<ITweakTarget> TargetList => TweakSession.Instance?.Targets ?? System.Array.Empty<ITweakTarget>();
+
+	int ActiveIndex
+	{
+		get => TargetList.Count == 0 ? 0 : Math.Clamp( _activeIndex, 0, TargetList.Count - 1 );
+		set => _activeIndex = value;
+	}
+
+	// Named ActiveTarget (not Active): PanelComponent/Component already exposes an inherited
+	// bool Active, and a razor-generated member named Active would hide it (CS0108).
+	ITweakTarget ActiveTarget => TargetList.Count == 0 ? null : TargetList[ActiveIndex];
+
+	/// <summary>The active target's label, resolved to a single-identifier property so the markup never
+	/// interpolates a chained member read (which renders blank in several razor cases).</summary>
+	string ActiveName => ActiveTarget?.DisplayName ?? "";
+
+	/// <summary>The sub-line under the tabs: what the numbers below are measured against. This is the one
+	/// piece of context that makes a baked offset readable later, so the panel shows it while you drag.</summary>
+	string FrameNote
+	{
+		get
+		{
+			var frame = ActiveTarget?.FrameName;
+			return string.IsNullOrEmpty( frame ) ? "local offset · edited live" : $"{frame} · edited live";
+		}
+	}
+
+	void SelectTab( int idx )
+	{
+		ActiveIndex = idx;
+		_copyLabel = "Copy";   // a stale "Copied!" on a different target reads as a lie
+	}
+
+	void ClosePanel()
+	{
+		PanelOpen = false;
+		_copyLabel = "Copy";
+	}
+
+	// ---- field model ----
+	public enum Field { PosX, PosY, PosZ, Pitch, Yaw, Roll, Scale }
+
+	struct Row { public Field field; public string label; public string fmt; public float step; public float min; public float max; public bool header; }
+
+	/// <summary>The seven rows for the ACTIVE target, bounded by that target's TweakRanges. Built per read
+	/// rather than held in a static array, because an accessory and a scene prop want very different
+	/// ranges out of the same three sliders.</summary>
+	List<Row> Rows
+	{
+		get
+		{
+			var g = ActiveTarget?.Ranges ?? TweakRanges.Accessory;
+			float p = MathF.Max( g.PositionRange, 0.001f );
+			return new List<Row>
+			{
+				new Row { field = Field.PosX,  label = "Pos X",   fmt = "0.###", step = g.PositionStep, min = -p, max = p },
+				new Row { field = Field.PosY,  label = "Pos Y",   fmt = "0.###", step = g.PositionStep, min = -p, max = p },
+				new Row { field = Field.PosZ,  label = "Pos Z",   fmt = "0.###", step = g.PositionStep, min = -p, max = p },
+				new Row { field = Field.Pitch, label = "Pitch °", fmt = "0.#",   step = g.RotationStep, min = -180f, max = 180f, header = true },
+				new Row { field = Field.Yaw,   label = "Yaw °",   fmt = "0.#",   step = g.RotationStep, min = -180f, max = 180f },
+				new Row { field = Field.Roll,  label = "Roll °",  fmt = "0.#",   step = g.RotationStep, min = -180f, max = 180f },
+				new Row { field = Field.Scale, label = "Scale",   fmt = "0.###", step = g.ScaleStep,    min = g.ScaleMin, max = g.ScaleMax, header = true },
+			};
+		}
+	}
+
+	float StepMult => _step switch { StepSize.Coarse => 10f, StepSize.XFine => 0.1f, _ => 1f };
+
+	static float Frac( float value, Row row )
+		=> Math.Clamp( (value - row.min) / MathF.Max( row.max - row.min, 0.0001f ), 0f, 1f );
+
+	// ---- read/write the active target's LOCAL transform ----
+	static float Get( ITweakTarget t, Field f )
+	{
+		var go = t?.Target;
+		if ( go is null || !go.IsValid() ) return 0f;
+		var p = go.LocalPosition;
+		var a = go.LocalRotation.Angles();
+		return f switch
+		{
+			Field.PosX => p.x,
+			Field.PosY => p.y,
+			Field.PosZ => p.z,
+			Field.Pitch => a.pitch,
+			Field.Yaw => a.yaw,
+			Field.Roll => a.roll,
+			Field.Scale => go.LocalScale.x,
+			_ => 0f,
+		};
+	}
+
+	void Nudge( Field f, float delta )
+	{
+		var go = ActiveTarget?.Target;
+		if ( go is null || !go.IsValid() ) return;
+		var p = go.LocalPosition;
+		var a = go.LocalRotation.Angles();
+		switch ( f )
+		{
+			case Field.PosX: go.LocalPosition = p.WithX( p.x + delta ); break;
+			case Field.PosY: go.LocalPosition = p.WithY( p.y + delta ); break;
+			case Field.PosZ: go.LocalPosition = p.WithZ( p.z + delta ); break;
+			case Field.Pitch: go.LocalRotation = new Angles( a.pitch + delta, a.yaw, a.roll ).ToRotation(); break;
+			case Field.Yaw: go.LocalRotation = new Angles( a.pitch, a.yaw + delta, a.roll ).ToRotation(); break;
+			case Field.Roll: go.LocalRotation = new Angles( a.pitch, a.yaw, a.roll + delta ).ToRotation(); break;
+			case Field.Scale:
+				float s = MathF.Max( 0.01f, go.LocalScale.x + delta );
+				go.LocalScale = new Vector3( s, s, s );
+				break;
+		}
+	}
+
+	/// <summary>Draggable track (World Builder left-UI idiom): onmousedown JUMPS to the click, onmousemove
+	/// SCRUBS while Active. Snaps to the row's fine step, applies as a DELTA through Nudge so the same
+	/// write path runs whether you drag or step.</summary>
+	void TrackPointer( PanelEvent ev, Row row, bool jump )
+	{
+		if ( ev is not MousePanelEvent e ) return;
+		var track = e.This;
+		if ( track is null ) return;
+		if ( !jump && !track.PseudoClass.HasFlag( PseudoClass.Active ) ) return;
+
+		float w = track.Box.Rect.Width;
+		if ( w <= 0f ) return;
+		float frac = Math.Clamp( e.LocalPosition.x / w, 0f, 1f );
+		float target = row.min + frac * (row.max - row.min);
+		if ( row.step > 0f ) target = MathF.Round( target / row.step ) * row.step;
+		target = Math.Clamp( target, row.min, row.max );
+		Nudge( row.field, target - Get( ActiveTarget, row.field ) );
+	}
+
+	/// <summary>Restore the transform the target was REGISTERED with, not zero. Zeroing a hand-mounted
+	/// accessory collapses it into the wrist, which is never the thing you wanted back.</summary>
+	void ResetActive()
+	{
+		var go = ActiveTarget?.Target;
+		if ( go is null || !go.IsValid() ) return;
+		if ( TweakSession.Instance?.ResetToSeed( go ) == true ) return;
+
+		// Never registered here (a hand-built target list, say): identity is the only baseline we have.
+		go.LocalPosition = Vector3.Zero;
+		go.LocalRotation = Rotation.Identity;
+		go.LocalScale = Vector3.One;
+	}
+
+	/// <summary>Copy the active target's paste-ready bake line to the system clipboard. Game-side
+	/// Sandbox.UI.Clipboard.SetText, so this works in play without an editor round trip.</summary>
+	void CopyActive()
+	{
+		var t = ActiveTarget;
+		if ( t is null ) return;
+		var line = PlacementExport.BakeLine( t );
+		if ( string.IsNullOrEmpty( line ) ) return;
+		Sandbox.UI.Clipboard.SetText( line );
+		_copyLabel = "Copied!";
+	}
+
+	void ExportNow()
+	{
+		if ( Scene is not null )
+			PlacementExport.WriteAll( Scene );
+	}
+
+	// ---- boot state, P toggle, cursor while open ----
+
+	protected override void OnUpdate()
+	{
+		// BOOT. `placement_panel` is a convar and s&box PERSISTS convars across sessions, so a session can
+		// otherwise come up with the panel logically open from whatever someone left set weeks ago. The rule
+		// that prevents it: this component's own OpenOnStart decides the boot state, and the persisted value
+		// never does. Default off means a consumer game still cannot be pre-opened by a stale convar; a scene
+		// that wants the panel up says so explicitly.
+		//
+		// Deliberately in the FIRST UPDATE rather than OnStart. A panel built in code is configured by the
+		// component that created it, and doing this in OnStart would race that assignment: whichever ran
+		// first would win. The first update is after every OnStart in the frame, so the setting is always
+		// read, never half-applied.
+		if ( !_booted )
+		{
+			_booted = true;
+			if ( PanelOpen && !OpenOnStart )
+				Log.Info( "[placement] tweak panel was OPEN at session start (persisted convar), forcing closed" );
+			PanelOpen = OpenOnStart;
+		}
+
+		if ( Input.Keyboard.Pressed( "P" ) )
+			PanelOpen = !PanelOpen;
+
+		if ( PanelOpen )
+		{
+			Mouse.Visibility = MouseVisibility.Visible;   // keep the cursor usable over the panel
+			_wasOpen = true;
+		}
+		else if ( _wasOpen )
+		{
+			_wasOpen = false;
+			_copyLabel = "Copy";   // closing clears the flash, so a reopen never claims a copy that was not made
+		}
+	}
+
+	// Fold the toggle, active tab, step mode, the copy label, and every displayed value (rounded) so
+	// readouts update the instant a value is nudged. Miss one and the number freezes on screen.
+	protected override int BuildHash()
+	{
+		int h = HashCode.Combine( PanelOpen, ActiveIndex, (int)_step, _copyLabel, TargetList.Count );
+		var a = ActiveTarget;
+		if ( a is not null )
+		{
+			h = HashCode.Combine( h, a.FrameName );
+			foreach ( var r in Rows )
+				h = HashCode.Combine( h, (int)MathF.Round( Get( a, r.field ) * 1000f ) );
+		}
+		return h;
+	}
+}

@@ -1,0 +1,43 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "TextEntry",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000014",
+    "kind": "TextEntry",
+    "className": "te1",
+    "appearance": {
+      "width": "200px",
+      "height": "30px"
+    },
+    "payload": {
+      "placeholder": "Enter text"
+    },
+    "children": [],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000014",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetAttribute",
+        "value": "Enter text",
+        "name": "placeholder"
+      }
+    ],
+    "scssLines": [
+      "width: 200px;",
+      "height: 30px;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000014\u0022",
+      "placeholder=\u0022Enter text\u0022"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.sonac.sbox-animator</name>
+    </assembly>
+    <members>
+        <member name="M:SboxWeaponAnimator.WeaponCalibration.GetAnchor(SboxWeaponAnimator.AnchorKind)">
+            <summary>
+            Resolves the single anchor of a fixed kind. Custom anchors are identified by id instead,
+            because a weapon may carry several of them.
+            </summary>
+        </member>
+        <member name="P:SboxWeaponAnimator.WeaponAnchor.GeneratedAttachmentName">
+            <summary>
+            Attachment name emitted for custom anchors. Stored rather than derived so renaming the
+            anchor cannot silently rename an attachment that game code already references.
+            </summary>
+        </member>
+        <member name="F:SboxWeaponAnimator.WeaponAnimationNames.ReservedAttachmentNames">
+            <summary>
+            Attachment names reserved by the fixed anchor kinds that reach generation. The calibration-only
+            kinds (grip, bore markers) are never exported, so they reserve nothing.
+            </summary>
+        </member>
+        <member name="M:SboxWeaponAnimator.WeaponAnimationNames.RepairCustomAnchorNames(SboxWeaponAnimator.WeaponAnimationDocument)">
+            <summary>
+            Assigns each custom anchor a stable, unique attachment name. Mirrors
+            <see cref="M:SboxWeaponAnimator.WeaponAnimationNames.RepairCustomSequenceNames(SboxWeaponAnimator.WeaponAnimationDocument)"/>: an existing stored name is kept whenever it is still
+            unique, so generated output stays stable across renames.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,66 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Button",
+  "node": {
+    "id": "b1b2c3d4-0000-0000-0000-000000000002",
+    "kind": "Button",
+    "className": "multi-btn",
+    "appearance": {
+      "overrideBackground": true,
+      "backgroundColor": "#2A6FB8"
+    },
+    "payload": {
+      "content": "Click"
+    },
+    "children": [],
+    "slots": {},
+    "states": [
+      {
+        "state": "Active",
+        "nthChildArg": 1,
+        "delta": {
+          "overrideBackground": true,
+          "backgroundColor": "#1A4F98"
+        }
+      },
+      {
+        "state": "Hover",
+        "nthChildArg": 1,
+        "delta": {
+          "overrideBackground": true,
+          "backgroundColor": "#3A8FD8"
+        }
+      }
+    ]
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "b1b2c3d4-0000-0000-0000-000000000002",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "Click"
+      }
+    ],
+    "scssLines": [
+      "background-color: #2A6FB8;",
+      "background-image: none;",
+      "\u0026:hover {",
+      "    background-color: #3A8FD8;",
+      "}",
+      "\u0026:active {",
+      "    background-color: #1A4F98;",
+      "}"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022b1b2c3d4-0000-0000-0000-000000000002\u0022"
+    ],
+    "razorInnerText": "Click"
+  }
+}

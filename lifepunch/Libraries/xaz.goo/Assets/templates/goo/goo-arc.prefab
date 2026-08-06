@@ -1,0 +1,23 @@
+{
+  "RootObject": {
+    "__guid": "307e77cb-0062-440f-a6c0-6f920d74bc7c",
+    "Flags": 0,
+    "Name": "Arc",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Goo.Authoring.ArcNode",
+        "__guid": "fb4882ae-1d4f-4e96-b466-cb6c2b3eb38c"
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Arc",
+  "MenuIcon": "donut_large",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

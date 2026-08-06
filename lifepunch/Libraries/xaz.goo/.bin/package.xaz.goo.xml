@@ -1,0 +1,3264 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.xaz.goo</name>
+    </assembly>
+    <members>
+        <member name="T:Goo.Animation.AgePhase">
+            <summary>Projects an entry's age into normalized slide-in / hold / fade-out values (0..1); pure value-type sibling of <see cref="T:Goo.Animation.Tween"/>.</summary>
+        </member>
+        <member name="M:Goo.Animation.AgePhase.Project(System.Single,System.Single)">
+            <param name="age">Seconds since spawn (drives slide-in).</param>
+            <param name="idleAge">Seconds since last input (drives hold + fade-out).</param>
+        </member>
+        <member name="T:Goo.Animation.AgeProjection">
+            <summary>Normalized 0..1 projection from <see cref="M:Goo.Animation.AgePhase.Project(System.Single,System.Single)"/>; <c>Opacity</c> is the composite <c>(1 - Fade) * Slide</c>.</summary>
+        </member>
+        <member name="M:Goo.Animation.AgeProjection.#ctor(System.Single,System.Single,System.Single)">
+            <summary>Normalized 0..1 projection from <see cref="M:Goo.Animation.AgePhase.Project(System.Single,System.Single)"/>; <c>Opacity</c> is the composite <c>(1 - Fade) * Slide</c>.</summary>
+        </member>
+        <member name="T:Goo.Animation.TickFn">
+            <summary>Per-frame animator tick; returns true while the animator is still in motion.</summary>
+        </member>
+        <member name="T:Goo.Animation.AnimationSet">
+            <summary>Collects per-frame animator tick callbacks; UpdateAll returns true while any still runs.</summary>
+        </member>
+        <member name="M:Goo.Animation.DecayColor.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.DecayFloat.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.DecayVector2.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="T:Goo.Animation.GlideState">
+            <summary>Banked-offset glide for layout position transitions; pure value type, caller owns the clock.</summary>
+        </member>
+        <member name="M:Goo.Animation.GlideState.#ctor(System.Single,Sandbox.Utility.Easing.Function)">
+            <summary>Creates a glide with duration in milliseconds and optional easing (defaults to EaseOut).</summary>
+        </member>
+        <member name="P:Goo.Animation.GlideState.Offset">
+            <summary>Current visual displacement from the layout slot; exactly zero when settled.</summary>
+        </member>
+        <member name="P:Goo.Animation.GlideState.IsActive">
+            <summary>True while the glide is still animating toward zero.</summary>
+        </member>
+        <member name="M:Goo.Animation.GlideState.Bank(Vector2)">
+            <summary>Banks a layout jump; a mid-flight bank preserves the current visual offset and restarts the clock.</summary>
+        </member>
+        <member name="M:Goo.Animation.GlideState.Advance(System.Single)">
+            <summary>Steps the animation forward by dt seconds; settles when the offset drops below 0.5px.</summary>
+        </member>
+        <member name="M:Goo.Animation.SmoothColor.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.SmoothFloat.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.SmoothVector2.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.SpringColor.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.SpringFloat.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.SpringVector2.Tick(System.Single)">
+            <summary>Advances by dt and returns true while still moving; chain calls with | (not ||) so every damper advances each frame.</summary>
+        </member>
+        <member name="M:Goo.Animation.Timeline.Sequence(Goo.Animation.Tween[])">
+            <summary>Auto-concatenated: segment N starts where N-1 ends. Skips the internal sort because the input is ascending by construction.</summary>
+        </member>
+        <member name="M:Goo.Animation.Timeline.At(System.ValueTuple{System.Single,Goo.Animation.Tween}[])">
+            <summary>Explicit timing: each entry is (absolute startTime, tween), gaps allowed; sorts internally so stored Segments are ascending by StartTime.</summary>
+        </member>
+        <member name="M:Goo.Animation.Tween.FromCurve(Sandbox.Curve,System.Single,System.Single)">
+            <summary>
+            Bridge a designer-authored Sandbox.Curve (authored over [0, 1]) into a Tween.
+            Allocates one delegate per call; cache the result in a static readonly field.
+            </summary>
+        </member>
+        <member name="T:Goo.Authoring.ArcNode">
+            <summary>A Goo Arc authored in the editor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.AlignSelf">
+            <summary>Overrides the parent's AlignItems for this one child.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.ZIndex">
+            <summary>Stacking order among overlapping siblings; higher draws on top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.HoverBackgroundColor">
+            <summary>BackgroundColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.TransitionMs">
+            <summary>Duration in milliseconds for the Hover/Active/Focus color transitions.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.StartAngle">
+            <summary>Angle where the arc begins, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.EndAngle">
+            <summary>Angle where the arc ends, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.Radius">
+            <summary>Arc radius as a fraction from 0 to 1.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.StrokeWidth">
+            <summary>Thickness of the arc stroke.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ArcNode.RectHitTest">
+            <summary>When true, input hits the full bounding box.</summary>
+        </member>
+        <member name="T:Goo.Authoring.BlobNode">
+            <summary>Maps a GameObject hierarchy under GooHierarchyHost to an ordered Goo blob tree.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TokenBindings">
+            <summary>Optional property-name to token-name bindings. Literal values remain stored as fallbacks.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformTranslateX">
+            <summary>Horizontal translation applied before the other transform operations.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformTranslateY">
+            <summary>Vertical translation applied before the other transform operations.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformRotation">
+            <summary>Clockwise rotation in degrees.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformScaleX">
+            <summary>Horizontal scale. The untouched axis remains at 1.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformScaleY">
+            <summary>Vertical scale. The untouched axis remains at 1.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformSkewX">
+            <summary>Horizontal skew in degrees.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformSkewY">
+            <summary>Vertical skew in degrees.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformTranslateXAnim">
+            <summary>Movie-maker mirror of TransformTranslateX in pixels: keyframes tween.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.TransformTranslateYAnim">
+            <summary>Movie-maker mirror of TransformTranslateY in pixels: keyframes tween.</summary>
+        </member>
+        <member name="P:Goo.Authoring.BlobNode.BlobKey">
+            <summary>Reconciler key: stable per GameObject, survives reorders.</summary>
+        </member>
+        <member name="M:Goo.Authoring.BlobNode.AddTo(Goo.Children)">
+            <summary>Build this node's blob and add it to the parent's children.</summary>
+        </member>
+        <member name="M:Goo.Authoring.BlobNode.AddChildNodes(Sandbox.GameObject,Goo.Children)">
+            <summary>Add every enabled BlobNode on direct children of <paramref name="parent"/>, in hierarchy order.</summary>
+        </member>
+        <member name="T:Goo.Authoring.ContainerNode">
+            <summary>A Goo Container authored in the editor. Unset properties inherit Goo defaults.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FlexDirection">
+            <summary>Main-axis direction for children: Row lays them left-to-right, Column top-to-bottom (engine default Column).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.JustifyContent">
+            <summary>Distributes children along the main axis (start, center, end, or the space-* spreads).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.AlignItems">
+            <summary>Aligns children on the cross axis, the axis perpendicular to FlexDirection.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Display">
+            <summary>Box generation: Flex lays out children, None removes the panel from layout entirely.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Padding">
+            <summary>Inner space on all four edges, between the border and the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.PaddingLeft">
+            <summary>Inner space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.PaddingTop">
+            <summary>Inner space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.PaddingRight">
+            <summary>Inner space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.PaddingBottom">
+            <summary>Inner space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Gap">
+            <summary>Space between flex children on both axes (shorthand for RowGap and ColumnGap).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.RowGap">
+            <summary>Vertical space between flex rows.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.ColumnGap">
+            <summary>Horizontal space between flex columns.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderRadius">
+            <summary>Rounds all four corners.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderTopLeftRadius">
+            <summary>Rounds the top-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderTopRightRadius">
+            <summary>Rounds the top-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderBottomRightRadius">
+            <summary>Rounds the bottom-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderBottomLeftRadius">
+            <summary>Rounds the bottom-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.AlignContent">
+            <summary>Aligns wrapped flex lines on the cross axis when there is spare room; only bites once content wraps.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.AlignSelf">
+            <summary>Overrides the parent's AlignItems for this one child.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.AspectRatio">
+            <summary>Locks the width-to-height ratio when only one dimension is constrained.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackdropFilterBlur">
+            <summary>Blur applied to whatever shows through behind the element (frosted-glass effect).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackdropFilterBrightness">
+            <summary>Brightness multiplier on the backdrop; 1 unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackdropFilterContrast">
+            <summary>Contrast multiplier on the backdrop; 1 unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackdropFilterHueRotate">
+            <summary>Hue rotation on the backdrop.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackdropFilterInvert">
+            <summary>Inversion amount on the backdrop.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackdropFilterSaturate">
+            <summary>Saturation multiplier on the backdrop; 1 unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackdropFilterSepia">
+            <summary>Sepia amount on the backdrop.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundAngle">
+            <summary>Angle in radians for a background gradient.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundBlendMode">
+            <summary>Blend mode between stacked background layers (CSS background-blend-mode keyword).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundImage">
+            <summary>Texture drawn as the background.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundPlaybackPaused">
+            <summary>Pauses playback of an animated or video background texture.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundPositionX">
+            <summary>Horizontal offset of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundPositionY">
+            <summary>Vertical offset of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundRepeat">
+            <summary>How the background image tiles (repeat, repeat-x/y, no-repeat, clamp).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundSizeX">
+            <summary>Rendered width of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundSizeY">
+            <summary>Rendered height of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderBottomColor">
+            <summary>Color of the bottom border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderColor">
+            <summary>Color of all four borders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderLeftColor">
+            <summary>Color of the left border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderRightColor">
+            <summary>Color of the right border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderTopColor">
+            <summary>Color of the top border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageFill">
+            <summary>Whether the center slice of the border image fills the box (Unfilled or Filled).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageRepeat">
+            <summary>How the edge slices of the border image repeat (Stretch or Round).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageSource">
+            <summary>Texture sliced into a nine-patch to form the border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageTint">
+            <summary>Tint multiplied onto the border image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageWidthBottom">
+            <summary>Width of the border-image slice on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageWidthLeft">
+            <summary>Width of the border-image slice on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageWidthRight">
+            <summary>Width of the border-image slice on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderImageWidthTop">
+            <summary>Width of the border-image slice on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderBottomWidth">
+            <summary>Thickness of the bottom border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderLeftWidth">
+            <summary>Thickness of the left border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderRightWidth">
+            <summary>Thickness of the right border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderTopWidth">
+            <summary>Thickness of the top border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderWidth">
+            <summary>Thickness of all four borders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BoxShadow">
+            <summary>Outset shadow behind the panel box. Takes a single Shadow or a Shadow[] stack. Inset entries are ignored and report one warning per process.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.CaretColor">
+            <summary>Color of the text-input caret.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Cursor">
+            <summary>Mouse cursor shown on hover (CSS cursor keyword).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterBlur">
+            <summary>Gaussian blur applied to the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterBorderColor">
+            <summary>Color of the filter-pass border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterBorderWidth">
+            <summary>Width of the border drawn by the filter pass.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterBrightness">
+            <summary>Brightness multiplier; 1 leaves it unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterContrast">
+            <summary>Contrast multiplier; 1 leaves it unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterHueRotate">
+            <summary>Hue rotation angle.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterInvert">
+            <summary>Color inversion amount; 0 none, 1 full.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterSaturate">
+            <summary>Saturation multiplier; 1 unchanged, 0 grayscale.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterSepia">
+            <summary>Sepia amount; 0 none, 1 full.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FilterTint">
+            <summary>Tint color multiplied over the element; default white.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FlexWrap">
+            <summary>Whether children wrap onto multiple lines when they overflow the main axis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontColor">
+            <summary>Text color (s&amp;box uses font-color, not the CSS color property).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontFamily">
+            <summary>Font face name.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontSize">
+            <summary>Text size.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontSmooth">
+            <summary>Text antialiasing hint (Auto, Never, Always).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontStyle">
+            <summary>Italic or oblique styling.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontVariantNumeric">
+            <summary>Numeric glyph variant, e.g. TabularNums for fixed-width digits.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontWeight">
+            <summary>Boldness from 100 to 900 (400 normal, 700 bold).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.ImageRendering">
+            <summary>Texture sampling for scaled images (Point, Bilinear, Trilinear, Anisotropic).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.LetterSpacing">
+            <summary>Extra space between characters.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.LineHeight">
+            <summary>Height of each line of text (default 100%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskAngle">
+            <summary>Angle in radians for a gradient mask.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskImage">
+            <summary>Texture whose alpha or luminance masks the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskMode">
+            <summary>Whether the mask reads alpha or luminance (MatchSource, Alpha, Luminance).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskPositionX">
+            <summary>Horizontal offset of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskPositionY">
+            <summary>Vertical offset of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskRepeat">
+            <summary>How the mask image tiles (reuses the BackgroundRepeat values).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskScope">
+            <summary>Whether the mask applies to the element or to its filter pass (Default, Filter).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskSizeX">
+            <summary>Rendered width of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaskSizeY">
+            <summary>Rendered height of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.MixBlendMode">
+            <summary>Blend mode against what is drawn behind the panel (CSS mix-blend-mode keyword).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Order">
+            <summary>Reorders this child visually among its siblings (lower draws first) without moving it in the tree.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.OutlineColor">
+            <summary>Color of the outline drawn just outside the border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.OutlineOffset">
+            <summary>Gap between the border edge and the outline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.OutlineWidth">
+            <summary>Thickness of the outline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Overflow">
+            <summary>Clipping and scrolling for content past the box on both axes.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.OverflowX">
+            <summary>Overflow handling on the horizontal axis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.OverflowY">
+            <summary>Overflow handling on the vertical axis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.PerspectiveOriginX">
+            <summary>Horizontal vanishing point for 3D-transformed children (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.PerspectiveOriginY">
+            <summary>Vertical vanishing point for 3D-transformed children (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.SoundIn">
+            <summary>Sound played when the element appears.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.SoundOut">
+            <summary>Sound played when the element is removed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextAlign">
+            <summary>Horizontal alignment of text within its box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextBackgroundAngle">
+            <summary>Angle in radians for a gradient fill painted onto the text.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextDecorationColor">
+            <summary>Color of the underline, overline, or line-through.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextDecorationLine">
+            <summary>Which decoration lines to draw (underline, overline, line-through; flags).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextDecorationSkipInk">
+            <summary>Whether decoration lines skip over glyph descenders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextDecorationStyle">
+            <summary>Decoration line style (solid, double, dotted, dashed, wavy).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextDecorationThickness">
+            <summary>Thickness of the decoration line.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextFilter">
+            <summary>Texture filtering mode used when rendering text.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextLineThroughOffset">
+            <summary>Vertical offset of the line-through.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextOverflow">
+            <summary>How clipped text is signalled (None, Ellipsis, Clip).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextOverlineOffset">
+            <summary>Vertical offset of the overline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextShadow">
+            <summary>Drop shadow on the glyphs. Takes a single Shadow or a Shadow[] stack. Spread and Inset are ignored. Inherits to child panels. Assign Shadows.None to cancel an inherited shadow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextStrokeColor">
+            <summary>Color of the text outline stroke.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextStrokeWidth">
+            <summary>Width of the text outline stroke.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextTransform">
+            <summary>Case transform applied at render (Uppercase, Lowercase, Capitalize).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TextUnderlineOffset">
+            <summary>Vertical offset of the underline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TransformOriginX">
+            <summary>Horizontal pivot the transform rotates and scales around (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TransformOriginY">
+            <summary>Vertical pivot the transform rotates and scales around (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.WhiteSpace">
+            <summary>Whitespace and wrapping handling (Normal, NoWrap, Pre, PreLine).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.WordBreak">
+            <summary>Whether long words may break mid-word to avoid overflow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.WordSpacing">
+            <summary>Extra space between words.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.ZIndex">
+            <summary>Stacking order among overlapping siblings; higher draws on top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.HoverBackgroundColor">
+            <summary>BackgroundColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.ActiveBackgroundColor">
+            <summary>BackgroundColor while the element is pressed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FocusBackgroundColor">
+            <summary>BackgroundColor while the element has focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.HoverFontColor">
+            <summary>FontColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.ActiveFontColor">
+            <summary>FontColor while the element is pressed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FocusFontColor">
+            <summary>FontColor while the element has focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TransitionMs">
+            <summary>Duration in milliseconds for the Hover/Active/Focus color transitions.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.FontColorAnim">
+            <summary>Movie-maker mirror of FontColor: keyframes tween, setting it writes FontColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderColorAnim">
+            <summary>Movie-maker mirror of BorderColor: keyframes tween, setting it writes BorderColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.BorderRadiusAnim">
+            <summary>Movie-maker mirror of BorderRadius in pixels: keyframes tween, setting it writes BorderRadius.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.SwallowClick">
+            <summary>Stops left-clicks on this container from bubbling to an ancestor click handler.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.OnMouseWheel">
+            <summary>Runs when the mouse wheel scrolls over this container or a descendant that did not consume it. Delta y is positive when scrolling down. Setting this consumes the wheel.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.LayoutTransitionMs">
+            <summary>Duration of automatic layout-position glides. Zero disables layout transitions.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ContainerNode.LayoutTransitionEasing">
+            <summary>Easing used by automatic layout-position glides.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooPointerAction">
+            <summary>ActionGraph signature for hierarchy-authored Goo pointer events.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooWheelAction">
+            <summary>ActionGraph signature for mouse-wheel events. Delta y is positive when scrolling down.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooTextValueAction">
+            <summary>ActionGraph signature for TextEntry events that provide the current text.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooTextAction">
+            <summary>ActionGraph signature for TextEntry events without an additional value.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooTextValidationAction">
+            <summary>ActionGraph signature for TextEntry validation changes.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooHierarchyHost">
+            <summary>Mounts child BlobNodes on the ScreenPanel or WorldPanel sharing this GameObject.</summary>
+        </member>
+        <member name="P:Goo.Authoring.GooHierarchyHost.LiveUpdate">
+            <summary>Rebuilds every frame for the realtime editor experience, not live games; disable it for normal runtime.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooLayoutEasing">
+            <summary>Serializable easing choices for hierarchy-authored layout transitions.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooLength">
+            <summary>Serializable Length surrogate required because the engine drops Length's public fields.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooShadow">
+            <summary>Outset shadow that round-trips scene JSON.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooTokenAttribute">
+            <summary>Marks an authoring property as eligible for an optional inspector token binding.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooTokenEntry">
+            <summary>One inspector-authored token entry. Only the value matching Kind is shown.</summary>
+        </member>
+        <member name="T:Goo.Authoring.GooTokenScope">
+            <summary>Defines tokens for this authored Goo subtree; nested scopes override matching names.</summary>
+        </member>
+        <member name="T:Goo.Authoring.ImageNode">
+            <summary>A Goo Image authored in the editor. Pick a texture asset; unset properties inherit Goo defaults.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderRadius">
+            <summary>Rounds all four corners.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderTopLeftRadius">
+            <summary>Rounds the top-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderTopRightRadius">
+            <summary>Rounds the top-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderBottomRightRadius">
+            <summary>Rounds the bottom-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderBottomLeftRadius">
+            <summary>Rounds the bottom-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderBottomColor">
+            <summary>Color of the bottom border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderColor">
+            <summary>Color of all four borders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderLeftColor">
+            <summary>Color of the left border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderRightColor">
+            <summary>Color of the right border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderTopColor">
+            <summary>Color of the top border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderBottomWidth">
+            <summary>Thickness of the bottom border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderLeftWidth">
+            <summary>Thickness of the left border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderRightWidth">
+            <summary>Thickness of the right border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderTopWidth">
+            <summary>Thickness of the top border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderWidth">
+            <summary>Thickness of all four borders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.ImageRendering">
+            <summary>Texture sampling for scaled images (Point, Bilinear, Trilinear, Anisotropic).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.ObjectFit">
+            <summary>How the image scales to fill its box (Fill, Contain, Cover, None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderColorAnim">
+            <summary>Movie-maker mirror of BorderColor: keyframes tween, setting it writes BorderColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.BorderRadiusAnim">
+            <summary>Movie-maker mirror of BorderRadius in pixels: keyframes tween, setting it writes BorderRadius.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Texture">
+            <summary>Texture asset to display. Clear it to use Path.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ImageNode.Path">
+            <summary>Mounted image-file path to display. Clear it to use Texture.</summary>
+        </member>
+        <member name="T:Goo.Authoring.PolygonNode">
+            <summary>A Goo Polygon authored in the editor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.AlignSelf">
+            <summary>Overrides the parent's AlignItems for this one child.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.ZIndex">
+            <summary>Stacking order among overlapping siblings; higher draws on top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.HoverBackgroundColor">
+            <summary>BackgroundColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.TransitionMs">
+            <summary>Duration in milliseconds for the Hover/Active/Focus color transitions.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.Points">
+            <summary>Vertices in unit coordinates from 0 to 1.</summary>
+        </member>
+        <member name="P:Goo.Authoring.PolygonNode.RectHitTest">
+            <summary>When true, input hits the full bounding box.</summary>
+        </member>
+        <member name="T:Goo.Authoring.ScenePanelNode">
+            <summary>A Goo ScenePanel authored in the editor from a scene asset path.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BorderRadius">
+            <summary>Rounds all four corners.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BorderTopLeftRadius">
+            <summary>Rounds the top-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BorderTopRightRadius">
+            <summary>Rounds the top-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BorderBottomRightRadius">
+            <summary>Rounds the bottom-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BorderBottomLeftRadius">
+            <summary>Rounds the bottom-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.BorderRadiusAnim">
+            <summary>Movie-maker mirror of BorderRadius in pixels: keyframes tween, setting it writes BorderRadius.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.ScenePath">
+            <summary>Path to the scene asset to render.</summary>
+        </member>
+        <member name="P:Goo.Authoring.ScenePanelNode.RenderOnce">
+            <summary>When true, renders the scene only once.</summary>
+        </member>
+        <member name="T:Goo.Authoring.SectorNode">
+            <summary>A Goo Sector authored in the editor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.AlignSelf">
+            <summary>Overrides the parent's AlignItems for this one child.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.ZIndex">
+            <summary>Stacking order among overlapping siblings; higher draws on top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.HoverBackgroundColor">
+            <summary>BackgroundColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.TransitionMs">
+            <summary>Duration in milliseconds for the Hover/Active/Focus color transitions.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.StartAngle">
+            <summary>Angle where the wedge begins, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.EndAngle">
+            <summary>Angle where the wedge ends, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.InnerRadius">
+            <summary>Inner radius as a fraction from 0 to 1.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.OuterRadius">
+            <summary>Outer radius as a fraction from 0 to 1.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.CornerRadius">
+            <summary>Corner rounding as a fraction from 0 to 1.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SectorNode.RectHitTest">
+            <summary>When true, input hits the full bounding box.</summary>
+        </member>
+        <member name="T:Goo.Authoring.SvgPanelNode">
+            <summary>A Goo SvgPanel authored in the editor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BorderRadius">
+            <summary>Rounds all four corners.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BorderTopLeftRadius">
+            <summary>Rounds the top-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BorderTopRightRadius">
+            <summary>Rounds the top-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BorderBottomRightRadius">
+            <summary>Rounds the bottom-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BorderBottomLeftRadius">
+            <summary>Rounds the bottom-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.BorderRadiusAnim">
+            <summary>Movie-maker mirror of BorderRadius in pixels: keyframes tween, setting it writes BorderRadius.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Path">
+            <summary>Path to the SVG asset to render.</summary>
+        </member>
+        <member name="P:Goo.Authoring.SvgPanelNode.Color">
+            <summary>Optional CSS color override.</summary>
+        </member>
+        <member name="T:Goo.Authoring.TextEntryNode">
+            <summary>A Goo TextEntry authored in the editor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FlexDirection">
+            <summary>Main-axis direction for children: Row lays them left-to-right, Column top-to-bottom (engine default Column).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.JustifyContent">
+            <summary>Distributes children along the main axis (start, center, end, or the space-* spreads).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.AlignItems">
+            <summary>Aligns children on the cross axis, the axis perpendicular to FlexDirection.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Display">
+            <summary>Box generation: Flex lays out children, None removes the panel from layout entirely.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Padding">
+            <summary>Inner space on all four edges, between the border and the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.PaddingLeft">
+            <summary>Inner space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.PaddingTop">
+            <summary>Inner space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.PaddingRight">
+            <summary>Inner space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.PaddingBottom">
+            <summary>Inner space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Gap">
+            <summary>Space between flex children on both axes (shorthand for RowGap and ColumnGap).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.RowGap">
+            <summary>Vertical space between flex rows.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.ColumnGap">
+            <summary>Horizontal space between flex columns.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderRadius">
+            <summary>Rounds all four corners.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderTopLeftRadius">
+            <summary>Rounds the top-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderTopRightRadius">
+            <summary>Rounds the top-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderBottomRightRadius">
+            <summary>Rounds the bottom-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderBottomLeftRadius">
+            <summary>Rounds the bottom-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.AlignContent">
+            <summary>Aligns wrapped flex lines on the cross axis when there is spare room; only bites once content wraps.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.AlignSelf">
+            <summary>Overrides the parent's AlignItems for this one child.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.AspectRatio">
+            <summary>Locks the width-to-height ratio when only one dimension is constrained.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackdropFilterBlur">
+            <summary>Blur applied to whatever shows through behind the element (frosted-glass effect).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackdropFilterBrightness">
+            <summary>Brightness multiplier on the backdrop; 1 unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackdropFilterContrast">
+            <summary>Contrast multiplier on the backdrop; 1 unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackdropFilterHueRotate">
+            <summary>Hue rotation on the backdrop.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackdropFilterInvert">
+            <summary>Inversion amount on the backdrop.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackdropFilterSaturate">
+            <summary>Saturation multiplier on the backdrop; 1 unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackdropFilterSepia">
+            <summary>Sepia amount on the backdrop.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundAngle">
+            <summary>Angle in radians for a background gradient.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundBlendMode">
+            <summary>Blend mode between stacked background layers (CSS background-blend-mode keyword).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundImage">
+            <summary>Texture drawn as the background.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundPlaybackPaused">
+            <summary>Pauses playback of an animated or video background texture.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundPositionX">
+            <summary>Horizontal offset of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundPositionY">
+            <summary>Vertical offset of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundRepeat">
+            <summary>How the background image tiles (repeat, repeat-x/y, no-repeat, clamp).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundSizeX">
+            <summary>Rendered width of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundSizeY">
+            <summary>Rendered height of the background image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderBottomColor">
+            <summary>Color of the bottom border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderColor">
+            <summary>Color of all four borders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderLeftColor">
+            <summary>Color of the left border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderRightColor">
+            <summary>Color of the right border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderTopColor">
+            <summary>Color of the top border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageFill">
+            <summary>Whether the center slice of the border image fills the box (Unfilled or Filled).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageRepeat">
+            <summary>How the edge slices of the border image repeat (Stretch or Round).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageSource">
+            <summary>Texture sliced into a nine-patch to form the border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageTint">
+            <summary>Tint multiplied onto the border image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageWidthBottom">
+            <summary>Width of the border-image slice on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageWidthLeft">
+            <summary>Width of the border-image slice on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageWidthRight">
+            <summary>Width of the border-image slice on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderImageWidthTop">
+            <summary>Width of the border-image slice on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderBottomWidth">
+            <summary>Thickness of the bottom border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderLeftWidth">
+            <summary>Thickness of the left border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderRightWidth">
+            <summary>Thickness of the right border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderTopWidth">
+            <summary>Thickness of the top border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderWidth">
+            <summary>Thickness of all four borders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BoxShadow">
+            <summary>Outset shadow behind the panel box. Takes a single Shadow or a Shadow[] stack. Inset entries are ignored and report one warning per process.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.CaretColor">
+            <summary>Color of the text-input caret.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Cursor">
+            <summary>Mouse cursor shown on hover (CSS cursor keyword).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterBlur">
+            <summary>Gaussian blur applied to the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterBorderColor">
+            <summary>Color of the filter-pass border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterBorderWidth">
+            <summary>Width of the border drawn by the filter pass.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterBrightness">
+            <summary>Brightness multiplier; 1 leaves it unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterContrast">
+            <summary>Contrast multiplier; 1 leaves it unchanged.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterHueRotate">
+            <summary>Hue rotation angle.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterInvert">
+            <summary>Color inversion amount; 0 none, 1 full.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterSaturate">
+            <summary>Saturation multiplier; 1 unchanged, 0 grayscale.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterSepia">
+            <summary>Sepia amount; 0 none, 1 full.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FilterTint">
+            <summary>Tint color multiplied over the element; default white.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FlexWrap">
+            <summary>Whether children wrap onto multiple lines when they overflow the main axis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontColor">
+            <summary>Text color (s&amp;box uses font-color, not the CSS color property).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontFamily">
+            <summary>Font face name.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontSize">
+            <summary>Text size.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontSmooth">
+            <summary>Text antialiasing hint (Auto, Never, Always).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontStyle">
+            <summary>Italic or oblique styling.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontVariantNumeric">
+            <summary>Numeric glyph variant, e.g. TabularNums for fixed-width digits.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontWeight">
+            <summary>Boldness from 100 to 900 (400 normal, 700 bold).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.ImageRendering">
+            <summary>Texture sampling for scaled images (Point, Bilinear, Trilinear, Anisotropic).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.LetterSpacing">
+            <summary>Extra space between characters.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.LineHeight">
+            <summary>Height of each line of text (default 100%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskAngle">
+            <summary>Angle in radians for a gradient mask.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskImage">
+            <summary>Texture whose alpha or luminance masks the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskMode">
+            <summary>Whether the mask reads alpha or luminance (MatchSource, Alpha, Luminance).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskPositionX">
+            <summary>Horizontal offset of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskPositionY">
+            <summary>Vertical offset of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskRepeat">
+            <summary>How the mask image tiles (reuses the BackgroundRepeat values).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskScope">
+            <summary>Whether the mask applies to the element or to its filter pass (Default, Filter).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskSizeX">
+            <summary>Rendered width of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaskSizeY">
+            <summary>Rendered height of the mask image.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MixBlendMode">
+            <summary>Blend mode against what is drawn behind the panel (CSS mix-blend-mode keyword).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Order">
+            <summary>Reorders this child visually among its siblings (lower draws first) without moving it in the tree.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OutlineColor">
+            <summary>Color of the outline drawn just outside the border.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OutlineOffset">
+            <summary>Gap between the border edge and the outline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OutlineWidth">
+            <summary>Thickness of the outline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Overflow">
+            <summary>Clipping and scrolling for content past the box on both axes.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OverflowX">
+            <summary>Overflow handling on the horizontal axis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OverflowY">
+            <summary>Overflow handling on the vertical axis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.PerspectiveOriginX">
+            <summary>Horizontal vanishing point for 3D-transformed children (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.PerspectiveOriginY">
+            <summary>Vertical vanishing point for 3D-transformed children (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.SoundIn">
+            <summary>Sound played when the element appears.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.SoundOut">
+            <summary>Sound played when the element is removed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextAlign">
+            <summary>Horizontal alignment of text within its box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextBackgroundAngle">
+            <summary>Angle in radians for a gradient fill painted onto the text.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextDecorationColor">
+            <summary>Color of the underline, overline, or line-through.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextDecorationLine">
+            <summary>Which decoration lines to draw (underline, overline, line-through; flags).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextDecorationSkipInk">
+            <summary>Whether decoration lines skip over glyph descenders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextDecorationStyle">
+            <summary>Decoration line style (solid, double, dotted, dashed, wavy).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextDecorationThickness">
+            <summary>Thickness of the decoration line.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextFilter">
+            <summary>Texture filtering mode used when rendering text.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextLineThroughOffset">
+            <summary>Vertical offset of the line-through.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextOverflow">
+            <summary>How clipped text is signalled (None, Ellipsis, Clip).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextOverlineOffset">
+            <summary>Vertical offset of the overline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextShadow">
+            <summary>Drop shadow on the glyphs. Takes a single Shadow or a Shadow[] stack. Spread and Inset are ignored. Inherits to child panels. Assign Shadows.None to cancel an inherited shadow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextStrokeColor">
+            <summary>Color of the text outline stroke.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextStrokeWidth">
+            <summary>Width of the text outline stroke.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextTransform">
+            <summary>Case transform applied at render (Uppercase, Lowercase, Capitalize).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TextUnderlineOffset">
+            <summary>Vertical offset of the underline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TransformOriginX">
+            <summary>Horizontal pivot the transform rotates and scales around (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TransformOriginY">
+            <summary>Vertical pivot the transform rotates and scales around (default 50%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.WhiteSpace">
+            <summary>Whitespace and wrapping handling (Normal, NoWrap, Pre, PreLine).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.WordBreak">
+            <summary>Whether long words may break mid-word to avoid overflow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.WordSpacing">
+            <summary>Extra space between words.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.ZIndex">
+            <summary>Stacking order among overlapping siblings; higher draws on top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.HoverBackgroundColor">
+            <summary>BackgroundColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.ActiveBackgroundColor">
+            <summary>BackgroundColor while the element is pressed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FocusBackgroundColor">
+            <summary>BackgroundColor while the element has focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.HoverFontColor">
+            <summary>FontColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.ActiveFontColor">
+            <summary>FontColor while the element is pressed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FocusFontColor">
+            <summary>FontColor while the element has focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TransitionMs">
+            <summary>Duration in milliseconds for the Hover/Active/Focus color transitions.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.FontColorAnim">
+            <summary>Movie-maker mirror of FontColor: keyframes tween, setting it writes FontColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderColorAnim">
+            <summary>Movie-maker mirror of BorderColor: keyframes tween, setting it writes BorderColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.BorderRadiusAnim">
+            <summary>Movie-maker mirror of BorderRadius in pixels: keyframes tween, setting it writes BorderRadius.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Controlled">
+            <summary>Use a controlled value instead of one-time initial text.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Value">
+            <summary>Controlled text value. Updated before OnChange and OnSubmit run.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.DefaultText">
+            <summary>Initial uncontrolled text. This is the normal hierarchy-authored mode.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Placeholder">
+            <summary>Hint text shown while the field is empty.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaxLength">
+            <summary>Maximum number of characters, or null for no limit.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MinLength">
+            <summary>Minimum number of characters, or null for no minimum.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.CharacterRegex">
+            <summary>Regex that each entered character must match.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.StringRegex">
+            <summary>Regex that the complete text must match.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Disabled">
+            <summary>When true, the field is read-only.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Multiline">
+            <summary>When true, the field accepts multiple lines.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.Numeric">
+            <summary>When true, the field accepts numeric input.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MinValue">
+            <summary>Smallest accepted numeric value.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.MaxValue">
+            <summary>Largest accepted numeric value.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.NumberFormat">
+            <summary>Format string applied in numeric mode.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OnChange">
+            <summary>Runs whenever the text changes.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OnSubmit">
+            <summary>Runs when the text is submitted.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OnFocus">
+            <summary>Runs when the field gains focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OnBlur">
+            <summary>Runs when the field loses focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OnCancel">
+            <summary>Runs when editing is cancelled.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextEntryNode.OnValidationChanged">
+            <summary>Runs when the complete value changes between valid and invalid.</summary>
+        </member>
+        <member name="T:Goo.Authoring.TextNode">
+            <summary>A Goo Text authored in the editor. Unset properties inherit Goo defaults.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontColor">
+            <summary>Text color (s&amp;box uses font-color, not the CSS color property).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontFamily">
+            <summary>Font face name.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontSize">
+            <summary>Text size.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontSmooth">
+            <summary>Text antialiasing hint (Auto, Never, Always).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontStyle">
+            <summary>Italic or oblique styling.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontVariantNumeric">
+            <summary>Numeric glyph variant, e.g. TabularNums for fixed-width digits.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontWeight">
+            <summary>Boldness from 100 to 900 (400 normal, 700 bold).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.LetterSpacing">
+            <summary>Extra space between characters.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.LineHeight">
+            <summary>Height of each line of text (default 100%).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextAlign">
+            <summary>Horizontal alignment of text within its box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextBackgroundAngle">
+            <summary>Angle in radians for a gradient fill painted onto the text.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextDecorationColor">
+            <summary>Color of the underline, overline, or line-through.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextDecorationLine">
+            <summary>Which decoration lines to draw (underline, overline, line-through; flags).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextDecorationSkipInk">
+            <summary>Whether decoration lines skip over glyph descenders.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextDecorationStyle">
+            <summary>Decoration line style (solid, double, dotted, dashed, wavy).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextDecorationThickness">
+            <summary>Thickness of the decoration line.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextFilter">
+            <summary>Texture filtering mode used when rendering text.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextLineThroughOffset">
+            <summary>Vertical offset of the line-through.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextOverflow">
+            <summary>How clipped text is signalled (None, Ellipsis, Clip).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextOverlineOffset">
+            <summary>Vertical offset of the overline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextShadow">
+            <summary>Drop shadow on the glyphs. Takes a single Shadow or a Shadow[] stack. Spread and Inset are ignored. Inherits to child panels. Assign Shadows.None to cancel an inherited shadow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextStrokeColor">
+            <summary>Color of the text outline stroke.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextStrokeWidth">
+            <summary>Width of the text outline stroke.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextTransform">
+            <summary>Case transform applied at render (Uppercase, Lowercase, Capitalize).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TextUnderlineOffset">
+            <summary>Vertical offset of the underline.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.WhiteSpace">
+            <summary>Whitespace and wrapping handling (Normal, NoWrap, Pre, PreLine).</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.WordBreak">
+            <summary>Whether long words may break mid-word to avoid overflow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.WordSpacing">
+            <summary>Extra space between words.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.HoverBackgroundColor">
+            <summary>BackgroundColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.ActiveBackgroundColor">
+            <summary>BackgroundColor while the element is pressed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FocusBackgroundColor">
+            <summary>BackgroundColor while the element has focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.HoverFontColor">
+            <summary>FontColor while the pointer is over the element.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.ActiveFontColor">
+            <summary>FontColor while the element is pressed.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FocusFontColor">
+            <summary>FontColor while the element has focus.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.TransitionMs">
+            <summary>Duration in milliseconds for the Hover/Active/Focus color transitions.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.FontColorAnim">
+            <summary>Movie-maker mirror of FontColor: keyframes tween, setting it writes FontColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.Content">
+            <summary>Inline plain text, Markdown, or supported inline HTML.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.Path">
+            <summary>Mounted text-file path used instead of Content. Extensions do not select rich mode.</summary>
+        </member>
+        <member name="P:Goo.Authoring.TextNode.IsRich">
+            <summary>Parse the selected text source as Markdown and supported inline HTML.</summary>
+        </member>
+        <member name="T:Goo.Authoring.WebPanelNode">
+            <summary>A Goo WebPanel authored in the editor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Width">
+            <summary>Width of the box (Length: px, %, em, rem, ...).</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Height">
+            <summary>Height of the box.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Margin">
+            <summary>Outer space on all four edges, between this box and its neighbors.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MarginLeft">
+            <summary>Outer space on the left edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MarginTop">
+            <summary>Outer space on the top edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MarginRight">
+            <summary>Outer space on the right edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MarginBottom">
+            <summary>Outer space on the bottom edge.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BackgroundColor">
+            <summary>Fill color behind the content.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BorderRadius">
+            <summary>Rounds all four corners.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BorderTopLeftRadius">
+            <summary>Rounds the top-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BorderTopRightRadius">
+            <summary>Rounds the top-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BorderBottomRightRadius">
+            <summary>Rounds the bottom-right corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BorderBottomLeftRadius">
+            <summary>Rounds the bottom-left corner.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BackgroundTint">
+            <summary>Multiplies the background image color; default white (no tint).</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Bottom">
+            <summary>Bottom-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Left">
+            <summary>Left-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Right">
+            <summary>Right-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Top">
+            <summary>Top-edge offset; applied only when Position is Relative or Absolute.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.FlexBasis">
+            <summary>Initial main-axis size of a flex child before grow and shrink are applied.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.FlexGrow">
+            <summary>Share of leftover main-axis space this child claims; 0 (default) means do not grow.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.FlexShrink">
+            <summary>How readily this child shrinks when space is tight; 0 pins it to its basis.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MaxHeight">
+            <summary>Upper bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MaxWidth">
+            <summary>Upper bound on width; the box never grows past it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MinHeight">
+            <summary>Lower bound on height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.MinWidth">
+            <summary>Lower bound on width; the box never shrinks below it.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Opacity">
+            <summary>Overall opacity from 0 (transparent) to 1 (opaque).</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.PointerEvents">
+            <summary>Whether the element receives pointer input (All or None).</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Position">
+            <summary>Positioning scheme: Relative offsets from the normal slot, Absolute lifts the box out of flow against the nearest positioned ancestor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.OpacityAnim">
+            <summary>Movie-maker mirror of Opacity: keyframes tween, setting it writes Opacity.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BackgroundColorAnim">
+            <summary>Movie-maker mirror of BackgroundColor: keyframes tween, setting it writes BackgroundColor.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.LeftAnim">
+            <summary>Movie-maker mirror of Left in pixels: keyframes tween, setting it writes Left.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.TopAnim">
+            <summary>Movie-maker mirror of Top in pixels: keyframes tween, setting it writes Top.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.WidthAnim">
+            <summary>Movie-maker mirror of Width in pixels: keyframes tween, setting it writes Width.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.HeightAnim">
+            <summary>Movie-maker mirror of Height in pixels: keyframes tween, setting it writes Height.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.BorderRadiusAnim">
+            <summary>Movie-maker mirror of BorderRadius in pixels: keyframes tween, setting it writes BorderRadius.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Url">
+            <summary>URL to load in the web view.</summary>
+        </member>
+        <member name="P:Goo.Authoring.WebPanelNode.Paused">
+            <summary>When true, throttles scripts, repaints, and media.</summary>
+        </member>
+        <member name="M:Goo.Controls.Button(System.String,System.Action,System.Nullable{Color},System.String)">
+            <summary>Goo primitive button: unstyled click target wrapping a text label. Pass a null onClick for a display-only button (no handler is wired). Distinct from Components.Button in the app project, which applies brand tokens and visual chrome. Use this to build custom-styled buttons without inheriting app-level styling. Override any field it sets with a <c>with</c> expression (last-declared wins).</summary>
+        </member>
+        <member name="T:Goo.Arc">
+            <summary>A stroked arc line. Sweeps from <see cref="P:Goo.Arc.StartAngle"/> to <see cref="P:Goo.Arc.EndAngle"/> at a fixed <see cref="P:Goo.Arc.Radius"/>.</summary>
+        </member>
+        <member name="P:Goo.Arc.StartAngle">
+            <summary>Angle where the arc begins, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Arc.EndAngle">
+            <summary>Angle where the arc ends, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Arc.Radius">
+            <summary>Radius of the arc, as a fraction (0 to 1) of the frame box.</summary>
+        </member>
+        <member name="P:Goo.Arc.StrokeWidth">
+            <summary>Thickness of the arc stroke.</summary>
+        </member>
+        <member name="P:Goo.Arc.RectHitTest">
+            <summary>When true, mouse events hit the full bounding box instead of the drawn outline. For editor-style selection and dragging; visuals are unchanged.</summary>
+        </member>
+        <member name="P:Goo.Arc.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.Arc.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.Text">
+            <summary>Renders plain text, Markdown, or engine-supported inline HTML in one label. Style it with the text and common style properties.</summary>
+        </member>
+        <member name="P:Goo.Text.Content">
+            <summary>The inline text to display. Leave empty when using Path.</summary>
+        </member>
+        <member name="P:Goo.Text.Path">
+            <summary>A mounted text-file path used instead of Content. The file extension has no special meaning.</summary>
+        </member>
+        <member name="P:Goo.Text.IsRich">
+            <summary>Construction-time mode that parses Markdown and preserves inline HTML before rendering through the engine's rich-text label. Keep stable for this blob identity.</summary>
+        </member>
+        <member name="P:Goo.Text.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.Text.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.Text.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.Text.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.Text.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.Text.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.Text.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.Text.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.Text.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="P:Goo.Text.Style">
+            <summary>Applies a font preset (FontFamily, FontSize, FontWeight, FontColor) in one property. Last-declared wins: a per-field override placed after Style overrides the preset; a field set before Style is clobbered by it.</summary>
+        </member>
+        <member name="T:Goo.Container">
+            <summary>
+            The general-purpose layout blob. Holds children and exposes the full style surface:
+            layout, flex, spacing, border, background, filters, transforms, and state variants.
+            </summary>
+        </member>
+        <member name="P:Goo.Container.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.Container.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.Container.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.Container.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.Container.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.Container.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.Container.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.Container.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.Container.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="P:Goo.Container.OnMouseWheel">
+            <summary>Called when the mouse wheel scrolls over it. The argument is the wheel delta (y positive = scroll down). Setting this consumes the wheel so it does not bubble to an ancestor scroll container.</summary>
+        </member>
+        <member name="P:Goo.Container.OnDragStart">
+            <summary>Called when a drag begins on this blob.</summary>
+        </member>
+        <member name="P:Goo.Container.OnDrag">
+            <summary>Called on each frame of an in-flight drag.</summary>
+        </member>
+        <member name="P:Goo.Container.OnDragEnd">
+            <summary>Called when a drag started on this blob ends.</summary>
+        </member>
+        <member name="P:Goo.Container.OnDragEnter">
+            <summary>Called when a dragged item enters this blob as a drop target.</summary>
+        </member>
+        <member name="P:Goo.Container.OnDragLeave">
+            <summary>Called when a dragged item leaves this blob as a drop target.</summary>
+        </member>
+        <member name="P:Goo.Container.OnDrop">
+            <summary>Called when a dragged item is dropped on this blob.</summary>
+        </member>
+        <member name="P:Goo.Container.Effect">
+            <summary>A custom shader effect to render this blob with (FrostedGlass, Spotlight, Particles, or a custom ShaderEffect). Drawn via IPanelDraw; coexists with Draw.</summary>
+        </member>
+        <member name="P:Goo.Container.Draw">
+            <summary>A custom immediate-mode draw callback. Receives a <see cref="T:Goo.Canvas"/> for issuing batched primitive draws (rects, text, shadows, ...).</summary>
+        </member>
+        <member name="P:Goo.Container.LayoutTransition">
+            <summary>Declared transition for layout position moves. When this blob's flex slot changes (pop, insert, reorder, reflow), it glides to the new position instead of snapping. Declare per child; survivors must be keyed.</summary>
+        </member>
+        <member name="P:Goo.Container.Tag">
+            <summary>Global effect-addressing tag. When set and no inline <see cref="P:Goo.Container.Effect"/> is given, the effect resolves from the host's effect manifest. May repeat across the tree; distinct from <see cref="P:Goo.Container.Key"/> (sibling-local reconciliation identity).</summary>
+        </member>
+        <member name="P:Goo.Container.SwallowClick">
+            <summary>When true, a left click stops propagating before reaching a parent handler. Use on the content panel inside a scrim or popover so clicks inside do not dismiss the overlay.</summary>
+        </member>
+        <member name="P:Goo.Container.Children">
+            <summary>The child blobs added to this container during Build().</summary>
+        </member>
+        <member name="M:Goo.Container.Add``1(``0@)">
+            <summary>Adds a child blob. Called by collection-initializer syntax inside Build().</summary>
+        </member>
+        <member name="P:Goo.Container.PaddingX">
+            <summary>Sets PaddingLeft and PaddingRight to the same value. The style list is append-only; a PaddingLeft declared after this shorthand overrides it for that edge.</summary>
+        </member>
+        <member name="P:Goo.Container.PaddingY">
+            <summary>Sets PaddingTop and PaddingBottom to the same value. The style list is append-only; a PaddingTop or PaddingBottom declared after this shorthand overrides it for that edge.</summary>
+        </member>
+        <member name="P:Goo.Container.MarginX">
+            <summary>Sets MarginLeft and MarginRight to the same value. The style list is append-only; a MarginLeft declared after this shorthand overrides it for that edge.</summary>
+        </member>
+        <member name="P:Goo.Container.MarginY">
+            <summary>Sets MarginTop and MarginBottom to the same value. The style list is append-only; a MarginTop or MarginBottom declared after this shorthand overrides it for that edge.</summary>
+        </member>
+        <member name="P:Goo.Container.BorderTopRadius">
+            <summary>Sets BorderTopLeftRadius and BorderTopRightRadius to the same value. The style list is append-only; a per-corner property declared after this shorthand overrides it for that corner.</summary>
+        </member>
+        <member name="P:Goo.Container.BorderBottomRadius">
+            <summary>Sets BorderBottomLeftRadius and BorderBottomRightRadius to the same value. The style list is append-only; a per-corner property declared after this shorthand overrides it for that corner.</summary>
+        </member>
+        <member name="P:Goo.Container.BorderLeftRadius">
+            <summary>Sets BorderTopLeftRadius and BorderBottomLeftRadius to the same value. The style list is append-only; a per-corner property declared after this shorthand overrides it for that corner.</summary>
+        </member>
+        <member name="P:Goo.Container.BorderRightRadius">
+            <summary>Sets BorderTopRightRadius and BorderBottomRightRadius to the same value. The style list is append-only; a per-corner property declared after this shorthand overrides it for that corner.</summary>
+        </member>
+        <member name="P:Goo.Container.Disabled">
+            <summary>Forces PointerEvents to None and dims the resolved opacity while true. Applied after all other declared fields, so per-property PointerEvents and Opacity declarations cannot override it.</summary>
+        </member>
+        <member name="T:Goo.Image">
+            <summary>
+            Displays an image from a live <see cref="T:Sandbox.Texture"/> or an asset path. Set one source, never both.
+            Wrap in a <see cref="T:Goo.Container"/> for layout, background, border, or other styles it does not expose.
+            </summary>
+        </member>
+        <member name="P:Goo.Image.Texture">
+            <summary>A live texture to display. Set this or <see cref="P:Goo.Image.Path"/>, never both. Setting both renders nothing and warns.</summary>
+        </member>
+        <member name="P:Goo.Image.Path">
+            <summary>Path to an image asset, for example "ui/logo.png". Set this or <see cref="P:Goo.Image.Texture"/>, never both. Setting both renders nothing and warns.</summary>
+        </member>
+        <member name="P:Goo.Image.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.Image.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.Image.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.Image.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.Image.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.Image.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.Image.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.Image.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.Image.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.ScenePanel">
+            <summary>Renders a 3D <see cref="T:Sandbox.Scene"/> into the UI. Provide a live scene or a scene path.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.Scene">
+            <summary>A live scene to render. Set this or <see cref="P:Goo.ScenePanel.ScenePath"/>.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.ScenePath">
+            <summary>Path to a scene asset to render. Set this or <see cref="P:Goo.ScenePanel.Scene"/>.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.RenderOnce">
+            <summary>When true, renders the scene a single frame instead of every frame. Use for static previews.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.ScenePanel.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.SvgPanel">
+            <summary>Renders an SVG asset, with an optional color override.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.Path">
+            <summary>Path to the SVG asset to render, for example "ui/icon.svg".</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.Color">
+            <summary>Optional color to tint the SVG, as a CSS color string. Leave null to use the SVG's own colors.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.SvgPanel.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.Sector">
+            <summary>A pie wedge or ring segment. Spans from <see cref="P:Goo.Sector.StartAngle"/> to <see cref="P:Goo.Sector.EndAngle"/>, between <see cref="P:Goo.Sector.InnerRadius"/> and <see cref="P:Goo.Sector.OuterRadius"/>.</summary>
+        </member>
+        <member name="P:Goo.Sector.StartAngle">
+            <summary>Angle where the wedge begins, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Sector.EndAngle">
+            <summary>Angle where the wedge ends, in degrees.</summary>
+        </member>
+        <member name="P:Goo.Sector.InnerRadius">
+            <summary>Inner edge of the ring, as a fraction (0 to 1) of the frame box. 0 gives a solid wedge.</summary>
+        </member>
+        <member name="P:Goo.Sector.OuterRadius">
+            <summary>Outer edge of the ring, as a fraction (0 to 1) of the frame box.</summary>
+        </member>
+        <member name="P:Goo.Sector.CornerRadius">
+            <summary>Corner rounding, as a fraction (0 to 1) of the outer radius. 0 gives sharp corners.</summary>
+        </member>
+        <member name="P:Goo.Sector.RectHitTest">
+            <summary>When true, mouse events hit the full bounding box instead of the drawn outline. For editor-style selection and dragging; visuals are unchanged.</summary>
+        </member>
+        <member name="P:Goo.Sector.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.Sector.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.Polygon">
+            <summary>A filled shape defined by arbitrary vertices in unit coordinates.</summary>
+        </member>
+        <member name="P:Goo.Polygon.Points">
+            <summary>The vertices, in unit coordinates from 0 to 1 (origin top-left, x right, y down). Treated as immutable: do not mutate the array after assigning it.</summary>
+        </member>
+        <member name="P:Goo.Polygon.RectHitTest">
+            <summary>When true, mouse events hit the full bounding box instead of the drawn outline. For editor-style selection and dragging; visuals are unchanged.</summary>
+        </member>
+        <member name="P:Goo.Polygon.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.Polygon.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.WebPanel">
+            <summary>Embeds a web view via the engine's Chromium webview. <see cref="P:Goo.WebPanel.Url"/> is its only content surface.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.Url">
+            <summary>The URL to load in the web view.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.Paused">
+            <summary>When true, throttles the view's script and repaint and pauses its media. Use for offscreen or hidden views.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.WebPanel.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.TextEntry">
+            <summary>A text input wrapping the engine's TextEntry. Set <see cref="P:Goo.TextEntry.Value"/> for a controlled field driven by your state, or <see cref="P:Goo.TextEntry.DefaultText"/> for an uncontrolled one; never both.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.Value">
+            <summary>The field text in controlled mode, re-emitted each render to track your state. Set this or <see cref="P:Goo.TextEntry.DefaultText"/>, never both.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.DefaultText">
+            <summary>The starting text in uncontrolled mode, set once when the field is created. Set this or <see cref="P:Goo.TextEntry.Value"/>, never both.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.Placeholder">
+            <summary>Hint text shown when the field is empty.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.MaxLength">
+            <summary>Maximum number of characters allowed. Null for no limit.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.Disabled">
+            <summary>When true, the field is read-only and does not accept input.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.Multiline">
+            <summary>When true, the field accepts and wraps multiple lines.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.Numeric">
+            <summary>When true, the field accepts numeric input only.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.MinLength">
+            <summary>Minimum number of characters; shorter input is flagged invalid. Null for no minimum.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.CharacterRegex">
+            <summary>Regex each typed character must match; non-matching keystrokes are blocked. Null to allow any character.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.StringRegex">
+            <summary>Regex the whole text must match to be valid. Null for no whole-text check.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.MinValue">
+            <summary>Smallest accepted value when <see cref="P:Goo.TextEntry.Numeric"/> is true.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.MaxValue">
+            <summary>Largest accepted value when <see cref="P:Goo.TextEntry.Numeric"/> is true.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.NumberFormat">
+            <summary>Format string applied to the value when <see cref="P:Goo.TextEntry.Numeric"/> is true.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnChange">
+            <summary>Called on each edit, with the new text.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnSubmit">
+            <summary>Called when the user submits the field, for example by pressing Enter, with the text.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnFocus">
+            <summary>Called when the field gains focus.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnBlur">
+            <summary>Called when the field loses focus, with its final text.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnCancel">
+            <summary>Called when the user cancels editing, for example by pressing Escape.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.CanEnterChar">
+            <summary>Predicate gating each typed character; return false to block it. Composed with <see cref="P:Goo.TextEntry.CharacterRegex"/> and the engine's numeric/multiline rules.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.Validate">
+            <summary>Predicate validating the whole text; return false to mark the field invalid. Can only tighten validity, never loosen engine rules.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnValidationChanged">
+            <summary>Called when the field's validity flips, with the current error state (true = invalid).</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnClick">
+            <summary>Called when clicked with the left mouse button.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnRightClick">
+            <summary>Called when clicked with the right mouse button.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnMiddleClick">
+            <summary>Called when clicked with the middle mouse button.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnMouseEnter">
+            <summary>Called when the pointer enters.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnMouseLeave">
+            <summary>Called when the pointer leaves.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnMouseDown">
+            <summary>Called when a mouse button is pressed.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnMouseUp">
+            <summary>Called when a mouse button is released.</summary>
+        </member>
+        <member name="P:Goo.TextEntry.OnMouseMove">
+            <summary>Called when the pointer moves over it.</summary>
+        </member>
+        <member name="T:Goo.Embed">
+            <summary>
+            Escape hatch: mounts an arbitrary engine <see cref="T:Sandbox.UI.Panel"/> (a Razor panel, a library
+            control, any imperative panel) inside a Goo tree. <see cref="P:Goo.Embed.Create"/> runs once at mount;
+            <see cref="P:Goo.Embed.Update"/> runs right after creation and again on every owner rebuild - push
+            current data into the panel there. The panel owns its own internal state; Goo only
+            positions and styles the slot and never diffs inside it. Hosted panels default to
+            PointerEvents.All so they receive input under Goo's pointer-transparent containers;
+            declare PointerEvents on the blob (or in the panel's own constructor) to override.
+            </summary>
+        </member>
+        <member name="P:Goo.Embed.Create">
+            <summary>Builds the hosted panel. Runs exactly once, at mount. Swapping this delegate on a later rebuild does NOT recreate the panel; change <see cref="P:Goo.Embed.Key"/> to force a new instance.</summary>
+        </member>
+        <member name="P:Goo.Embed.Update">
+            <summary>Data-push hook: runs after creation and on every rebuild of the owning GooPanel, unconditionally (delegates cannot be diffed). Keep it a cheap property push and let the panel self-diff.</summary>
+        </member>
+        <member name="P:Goo.Embed.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="T:Goo.RowBuilder">
+            <summary>Builds the row Blob for one item of a <see cref="T:Goo.Virtual"/> viewport. Named delegate because IBlob's static-abstract Kind bars it from generic type arguments (CS8920), same as BlobBuilder.</summary>
+        </member>
+        <member name="T:Goo.RowBuilder`1">
+            <summary>Typed variant of <see cref="T:Goo.RowBuilder"/> for the Virtual.List/Grid factories.</summary>
+        </member>
+        <member name="T:Goo.Virtual">
+            <summary>
+            A virtualized scrollable viewport over the engine's BaseVirtualPanel: only visible rows exist
+            as panels. Rows are built as Goo blobs via <see cref="P:Goo.Virtual.Row"/>; stateful nodes inside a row
+            (e.g. TextEntry editors) should carry a per-item Key so a recycled panel never inherits
+            another item's private engine state. Give it a bounded size on the scroll axis.
+            </summary>
+        </member>
+        <member name="P:Goo.Virtual.Items">
+            <summary>The backing items. Pass the same list reference across rebuilds; a new reference or a count change triggers a refresh (content changes in a new list are diffed per row engine-side).</summary>
+        </member>
+        <member name="P:Goo.Virtual.Row">
+            <summary>Builds the Blob for one item. Runs when the row scrolls into view or its item changes.</summary>
+        </member>
+        <member name="P:Goo.Virtual.ItemHeight">
+            <summary>Fixed row height for list mode. Ignored when <see cref="P:Goo.Virtual.ItemSize"/> or <see cref="P:Goo.Virtual.Panel"/> is set.</summary>
+        </member>
+        <member name="P:Goo.Virtual.ItemSize">
+            <summary>Fixed cell size for grid mode (y &gt; 0 selects the fiber-backed grid over the list panel).</summary>
+        </member>
+        <member name="P:Goo.Virtual.Panel">
+            <summary>Escape hatch: supply any BaseVirtualPanel subclass for a custom layout strategy. Create-only.</summary>
+        </member>
+        <member name="P:Goo.Virtual.OnLastRow">
+            <summary>Called when the last item materializes - the infinite-scroll load-more hook.</summary>
+        </member>
+        <member name="P:Goo.Virtual.Key">
+            <summary>Stable identity across rebuilds. Set it when this blob can change position among its siblings, so the reconciler matches it to the same panel.</summary>
+        </member>
+        <member name="M:Goo.Virtual.List``1(System.Collections.Generic.IReadOnlyList{``0},System.Single,Goo.RowBuilder{``0},System.String)">
+            <summary>A virtualized vertical list: fixed-height rows, one row blob per visible item.</summary>
+        </member>
+        <member name="M:Goo.Virtual.Grid``1(System.Collections.Generic.IReadOnlyList{``0},Vector2,Goo.RowBuilder{``0},System.String)">
+            <summary>A virtualized grid: fixed-size cells flowing into as many columns as fit.</summary>
+        </member>
+        <member name="M:Goo.Virtual.Custom``1(System.Collections.Generic.IReadOnlyList{``0},System.Func{Sandbox.UI.BaseVirtualPanel},Goo.RowBuilder{``0},System.String)">
+            <summary>A virtualized viewport with a custom BaseVirtualPanel layout strategy.</summary>
+        </member>
+        <member name="T:Goo.DrawCallback">
+            <summary>
+            Immediate-mode custom-draw callback for a <see cref="T:Goo.Container"/>. Invoked once per paint with a
+            <see cref="T:Goo.Canvas"/> scoped to the panel's box.
+            </summary>
+        </member>
+        <member name="T:Goo.Canvas">
+            <summary>
+            Drawing surface handed to a <see cref="P:Goo.Container.Draw"/> callback. Wraps the engine's batched
+            <c>Panel.Draw.*</c> primitives. Only valid for the duration of the callback: it is a ref struct and
+            cannot be stored, boxed, or captured.
+            </summary>
+        </member>
+        <member name="P:Goo.Canvas.Width">
+            <summary>Panel width in pixels.</summary>
+        </member>
+        <member name="P:Goo.Canvas.Height">
+            <summary>Panel height in pixels.</summary>
+        </member>
+        <member name="P:Goo.Canvas.Size">
+            <summary>Panel size in pixels.</summary>
+        </member>
+        <member name="P:Goo.Canvas.LocalRect">
+            <summary>Panel-local rect, origin at top-left.</summary>
+        </member>
+        <member name="M:Goo.Canvas.Rect(Sandbox.Rect,Color,System.Single)">
+            <summary>Filled (optionally uniformly-rounded) rectangle.</summary>
+        </member>
+        <member name="M:Goo.Canvas.Rect(Sandbox.Rect,Color,Vector4)">
+            <summary>Filled rectangle with per-corner radius (bottom-right, top-right, bottom-left, top-left).</summary>
+        </member>
+        <member name="M:Goo.Canvas.Circle(Vector2,System.Single,Color)">
+            <summary>Filled circle.</summary>
+        </member>
+        <member name="M:Goo.Canvas.Texture(Sandbox.Texture,Sandbox.Rect,System.Nullable{Color})">
+            <summary>Texture drawn into a rect.</summary>
+        </member>
+        <member name="M:Goo.Canvas.Text(System.String,Sandbox.Rect,System.Single,Color,Sandbox.TextFlag)">
+            <summary>Text laid out within a rect.</summary>
+        </member>
+        <member name="M:Goo.Canvas.Shadow(Sandbox.Rect,Color,System.Single,System.Single,Vector2,System.Single,System.Boolean)">
+            <summary>Box shadow (drop or inset). offset stays a delta, not a position.</summary>
+        </member>
+        <member name="M:Goo.Canvas.Outline(Sandbox.Rect,Color,System.Single,System.Single,System.Single)">
+            <summary>Outline (stroke) around a rect.</summary>
+        </member>
+        <member name="M:Goo.Cell.Track``1(``0)">
+            <summary>Creates a State bound to this cell: writes mark the owning root dirty automatically.</summary>
+        </member>
+        <member name="M:Goo.ChildrenExtensions.Add``1(Goo.Children,System.Nullable{``0}@)">
+            <summary>Nullable overload for inline conditionals in an initializer: Children = { header, cond ? badge : null }. Null is skipped.</summary>
+        </member>
+        <member name="M:Goo.ChildrenExtensions.Add``2(Goo.Children,Goo.EachOf{``0,``1}@)">
+            <summary>Loop element for initializers: adds one child per item, auto-keyed like AddRange. Children = { Header(), Each.Of(items, (i, x) => Card(x)) }.</summary>
+        </member>
+        <member name="T:Goo.Each">
+            <summary>Factory for inline loops inside a Children initializer. The index-keyed form suits static/append-only lists; pass keyOf for lists that reorder or delete from the middle.</summary>
+        </member>
+        <member name="T:Goo.EachOf`2">
+            <summary>The value Each.Of produces; consumed by the Children.Add overload above. Users never name it.</summary>
+        </member>
+        <member name="T:Goo.IBlob">
+            <summary>Compile-time constraint for blob struct types. Never use as storage, return, or parameter type (boxes the struct, destroys per-Rebuild allocation profile); only valid in where T : struct, IBlob.</summary>
+        </member>
+        <member name="T:Goo.BlobBuilder">
+            <summary>Returns the single root Blob for a GooView build. A named delegate rather than
+            Func&lt;IBlob&gt; because IBlob has a static-abstract member (Kind) and C# bars such interfaces
+            as generic type arguments (CS8920). Consequence for Razor markup: a bare method group cannot
+            bind (its natural type is the illegal Func&lt;IBlob&gt;), so write
+            <c>Build=@(new BlobBuilder(MyBuild))</c>. See docs/site/docs/gotchas.md.</summary>
+        </member>
+        <member name="T:Goo.LayoutTransition">
+            <summary>Declared transition for layout position moves: when this blob's layout slot changes, it glides there instead of snapping. Null easing resolves to EaseOut.</summary>
+        </member>
+        <member name="M:Goo.LayoutTransition.#ctor(System.Single,Sandbox.Utility.Easing.Function)">
+            <summary>Declared transition for layout position moves: when this blob's layout slot changes, it glides there instead of snapping. Null easing resolves to EaseOut.</summary>
+        </member>
+        <member name="M:Goo.MousePanelEventExtensions.PositionIn(Sandbox.UI.MousePanelEvent,Sandbox.UI.Panel)">
+            <summary>Translates cursor position from e.Target's frame into ancestor's frame.</summary>
+        </member>
+        <member name="T:Goo.PanelTransform">
+            <summary>Typed wrapper around Sandbox.UI.PanelTransform adding fluent chaining and structural equality (the engine struct's Add* methods do not chain and its equality is reference-based, which would emit redundant per-Build ops).</summary>
+        </member>
+        <member name="T:Goo.PanelTransformExtensions">
+            <summary>Instance fluent chain methods for <see cref="T:Goo.PanelTransform"/>, each returning a new value with the entry appended (extensions because C# forbids same-name static and instance methods on one type).</summary>
+        </member>
+        <member name="T:Goo.Shadows">
+            <summary>An ordered stack of shadows for BoxShadow and TextShadow. Converts implicitly from a single Shadow or a Shadow[]. Assign <see cref="F:Goo.Shadows.None"/> to declare "no shadows", which cancels an inherited TextShadow.</summary>
+        </member>
+        <member name="F:Goo.Shadows.None">
+            <summary>Declares "no shadows", cancelling a TextShadow inherited from a parent.</summary>
+        </member>
+        <member name="T:Goo.State`1">
+            <summary>Auto-dirtying state for mutation outside event handlers (timers, network, polls): writing a new Value marks the owner dirty, so no manual Rebuild() call. Create via Track() on GooPanel or Cell.</summary>
+        </member>
+        <member name="P:Goo.State`1.Value">
+            <summary>Current value. Setting a different value invalidates the owner; setting an equal value is a no-op.</summary>
+        </member>
+        <member name="T:Goo.TextStyle">
+            <summary>A bundle of font properties applied together via Text.Style; null fields are no-ops.</summary>
+        </member>
+        <member name="T:Goo.Typography">
+            <summary>Length helpers for typography properties whose engine unit semantics are non-obvious.</summary>
+        </member>
+        <member name="M:Goo.Typography.LineHeightMultiplier(System.Single)">
+            <summary>CSS-style unitless LineHeight multiplier (e.g. 1.5 = 1.5x of FontSize).</summary>
+        </member>
+        <member name="M:Goo.Typography.LetterSpacingEm(System.Single)">
+            <summary>CSS-style em-relative LetterSpacing (e.g. -0.02 for tight headings).</summary>
+        </member>
+        <member name="T:Goo.EffectMap">
+            <summary>A host-level <c>{ tag -> ShaderEffect }</c> manifest. A Blob with a matching
+            <see cref="P:Goo.Container.Tag"/> resolves its effect from here unless it sets <c>Effect</c> inline.</summary>
+        </member>
+        <member name="F:Goo.EffectMap.Empty">
+            <summary>The shared empty manifest. Hosts that target no tags return this.</summary>
+        </member>
+        <member name="M:Goo.GooPanel`1.Track``1(``0)">
+            <summary>Creates a State bound to this panel: writes trigger a rebuild automatically.</summary>
+        </member>
+        <member name="M:Goo.GooPanel`1.Tick(System.Single)">
+            <summary>Override to drive per-frame state (animations, polled input).
+            Return true while a rebuild is still needed next frame (e.g. an animation is in motion).
+            Runs every frame, before the build gate. On the frame motion stops (this returns false
+            after the previous frame returned true) one extra rebuild fires so the final settled value paints.</summary>
+        </member>
+        <member name="P:Goo.GooPanel`1.AutoRebuildOnEvents">
+            <summary>When true (default), a rebuild is requested automatically after any event
+            handler on this panel's tree fires. Set false to restore fully manual Rebuild() control.</summary>
+        </member>
+        <member name="P:Goo.GooPanel`1.Effects">
+            <summary>Override to map tags to effects. A Blob with a matching <see cref="P:Goo.Container.Tag"/> and no
+            inline <c>Effect</c> resolves its effect from here. Default targets nothing.</summary>
+        </member>
+        <member name="T:Goo.GooView">
+            <summary>
+            A Razor markup element that hands its children to Goo. Drop <c>&lt;GooView Build=@MyBuild/&gt;</c>
+            into any .razor panel; every frame it runs the Goo reconciler pump (<see cref="T:Goo.Reconciler"/> to
+            <see cref="T:Goo.Applier"/>) against itself. Razor owns everything outside the tag; Goo owns everything
+            inside. GooView imposes no intrinsic sizing: size it like any panel (a zero-content-size view can
+            collapse, same as a bare &lt;div&gt;).
+            </summary>
+        </member>
+        <member name="P:Goo.GooView.Build">
+            <summary>Returns the single Goo root. Invoked every frame; the build closure may freely read
+            external (Razor-owned) state because the view re-diffs each frame, so changes to that state appear
+            with no explicit dirty signal. A dirty-on-reassign scheme cannot work here: the engine de-dupes a
+            re-assigned Build delegate by hashcode, so re-running the reconciler each frame is what reflects
+            outside state.</summary>
+        </member>
+        <member name="P:Goo.GooView.OnTick">
+            <summary>Optional per-frame driver for animation or polled state the build closure reads. Runs every
+            frame before the diff. Its return value is ignored (the view always re-diffs).</summary>
+        </member>
+        <member name="P:Goo.GooView.Effects">
+            <summary>Optional tag-to-effect manifest. A Blob with a matching <see cref="P:Goo.Container.Tag"/> and no
+            inline <c>Effect</c> resolves its effect from here.</summary>
+        </member>
+        <member name="T:Goo.GooVirtualGrid">
+            <summary>
+            Fiber-backed virtual grid: the Tier-2 recycle machinery of <see cref="T:Goo.GooVirtualPanel"/> with
+            the engine VirtualGrid's column-flow math (cells stretch to a flush right edge, preserving
+            aspect). The grid-mode default behind <c>Virtual.Grid</c>.
+            </summary>
+        </member>
+        <member name="T:Goo.GooVirtualList">
+            <summary>
+            Fiber-backed virtual list: the Tier-2 recycle machinery of <see cref="T:Goo.GooVirtualPanel"/> with
+            fixed-height vertical rows. The list-mode default behind <c>Virtual.List</c>; opt in explicitly
+            via <c>Virtual.Custom(items, () => new GooVirtualList { ItemHeight = h }, row)</c>.
+            </summary>
+        </member>
+        <member name="T:Goo.GooVirtualPanel">
+            <summary>
+            Shared Tier-2 recycle machinery for fiber-backed virtual panels: each visible row keeps a
+            persistent Goo fiber and rediffs on item change instead of BaseVirtualPanel's delete+recreate,
+            and scrolled-out row panels pool for recycling. Subclasses supply only the layout math
+            (BaseVirtualPanel's abstract hooks). Stateful nodes inside rows (e.g. TextEntry editors)
+            should carry a per-item Key so a recycled panel never inherits another item's private
+            engine state.
+            </summary>
+        </member>
+        <member name="T:Goo.GrabMode">
+            <summary>How a <see cref="T:Goo.ShaderEffect"/> grabs the framebuffer behind its panel before drawing.</summary>
+        </member>
+        <member name="F:Goo.GrabMode.None">
+            <summary>No grab. For procedural or self-contained shaders that do not read the backdrop.</summary>
+        </member>
+        <member name="F:Goo.GrabMode.Sharp">
+            <summary>Grab the raw framebuffer (FrameBufferCopyTexture). For shaders that sample the backdrop sharp.</summary>
+        </member>
+        <member name="F:Goo.GrabMode.Blurred">
+            <summary>Grab a gaussian-blurred framebuffer mip chain. For backdrop-blur effects (frosted glass, aero).</summary>
+        </member>
+        <member name="M:Goo.Hud.Overlay">
+            <summary>Full-screen HUD root: Column layout, pointer-events off. For shader overlays use Hud.Fill().</summary>
+        </member>
+        <member name="M:Goo.Hud.Fill">
+            <summary>Absolute, 100% x 100%, pointer-through fill layer. Resolves inside the nearest positioned ancestor; add Position=Relative to that ancestor if needed. Override any field it sets, including PointerEvents, with a <c>with</c> expression (last-declared wins).</summary>
+        </member>
+        <member name="M:Goo.Hud.Scrim(System.Nullable{Color})">
+            <summary>Absolute, all four edges pinned to zero. Assign PointerEvents explicitly - scrims typically toggle between None and All on open/close. The factory does not set PointerEvents.</summary>
+        </member>
+        <member name="M:Goo.Hud.Wallpaper(Sandbox.Texture,System.String)">
+            <summary>Full-bleed absolute image layer. Pass texture=null to load by path; path is ignored when texture is non-null. Override any field it sets with a <c>with</c> expression (last-declared wins). Must be called from within Build().</summary>
+        </member>
+        <member name="M:Goo.Hud.Anchored(Goo.Layout.Anchor,Goo.Container,System.Nullable{Sandbox.UI.Length},System.String)">
+            <summary>Full-bleed pointer-through cell that pins content to an anchor corner. Wrapper is always FlexDirection.Column; ResolveAnchor's ColumnReverse belongs on an inner stacking column, never here (top anchors would render at the bottom).</summary>
+        </member>
+        <member name="M:Goo.Hud.ScrollArea(System.Nullable{Sandbox.UI.Length})">
+            <summary>Scroll viewport: Column layout, OverflowY = Scroll, pointer events on. The engine needs all three of a bounded size on the scroll axis, OverflowY = Scroll, and PointerEvents = All or the viewport looks inert; pass <paramref name="height"/> to bound the axis here, or omit it and bound the panel from its parent.</summary>
+        </member>
+        <member name="M:Goo.Hud.DismissScrim(System.Action,System.Nullable{Color})">
+            <summary>Invisible full-bleed click-catcher: covers the nearest positioned ancestor, swallows the click, and invokes <paramref name="onDismiss"/>. Draw dismissable content after it in the sibling order (or give it SwallowClick, rule of thumb for anything clickable above a scrim).</summary>
+        </member>
+        <member name="M:Goo.Hud.FillRect(System.Single,Color)">
+            <summary>Absolute left-anchored fill bar: 100% height, width = <paramref name="frac"/> (clamped 0..1) of the parent. The parent supplies the track: give it Position = Relative, a bounded size, and the track background.</summary>
+        </member>
+        <member name="M:Goo.Hud.Spacer">
+            <summary>A flex-grow spacer that pushes siblings apart. Sets only FlexGrow = 1; all other fields are caller-controlled.</summary>
+        </member>
+        <member name="M:Goo.Hud.Divider(System.Nullable{Color})">
+            <summary>A 1px full-width horizontal rule. Defaults to a low-alpha white line; pass a color to override. Sets Height, Width, and BackgroundColor.</summary>
+        </member>
+        <member name="M:Goo.Hud.Particles(Goo.ParticleField,Goo.ParticleDraw)">
+            <summary>Self-driving particle overlay: absolute, full-screen, pointer-through. The <paramref name="field"/>
+            steps itself in the paint callback (a Draw-carrying panel self-dirties every frame, so no Tick is needed);
+            spawn into it from any handler. Pass <paramref name="draw"/> for a one-off look, or omit it to use the field's own <see cref="F:Goo.ParticleField.Draw"/>.</summary>
+        </member>
+        <member name="M:Goo.Input.KeyTracker.Pressed(System.String)">
+            <summary>True if the named key had a rising edge (just-pressed, not held) this frame; call Poll first.</summary>
+        </member>
+        <member name="T:Goo.Internal.EventDispatch">
+            <summary>Invokes a user event handler and, if it ran, requests a rebuild.
+            Centralizes the "auto-rebuild after a handler fires" rule (the GooPanel
+            AutoRebuildOnEvents contract) for every event-host panel. Generic over the
+            payload so mouse (MousePanelEvent), wheel (Vector2), and drag (DragEvent /
+            PanelEvent) handlers all route through the same path.</summary>
+        </member>
+        <member name="P:Goo.Internal.IStatefulEventHost.RequestRebuild">
+            <summary>Set by the Applier: invoked after any user handler runs so the panel
+            auto-rebuilds. Null when the owning GooPanel opts out (AutoRebuildOnEvents == false).</summary>
+        </member>
+        <member name="T:Goo.Internal.RichTextParser">
+            <summary>Streams Goo's Markdown subset into the inline HTML understood by Sandbox.UI.Label.</summary>
+        </member>
+        <member name="M:Goo.Layout.Stack">
+            <summary>Overlap container: Position = Relative so Layer children resolve against it instead of escaping to a further ancestor.</summary>
+        </member>
+        <member name="M:Goo.Layout.Layer(Goo.Container)">
+            <summary>Pins a child to overlap its Stack siblings (Absolute, Top 0, Left 0). Appended last, so it wins over the child's own Position fields; without it flex lays overlapping siblings side by side.</summary>
+        </member>
+        <member name="M:Goo.Layout.Layer(Goo.Sector)">
+            <summary>Layer for a Sector shape; see Layer(Container).</summary>
+        </member>
+        <member name="M:Goo.Layout.Layer(Goo.Arc)">
+            <summary>Layer for an Arc shape; see Layer(Container).</summary>
+        </member>
+        <member name="M:Goo.Layout.Layer(Goo.Polygon)">
+            <summary>Layer for a Polygon shape; see Layer(Container).</summary>
+        </member>
+        <member name="T:Goo.Viewport">
+            <summary>
+            Pure pan/zoom transform state for building canvases. No Panel dependency, fully unit-tested.
+            Model: <c>screen = world * Zoom + Pan</c>, origin top-left. A consumer drives <see cref="M:Goo.Viewport.PanBy(Vector2)"/>
+            from drag deltas and <see cref="M:Goo.Viewport.ZoomAt(Vector2,System.Single)"/> from the mouse wheel, then feeds <see cref="P:Goo.Viewport.Zoom"/>/<see cref="P:Goo.Viewport.Pan"/>
+            into a <c>Transform = Scale(Zoom).Translate(Pan)</c> on the world container (with its transform-origin
+            pinned to top-left so the scale pivots at the local origin, matching this math).
+            </summary>
+        </member>
+        <member name="P:Goo.Viewport.Pan">
+            <summary>Translation in screen pixels.</summary>
+        </member>
+        <member name="P:Goo.Viewport.Zoom">
+            <summary>Uniform scale factor; 1 = no zoom. Always within [<see cref="P:Goo.Viewport.MinZoom"/>, <see cref="P:Goo.Viewport.MaxZoom"/>].</summary>
+        </member>
+        <member name="P:Goo.Viewport.MinZoom">
+            <summary>Lower zoom clamp.</summary>
+        </member>
+        <member name="P:Goo.Viewport.MaxZoom">
+            <summary>Upper zoom clamp.</summary>
+        </member>
+        <member name="M:Goo.Viewport.WorldToScreen(Vector2)">
+            <summary>Maps a world-space point to its screen-space position.</summary>
+        </member>
+        <member name="M:Goo.Viewport.ScreenToWorld(Vector2)">
+            <summary>Maps a screen-space point back to world space.</summary>
+        </member>
+        <member name="M:Goo.Viewport.PanBy(Vector2)">
+            <summary>Pans by a screen-space delta (e.g. a drag movement).</summary>
+        </member>
+        <member name="M:Goo.Viewport.CenterOn(Vector2,Vector2)">
+            <summary>Pans (zoom unchanged) so <paramref name="world"/> lands under <paramref name="screenPoint"/> - e.g. centre a node by passing the viewport centre.</summary>
+        </member>
+        <member name="M:Goo.Viewport.ZoomAt(Vector2,System.Single)">
+            <summary>
+            Multiplies zoom by <paramref name="factor"/> (clamped) while keeping the world point currently
+            under <paramref name="screenAnchor"/> fixed under it - i.e. zoom-to-cursor.
+            </summary>
+        </member>
+        <member name="T:Goo.ParticleDraw">
+            <summary>Per-particle draw callback for <see cref="M:Goo.Hud.Particles(Goo.ParticleField,Goo.ParticleDraw)"/> (named, not Action, because Canvas is a ref struct).</summary>
+        </member>
+        <member name="T:Goo.ParticleForce">
+            <summary>Per-particle force run each <see cref="M:Goo.ParticleField.Step(System.Single)"/> before integration: steer Vel, or set anything on the particle.</summary>
+        </member>
+        <member name="T:Goo.ParticleField">
+            <summary>
+            A tiny CPU particle simulation for UI.
+            You own it as a field, spawn into it (<see cref="M:Goo.ParticleField.Burst(Vector2,System.Int32,System.Single,Color,System.Single,System.Single)"/> for a radial pop, <see cref="M:Goo.ParticleField.Emit(System.Int32,System.Func{System.Int32,Goo.ParticleField.Particle})"/> for any pattern),
+            and mount it with <see cref="M:Goo.Hud.Particles(Goo.ParticleField,Goo.ParticleDraw)"/> which steps and renders it from the paint callback (no Tick).
+            Any KIND of particle is the same three knobs: where it spawns (Emit/Burst), how it moves (<see cref="F:Goo.ParticleField.Gravity"/>,
+            <see cref="F:Goo.ParticleField.Drag"/>, <see cref="F:Goo.ParticleField.Force"/>), how it looks (<see cref="F:Goo.ParticleField.Draw"/>).
+            </summary>
+        </member>
+        <member name="F:Goo.ParticleField.Particle.Seed">
+            <summary>Stable per-particle random 0..1, set at spawn. Phase for desynced sway/twinkle/flicker.</summary>
+        </member>
+        <member name="F:Goo.ParticleField.Gravity">
+            <summary>Downward acceleration, px/s^2. default(Vector2) = drifting particles (no fall).</summary>
+        </member>
+        <member name="F:Goo.ParticleField.Drag">
+            <summary>Per-second velocity damping (0 = none).</summary>
+        </member>
+        <member name="F:Goo.ParticleField.Force">
+            <summary>Optional custom force, applied per particle before gravity/drag/integration. Null = plain ballistic.</summary>
+        </member>
+        <member name="F:Goo.ParticleField.Draw">
+            <summary>Per-particle look. Defaults to a fading, shrinking dot; reassign for confetti, smoke, sparks, etc.</summary>
+        </member>
+        <member name="P:Goo.ParticleField.Live">
+            <summary>Read-only view of the live particles (for rendering / tests / inspection).</summary>
+        </member>
+        <member name="M:Goo.ParticleField.Burst(Vector2,System.Int32,System.Single,Color,System.Single,System.Single)">
+            <summary>Spawn <paramref name="count"/> particles from <paramref name="origin"/> with random omnidirectional spread.</summary>
+        </member>
+        <member name="M:Goo.ParticleField.Emit(System.Int32,System.Func{System.Int32,Goo.ParticleField.Particle})">
+            <summary>General spawn: add <paramref name="count"/> particles, each built by <paramref name="make"/> (index in). Any pattern - a row, a line, a jet, a ring.</summary>
+        </member>
+        <member name="M:Goo.ParticleField.Add(Goo.ParticleField.Particle)">
+            <summary>Add a single fully-specified particle.</summary>
+        </member>
+        <member name="M:Goo.ParticleField.Step(System.Single)">
+            <summary>Advance the simulation by <paramref name="dt"/> seconds: age, cull dead, run Force, then gravity/drag/integrate.</summary>
+        </member>
+        <member name="M:Goo.ParticleField.DefaultDot(Goo.Canvas,Goo.ParticleField.Particle)">
+            <summary>Default <see cref="F:Goo.ParticleField.Draw"/>: a dot that fades and shrinks over its life.</summary>
+        </member>
+        <member name="T:Goo.Perf">
+            <summary>Opt-in profiler for the live pipeline. Set <see cref="F:Goo.Perf.Enabled"/> = true, exercise the UI, then read <see cref="M:Goo.Perf.Report"/>. Headless benches cover Build and Diff time and allocation in isolation; the engine Apply path only runs in-game (Panel needs the native layout runtime), so this accumulates per-phase wall time and per-op-kind costs across rebuilds until <see cref="M:Goo.Perf.Reset"/>. Allocation tracking is headless-only because sandboxed code cannot access managed allocation counters.</summary>
+        </member>
+        <member name="F:Goo.Perf.Enabled">
+            <summary>Master switch. Off (the default) costs one branch per rebuild and per op.</summary>
+        </member>
+        <member name="M:Goo.Perf.Reset">
+            <summary>Zero every accumulator. Call before the scenario you want to measure.</summary>
+        </member>
+        <member name="M:Goo.Perf.Report">
+            <summary>Human-readable summary: per-phase totals and averages, mount cost, and a per-op-kind table sorted by total time.</summary>
+        </member>
+        <member name="T:Goo.ShaderEffect">
+            <summary>
+            A custom shader applied to a Blob. Point it at a compiled .shader; it parses the shader
+            source's Attribute() declarations to validate uniform names and to reset uniforms other
+            panels have set (panels share one CommandList attribute namespace), and pushes the uniform
+            bag every frame. Set uniforms with the collection initializer (<c>["Name"] = value</c>);
+            a value may be a literal or a per-frame Func. Subclass and override <see cref="M:Goo.ShaderEffect.Apply(Sandbox.Rendering.CommandList,Sandbox.Rect)"/>
+            only for bespoke per-frame CPU logic.
+            </summary>
+        </member>
+        <member name="M:Goo.ShaderEffect.#ctor">
+            <summary>For subclasses that supply their own <see cref="P:Goo.ShaderEffect.Material"/> and <see cref="M:Goo.ShaderEffect.Apply(Sandbox.Rendering.CommandList,Sandbox.Rect)"/>.</summary>
+        </member>
+        <member name="M:Goo.ShaderEffect.#ctor(System.String,Goo.GrabMode)">
+            <summary>Apply the shader at <paramref name="shaderPath"/> (e.g. "shaders/ui_dither.shader").</summary>
+        </member>
+        <member name="M:Goo.ShaderEffect.#ctor(Sandbox.Shader,Goo.GrabMode)">
+            <summary>Apply a shader resource (drag-droppable in the inspector).</summary>
+        </member>
+        <member name="P:Goo.ShaderEffect.ShaderPath">
+            <summary>The shader asset path, or null when constructed from a <see cref="T:Sandbox.Shader"/> resource.</summary>
+        </member>
+        <member name="P:Goo.ShaderEffect.Grab">
+            <summary>How this effect grabs the framebuffer behind its panel.</summary>
+        </member>
+        <member name="P:Goo.ShaderEffect.Item(System.String)">
+            <summary>Get or set a uniform by its shader attribute name.</summary>
+        </member>
+        <member name="P:Goo.ShaderEffect.Material">
+            <summary>The material this effect draws with, cached so it is excluded from record equality.</summary>
+        </member>
+        <member name="M:Goo.ShaderEffect.Warm">
+            <summary>Create the Material now, on the calling thread. Call on the main thread; Draw runs on the render thread and must only read the cache.</summary>
+        </member>
+        <member name="M:Goo.ShaderEffect.Apply(Sandbox.Rendering.CommandList,Sandbox.Rect)">
+            <summary>Set this effect's shader attributes for the frame, then grab the framebuffer per <see cref="P:Goo.ShaderEffect.Grab"/>.</summary>
+        </member>
+        <member name="T:Goo.Shapes">
+            <summary>Factories for composite shape subtrees. Rotation-applying helpers default <c>PointerEvents.None</c> so rotated descendants do not drift parent hit dispatch.</summary>
+        </member>
+        <member name="M:Goo.Shapes.Ring(System.Int32,System.Single,System.ReadOnlySpan{Color},System.Single,System.String)">
+            <summary>N <see cref="T:Goo.Sector"/> wedges clockwise from 12 o'clock; the subtree is <c>PointerEvents.None</c> so parent dispatchers see the unrotated frame.</summary>
+        </member>
+        <member name="M:Goo.Shapes.Ring(System.Int32,System.Single,Color[],System.Single,System.String)">
+            <summary>Color-array overload; forwards to the <see cref="T:System.ReadOnlySpan`1"/> form. Prefer the span overload from animated <c>Build()</c> bodies to avoid per-frame allocation.</summary>
+        </member>
+        <member name="M:Goo.Shapes.Disc(System.String)">
+            <summary>A pre-rounded circular <see cref="T:Goo.Container"/> (50% radius, 100% size) that drops into a flex slot.</summary>
+        </member>
+        <member name="M:Goo.Shapes.Pill(Color,System.String)">
+            <summary>A filled pill/stadium (50% radius, 100% size). Native <c>BorderRadius</c>, so the engine
+            hit-tests the same rounded outline it draws: interactive for free, no guard needed.</summary>
+        </member>
+        <member name="M:Goo.Shapes.RoundedRect(Color,Sandbox.UI.Length,System.String)">
+            <summary>A filled rounded rectangle (100% size). Native <c>BorderRadius</c>, hit-test matches the
+            drawn outline: interactive for free, no guard needed.</summary>
+        </member>
+        <member name="M:Goo.Shapes.Ngon(System.Int32,System.Single,System.String)">
+            <summary>A filled regular polygon (a vertex points up) at 100% size, drawn by ui_shape.shader.
+            Decorate the returned blob with BackgroundColor / HoverBackgroundColor / On* like any shape.</summary>
+        </member>
+        <member name="M:Goo.Shapes.Star(System.Int32,System.Single,System.Single,System.String)">
+            <summary>A filled star with <paramref name="points"/> points (one up). <paramref name="innerRadius"/> (0..1) is the valley radius.</summary>
+        </member>
+        <member name="M:Goo.Shapes.RadialMenu(System.Int32,System.Single,System.Collections.Generic.IReadOnlyList{Color},Color,System.Action{System.Int32},System.Single,System.String)">
+            <summary>A wedge menu: <see cref="M:Goo.Shapes.Ring(System.Int32,System.Single,System.ReadOnlySpan{Color},System.Single,System.String)"/> visuals on one circular host whose <see cref="T:Goo.RadialDispatcher"/>
+            resolves the hovered/clicked slot. The center hole and outside-the-ring are inert. Keep it in a square slot.</summary>
+        </member>
+        <member name="T:Goo.Skins">
+            <summary>
+            Factories for skin (border-image) styling on a <see cref="T:Goo.Container"/>.
+            </summary>
+        </member>
+        <member name="F:Goo.Skins.OnZeroBorder">
+            <summary>Dev-diagnostic sink for the zero-width-border nine-slice case; null by default so non-logging contexts (tests) can use the helper.</summary>
+        </member>
+        <member name="M:Goo.Skins.NineSlice(Sandbox.Texture,System.Single,System.Single,Sandbox.UI.BorderImageRepeat,Sandbox.UI.BorderImageFill,System.String)">
+            <summary>A nine-slice skinned <see cref="T:Goo.Container"/> that sets source, slice insets, and rendered border together so the slice cannot be set without a width. <paramref name="sliceSrcPx"/> is the corner-art size in SOURCE-image pixels (measure the PNG); <paramref name="renderedBorder"/> is the on-screen corner size, typically 16-48 regardless of source resolution - do not set it equal to a hi-res slice.</summary>
+        </member>
+        <member name="M:Goo.Skins.NineSlice(System.String,System.Single,System.Single,Sandbox.UI.BorderImageRepeat,Sandbox.UI.BorderImageFill,System.String)">
+            <summary>Path-loading overload. Lazy-loads via <c>FileSystem.Mounted</c> and caches per path; a failed load is NOT cached, so it retries once assets mount instead of pinning null forever.</summary>
+        </member>
+        <member name="T:Goo.UniformValue">
+            <summary>A single shader-uniform value in a <see cref="T:Goo.ShaderEffect"/> bag: either a literal or a
+            per-frame <see cref="T:System.Func`1"/> evaluated each Apply. Construct via implicit conversion.</summary>
+        </member>
+        <member name="P:Goo.UniformValue.IsDynamic">
+            <summary>True when this value is a per-frame Func re-evaluated on each Apply.</summary>
+        </member>
+        <member name="M:Goo.UniformValue.Resolve">
+            <summary>The current value: evaluates the Func for dynamic entries, otherwise returns the literal.</summary>
+        </member>
+        <member name="F:Goo.UniformValue.Time">
+            <summary>Per-frame push of Sandbox.Time.Now; only for attributes needing CPU-side time, most Goo shaders read g_flTime instead. Static field so bag equality holds across rebuilds.</summary>
+        </member>
+    </members>
+</doc>

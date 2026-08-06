@@ -1,0 +1,59 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Panel",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000007",
+    "kind": "Panel",
+    "className": "box",
+    "appearance": {
+      "width": "200px",
+      "direction": "Column"
+    },
+    "payload": {},
+    "children": [
+      {
+        "id": "a1b2c3d4-0000-0000-0000-000000000071",
+        "kind": "Label",
+        "className": "label1",
+        "appearance": {},
+        "payload": {
+          "content": "Item A"
+        },
+        "children": [],
+        "slots": {}
+      },
+      {
+        "id": "a1b2c3d4-0000-0000-0000-000000000072",
+        "kind": "Label",
+        "className": "label2",
+        "appearance": {},
+        "payload": {
+          "content": "Item B"
+        },
+        "children": [],
+        "slots": {}
+      }
+    ],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000007",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "width: 200px;",
+      "flex-direction: column;",
+      "gap: 8px;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000007\u0022"
+    ]
+  }
+}

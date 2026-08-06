@@ -1,0 +1,52 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Label",
+  "node": {
+    "id": "b1b2c3d4-0000-0000-0000-000000000003",
+    "kind": "Label",
+    "className": "heading",
+    "appearance": {},
+    "payload": {
+      "content": "Hello"
+    },
+    "children": [],
+    "slots": {},
+    "states": [
+      {
+        "state": "Hover",
+        "nthChildArg": 1,
+        "delta": {
+          "overrideTypography": true,
+          "color": "#FF8800",
+          "textAlign": "Center"
+        }
+      }
+    ]
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "b1b2c3d4-0000-0000-0000-000000000003",
+        "name": "data-grd-node-id"
+      },
+      {
+        "$type": "SetInnerText",
+        "text": "Hello"
+      }
+    ],
+    "scssLines": [
+      "\u0026:hover {",
+      "    color: #FF8800;",
+      "    text-align: center;",
+      "}"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022b1b2c3d4-0000-0000-0000-000000000003\u0022"
+    ],
+    "razorInnerText": "Hello"
+  }
+}

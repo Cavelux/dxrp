@@ -1,0 +1,134 @@
+@using Sandbox
+@using Sandbox.UI
+@using System
+@using System.Collections.Generic
+@namespace FieldGuide.DayNight
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+@*
+	The demo's on-screen key card, up from the first frame. A scene with no visible instructions reads as
+	a broken scene: you press nothing, nothing happens, you close it. So this says what the demo is and
+	which keys do what, before you have touched anything.
+
+	It also carries the one thing the demo could not otherwise show. The kit ships no sky shader and no
+	sky art on purpose; the sky is a SEAM, four normalized crossfade weights per hour. Those weights have
+	no picture, so the card prints them live and they visibly hand off from one slot to the next as the
+	clock runs. That is the seam doing its job, on screen, with no art involved.
+
+	Rows render in MAIN markup via @foreach per the fragment-undermeasure gotcha. H hides the card (a
+	letter, never an F key, which the editor eats in play). No ESC anywhere: house law.
+
+	Look and layout follow the Field Kit UI system: docs/design/ui-system/daynight-kit.dc.html for this
+	screen, tokens.dc.html for the values. Font sizes come from the {12, 13, 14, 16} panel scale and there
+	is no letter-spacing; the stylesheet head lists the rest of the engine-legality rules.
+
+	Not part of the kit's runtime surface: delete Code/Demo when you drop the kit into your own project.
+*@
+
+<root>
+@* DemoActive is the inert-by-construction gate (library law 11): only DayNightDemoBootstrap sets it, so
+   this card cannot appear in a consumer's game even if Code/Demo was left in the project. *@
+@if ( CardOpen && DayNightDemoBootstrap.DemoActive )
+{
+	<div class="dh-card">
+		<div class="dh-hdr">
+			<span class="dh-title">DAY / NIGHT KIT DEMO</span>
+			<div class="dh-x" onclick=@(() => CardOpen = false)>×</div>
+		</div>
+
+		<div class="dh-lede">One directional light, one skybox, one clock. Watch the sun sweep and the colour grade follow it, or open the time panel and drive the cycle yourself.</div>
+
+		<div class="dh-rows">
+			@foreach ( var r in Keys )
+			{
+				string key = r.key;     // plain locals before interpolating: an inline tuple read can render blank
+				string what = r.what;
+				<div class="dh-row">
+					<span class="dh-key">@key</span>
+					<span class="dh-what">@what</span>
+				</div>
+			}
+		</div>
+
+		<div class="dh-live">
+			@foreach ( var w in Weights )
+			{
+				string run = w;
+				<span class="dh-lk">@run</span>
+			}
+		</div>
+
+		<div class="dh-foot">Those four are the sky seam. The kit ships no sky shader and no sky art; you crossfade your own sky from these weights.</div>
+	</div>
+}
+</root>
+
+@code
+{
+	static bool _open = true;
+
+	/// <summary>Console fallback: `daynight_hint 1` / `daynight_hint 0` shows or hides the card (H also
+	/// toggles). Starts SHOWN, unlike the time panel, because it is the thing that tells you the time panel
+	/// exists.</summary>
+	[ConVar( "daynight_hint", Help = "Show or hide the demo scene's key card (same as the H key)" )]
+	public static bool CardOpen { get => _open; set => _open = value; }
+
+	static readonly List<(string key, string what)> Keys = new()
+	{
+		( "N", "Open the time panel: scrub the clock, change the pace, pin the weather" ),
+		( "H", "Hide this card" ),
+	};
+
+	DayNightClock _clock;
+
+	DayNightClock Clock
+	{
+		get
+		{
+			if ( _clock.IsValid() ) return _clock;
+			_clock = DayNightClock.For( Scene );
+			return _clock;
+		}
+	}
+
+	/// <summary>The live sky weights as four short atomic runs. Split into separate spans rather than one
+	/// sentence so a wrap breaks BETWEEN runs; a single long run wraps mid-word, which is a live bug class
+	/// in this engine's text layout.</summary>
+	List<string> Weights
+	{
+		get
+		{
+			var c = Clock;
+			var cfg = c?.Config ?? DayNightConfig.Default;
+			var w = SkyWeights.WeightsFor( c?.GetTimeHours() ?? 0f, cfg );
+			return new List<string>
+			{
+				$"MORNING {w.x:0.00}",
+				$"NOON {w.y:0.00}",
+				$"EVENING {w.z:0.00}",
+				$"NIGHT {w.w:0.00}",
+			};
+		}
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( Input.Keyboard.Pressed( "H" ) )
+			CardOpen = !CardOpen;
+	}
+
+	// Fold the card state and every printed weight (to the two decimals shown), or the strip freezes at
+	// whatever it read on the first frame while the sun keeps moving.
+	protected override int BuildHash()
+	{
+		var c = Clock;
+		var cfg = c?.Config ?? DayNightConfig.Default;
+		var w = SkyWeights.WeightsFor( c?.GetTimeHours() ?? 0f, cfg );
+		return HashCode.Combine( CardOpen, DayNightDemoBootstrap.DemoActive,
+			(int)MathF.Round( w.x * 100f ),
+			(int)MathF.Round( w.y * 100f ),
+			(int)MathF.Round( w.z * 100f ),
+			(int)MathF.Round( w.w * 100f ) );
+	}
+}

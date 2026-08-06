@@ -1,0 +1,33 @@
+{
+  "RootObject": {
+    "__guid": "bf6354da-7b4d-4c97-8280-b9d4385b808d",
+    "Flags": 0,
+    "Name": "Goo Screen",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Sandbox.ScreenPanel",
+        "__guid": "cb17d627-ff6c-423f-af02-b87554f27b75",
+        "AutoScreenScale": true,
+        "Opacity": 1,
+        "Scale": 1,
+        "ScaleStrategy": "ConsistentHeight",
+        "ZIndex": 100
+      },
+      {
+        "__type": "Goo.Authoring.GooHierarchyHost",
+        "__guid": "1126035e-ba88-4329-9e1a-d033e1dc84f5",
+        "LiveUpdate": true
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/Screen Host",
+  "MenuIcon": "account_tree",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

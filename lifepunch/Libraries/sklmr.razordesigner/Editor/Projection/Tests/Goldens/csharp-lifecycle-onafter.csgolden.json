@@ -1,0 +1,43 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-lifecycle-onafter",
+  "namespaceFallback": "Test",
+  "classNameFallback": "LifeAfter",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "LifeAfter",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "NodeRef",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "MyButton",
+        "type": "Button",
+        "targetNodeId": "00000000-0000-0000-0000-0000000000ff"
+      },
+      {
+        "$type": "Lifecycle",
+        "id": "00000000-0000-0000-0000-000000000002",
+        "name": "OnAfterTreeRender",
+        "hook": "OnAfterTreeRender",
+        "body": []
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "LifeAfter", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "LifeAfter", "baseClass": "PanelComponent" },
+      { "$type": "FieldDecl", "visibility": "private", "fieldType": "Button", "name": "MyButton", "initialExpr": "default", "isParameter": false },
+      { "$type": "MethodOpen", "visibility": "protected", "isOverride": true, "isAsync": false, "returnType": "void", "name": "OnAfterTreeRender", "parameterList": "bool firstTime" },
+      { "$type": "Statement", "code": "MyButton = Find<Button>( \"[data-grd-node-id='00000000-0000-0000-0000-0000000000ff']\" )" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

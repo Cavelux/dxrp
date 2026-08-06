@@ -1,0 +1,383 @@
+// ================================================================================================
+// FIELD KIT UI SYSTEM · Day / Night Kit · time panel
+//
+// SOURCE OF TRUTH: docs/design/ui-system/tokens.dc.html
+//                  (+ components.dc.html for the parts, daynight-kit.dc.html for this screen)
+//
+// DRIFT NOTE. s&box cannot express a library-to-library dependency, so a kit must never @import
+// another kit's stylesheet. Every kit therefore carries its OWN copy of the token values below.
+// Nothing syncs them. If a value moves on the tokens page, hand-update it here AND in every other
+// kit's .razor.scss, then re-check the kits side by side.
+//
+// ENGINE-LEGAL SUBSET. The mockups are browser HTML and contain CSS this engine cannot parse. The
+// translations, all applied below:
+//   · never `border: 1px solid x` -> border-width + border-color only. border-style is a parse
+//     error that aborts the WHOLE stylesheet and collapses the panel to 0x0.
+//   · never box-shadow. All depth comes from the alpha surfaces.
+//   · never letter-spacing. Hierarchy is size, weight and case.
+//   · never the `inset` shorthand -> top/left/width/height, expanded.
+//   · never a percent max-height on an absolute card, and no glyph outside the shipped font
+//     anywhere (the mockups' dropdown caret included): it renders as tofu.
+//   · explicit px line-heights, never unitless ratios.
+//   · font sizes come only from {12, 13, 14, 16}, plus 20 for the hero clock readout and nothing
+//     else (the tokens page reserves 20 for exactly that). Five distinct sizes against a budget of
+//     eight per panel assembly.
+//
+// FONT DECLARATIONS ARE INLINE AND UNQUOTED, AND THAT IS LOAD-BEARING. Write
+// `font-family: Poppins, sans-serif;` and `font-family: Roboto Mono, monospace;` literally at every
+// site. A SCSS variable holding the family, or a quoted family name, does not survive this engine's
+// stylesheet parse: the rule is dropped and the panel silently falls back to the default face. This
+// cost a live debugging session; do not "tidy" these into a $token.
+//
+// CONTRAST LAW (overrides the mockups wherever they are dimmer). Nothing a player reads to operate
+// a control is dimmer than #E8EAED. Key badges are pure #FFFFFF at weight 700. The 42px close x is
+// present and is the ONLY close affordance: no ESC badge, ever.
+//
+// SLIDER MECHANIC (components.dc.html, fk-slider-row). .dn-hit is a transparent 7px-padded wrapper
+// so the grab area is 28px tall rather than the 14px the track draws; .dn-track is the visible pill
+// and .dn-fill is an absolutely positioned, pointer-events:none decoration inside it. Wrapper and
+// track BOTH own pointer events and both carry the drag handlers: they share a left edge and a
+// width, so whichever one the cursor lands on computes the same fraction, and the bubbled duplicate
+// call writes the same value twice. Do not "simplify" the pair away; the fill must never resize the
+// row and the drag must be measured against the track, not the fill.
+// ================================================================================================
+
+// ---- base tokens (shared across kits, copied per kit) ----
+$fk-panel-bg:       rgba( 15, 17, 21, 0.92 );
+$fk-border:         rgba( 255, 255, 255, 0.08 );
+$fk-border-hi:      rgba( 255, 255, 255, 0.12 );
+$fk-row:            rgba( 255, 255, 255, 0.05 );
+$fk-row-2:          rgba( 255, 255, 255, 0.06 );
+$fk-hover:          rgba( 255, 255, 255, 0.10 );
+$fk-track:          rgba( 255, 255, 255, 0.12 );
+$fk-track-hover:    rgba( 255, 255, 255, 0.16 );
+
+$fk-text-hi:        #F2F4F7;
+$fk-text:           #E8EAED;
+$fk-key-glyph:      #FFFFFF;
+
+// ---- kit accent (Day / Night Kit · hue 300) ----
+$fk-accent:         #C9AEF2;
+$fk-accent-hover:   #D4BEF6;
+$fk-accent-ink:     #140A1A;
+
+DayNightPanel {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	font-family: Poppins, sans-serif;
+
+	// The card is the only thing that takes clicks, so the cursor stays usable over the panel while
+	// the rest of the scene ignores it.
+	.dn-card {
+		position: absolute;
+		top: 40px;
+		right: 40px;
+		width: 420px;
+		flex-direction: column;
+		gap: 12px;
+		padding: 20px;
+		pointer-events: all;
+		background-color: $fk-panel-bg;
+		border-width: 1px;
+		border-color: $fk-border;
+		border-radius: 16px;
+		color: $fk-text;
+	}
+
+	// ---- header ----
+	.dn-hdr {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.dn-title {
+		font-size: 16px;
+		line-height: 22px;
+		font-weight: 700;
+		color: $fk-text-hi;
+	}
+	.dn-hr {
+		flex-direction: row;
+		align-items: center;
+		gap: 4px;
+	}
+	.dn-key {
+		font-family: Roboto Mono, monospace;
+		font-size: 14px;
+		line-height: 20px;
+		font-weight: 700;
+		color: $fk-key-glyph;
+		background-color: $fk-row;
+		border-width: 1px;
+		border-color: $fk-border-hi;
+		border-radius: 5px;
+		padding: 3px 8px;
+		flex-shrink: 0;
+	}
+	// 42px hit target on a 16px glyph (owner ruling: 34px is too small to hit). The negative margins
+	// pull the box back into the 20px card padding so the header stays compact.
+	.dn-x {
+		font-size: 16px;
+		line-height: 22px;
+		color: $fk-text-hi;
+		width: 42px;
+		height: 42px;
+		margin: -8px -12px -8px 0px;
+		justify-content: center;
+		align-items: center;
+		border-radius: 6px;
+		cursor: pointer;
+		pointer-events: all;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+	}
+
+	.dn-empty {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text;
+	}
+
+	// ---- hero clock readout (the one 20px type site in the kit) ----
+	.dn-hero {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		background-color: $fk-row;
+		border-radius: 10px;
+		padding: 12px 14px;
+	}
+	.dn-hl {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text-hi;
+	}
+	.dn-hv {
+		font-family: Roboto Mono, monospace;
+		font-size: 20px;
+		line-height: 26px;
+		font-weight: 600;
+		color: $fk-text-hi;
+	}
+
+	// ---- kicker line: day index and where the weather came from ----
+	// Wrap row of short atomic runs, each one nowrap and unshrinkable, so nothing splits mid-word.
+	// Single-value gap on purpose. The tokens page asks for 3px between wrapped rows and 8px between
+	// runs, but nothing shipped in these kits uses the two-value `gap: 3px 8px` form and this engine's
+	// parser is not proven on it. One value is the safe subset; 8px both ways reads fine.
+	.dn-meta {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.dn-mk {
+		font-family: Roboto Mono, monospace;
+		font-size: 12px;
+		line-height: 16px;
+		font-weight: 500;
+		color: $fk-text;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	// ---- label + value + slider rows ----
+	.dn-row {
+		flex-direction: column;
+		gap: 6px;
+	}
+	.dn-rlab {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.dn-rl {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text-hi;
+	}
+	.dn-rv {
+		font-family: Roboto Mono, monospace;
+		font-size: 14px;
+		line-height: 20px;
+		color: $fk-text;
+	}
+
+	.dn-slider {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+	}
+	.dn-stp {
+		font-family: Roboto Mono, monospace;
+		font-size: 14px;
+		line-height: 20px;
+		color: $fk-text-hi;
+		width: 28px;
+		height: 28px;
+		flex-shrink: 0;
+		justify-content: center;
+		align-items: center;
+		background-color: $fk-row-2;
+		border-width: 1px;
+		border-color: $fk-hover;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover {
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+		}
+	}
+	// Transparent grab wrapper: 14px track plus 7px above and below = the 28px hit area the system
+	// asks for. Horizontal padding is zero on purpose so its width equals the track's exactly.
+	.dn-hit {
+		flex-grow: 1;
+		flex-direction: column;
+		justify-content: center;
+		padding: 7px 0px;
+		pointer-events: all;
+		cursor: pointer;
+	}
+	.dn-track {
+		position: relative;
+		width: 100%;
+		height: 14px;
+		border-radius: 99px;
+		background-color: $fk-track;
+		pointer-events: all;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-track-hover; }
+
+		.dn-fill {
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			height: 100%;
+			min-width: 14px;
+			border-radius: 99px;
+			background-color: $fk-accent;
+			pointer-events: none;
+		}
+	}
+
+	// ---- jump-to pill chips ----
+	.dn-chips {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.dn-chip {
+		font-family: Roboto Mono, monospace;
+		font-size: 13px;
+		line-height: 20px;
+		font-weight: 600;
+		color: $fk-text-hi;
+		background-color: $fk-track;
+		border-radius: 99px;
+		padding: 5px 14px;
+		white-space: nowrap;
+		flex-shrink: 0;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+		&.on {
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+			&:hover { background-color: $fk-accent-hover; }
+		}
+	}
+
+	// ---- segmented groups (weather, run/pause) ----
+	.dn-seg-group {
+		flex-direction: row;
+		align-items: center;
+		background-color: $fk-row;
+		border-radius: 99px;
+		padding: 3px;
+	}
+	// Weather fills the card width, so its segments share the row evenly.
+	.dn-seg-group.wide {
+		width: 100%;
+	}
+	.dn-seg {
+		font-family: Roboto Mono, monospace;
+		font-size: 13px;
+		line-height: 20px;
+		font-weight: 600;
+		color: $fk-text-hi;
+		justify-content: center;
+		align-items: center;
+		border-radius: 99px;
+		padding: 5px 16px;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+		&.on {
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+			&:hover { background-color: $fk-accent-hover; }
+		}
+		&.grow { flex-grow: 1; }
+
+		// The run / pause pair sits inline beside its label rather than filling the card, and the
+		// mockup gives that tighter pair 4px of vertical padding against the wide group's 5px.
+		&.tight { padding: 4px 16px; }
+	}
+
+	// Label beside an inline control (the run / pause row).
+	.dn-inline {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	// ---- a read-only advisory (shown on a client, where the host owns the clock) ----
+	.dn-note {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text;
+		background-color: $fk-row;
+		border-radius: 10px;
+		padding: 9px 12px;
+	}
+
+	// ---- actions ----
+	.dn-btns {
+		flex-direction: row;
+		gap: 8px;
+		border-top-width: 1px;
+		border-top-color: $fk-border;
+		padding-top: 12px;
+	}
+	.dn-btn {
+		font-size: 13px;
+		line-height: 20px;
+		font-weight: 600;
+		color: $fk-text-hi;
+		background-color: $fk-row-2;
+		border-width: 1px;
+		border-color: $fk-hover;
+		border-radius: 10px;
+		padding: 10px 0px;
+		flex-grow: 1;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+
+		// Copy config is the primary action on this card: accent fill, ink text, no hairline.
+		&.primary {
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+			border-color: $fk-accent;
+			&:hover { background-color: $fk-accent-hover; }
+		}
+	}
+}

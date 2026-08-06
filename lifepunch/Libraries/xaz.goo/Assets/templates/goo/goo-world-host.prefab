@@ -1,0 +1,40 @@
+{
+  "RootObject": {
+    "__guid": "21faaec7-cba0-4638-9f02-0aead68d284a",
+    "Flags": 0,
+    "Name": "Goo World",
+    "Enabled": true,
+    "Components": [
+      {
+        "__type": "Sandbox.WorldPanel",
+        "__guid": "f1d74d83-66df-48e7-a622-858f3c13c36b",
+        "HorizontalAlign": "Center",
+        "InteractionRange": 1000,
+        "LookAtCamera": false,
+        "PanelSize": "1024,576",
+        "RenderOptions": {
+          "GameLayer": true,
+          "OverlayLayer": false,
+          "BloomLayer": false,
+          "AfterUILayer": false
+        },
+        "RenderScale": 1,
+        "VerticalAlign": "Center"
+      },
+      {
+        "__type": "Goo.Authoring.GooHierarchyHost",
+        "__guid": "e7586391-14a0-4da4-ad62-fa7277780fb7",
+        "LiveUpdate": true
+      }
+    ],
+    "Children": [],
+    "__variables": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Goo/World Host",
+  "MenuIcon": "view_in_ar",
+  "DontBreakAsTemplate": false,
+  "ResourceVersion": 1,
+  "__references": [],
+  "__version": 1
+}

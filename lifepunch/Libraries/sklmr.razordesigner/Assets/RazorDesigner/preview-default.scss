@@ -1,0 +1,556 @@
+// Razor Designer — default preview theme.
+//
+// stylesheet that distils s&box's canonical design tokens from s&box UI
+
+// === Root / type baseline ============================================
+.root {
+    color: #fafaff;
+    font-family: Inter;
+    font-size: 14px;
+}
+
+// === Flex element aliases (row / column / .grow etc.) ================
+row, .row {
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+column, .column {
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.grow    { flex-grow: 1; }
+.shrink  { flex-shrink: 1; }
+.no-grow { flex-grow: 0; }
+
+.flex-gap-4  { gap: 4px; }
+.flex-gap-8  { gap: 8px; }
+.flex-gap-12 { gap: 12px; }
+.flex-gap-16 { gap: 16px; }
+.flex-gap-24 { gap: 24px; }
+.flex-gap-32 { gap: 32px; }
+
+// === Labels (type scale) =============================================
+label.eyebrow {
+    font-family: Poppins;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #B5BED4;
+    font-weight: 700;
+}
+label.small {
+    font-size: 12px;
+    font-weight: 600;
+}
+label.medium {
+    font-size: 16px;
+    font-family: Poppins;
+    font-weight: 600;
+}
+label.large {
+    font-size: 16px;
+    font-family: Poppins;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+label.heading {
+    font-family: Poppins;
+    font-size: 16px;
+    font-weight: 700;
+    color: #C2C9DB;
+}
+label.title {
+    font-family: Poppins;
+    font-size: 26px;
+    font-weight: 600;
+    color: #fafaff;
+}
+label.hero {
+    font-family: Poppins;
+    font-size: 60px;
+    font-weight: 500;
+    color: #fafaff;
+}
+
+// === Icons ===========================================================
+icon {
+    font-family: Material Icons;
+    font-size: 14px;
+    color: #fafaff;
+    align-items: center;
+    justify-content: center;
+}
+icon.small   { font-size: 12px; }
+icon.medium  { font-size: 16px; }
+icon.large   { font-size: 16px; }
+icon.eyebrow { font-size: 10px; color: #B5BED4; }
+icon.huge    { font-size: 32px; }
+icon.giant   { font-size: 64px; }
+
+// === Separators ======================================================
+separator {
+    background-color: rgba(194, 201, 219, 0.1);
+    flex-shrink: 0;
+}
+separator.horizontal { height: 1px; width: 100%; margin: 4px 0; }
+separator.vertical   { width: 1px; height: 100%; margin: 0 4px; align-self: stretch; }
+
+// === Reusable border mix-ins =========================================
+.has-border             { border: 1px solid rgba(194, 201, 219, 0.1); }
+.has-border-transparent { border: 1px solid transparent; }
+
+// === Generic Button family ===========================================
+.button {
+    background-color: rgba(0, 0, 0, 0);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: #C2C9DB;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: Inter;
+    font-size: 14px;
+    font-weight: 500;
+}
+.button:hover {
+    background-color: rgba(85, 102, 145, 0.1);
+    border-color: rgba(194, 201, 219, 0.1);
+    color: #fafaff;
+}
+
+// Primary CTA — flat brand-blue surface, larger pad, heavier rounding.
+.button.primary {
+    font-family: Poppins;
+    background-image: none;
+    background-color: #3273eb;
+    color: #ffffff;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 3px solid transparent;
+}
+
+// Tab-style underline button.
+.button.uplight {
+    background-image: none;
+    background-color: rgba(0, 0, 0, 0);
+    color: #C6D4EE;
+    border: none;
+    border-bottom: 4px solid transparent;
+    border-radius: 0;
+    padding: 8px 24px;
+}
+
+// Ghost / cancel.
+.button.ghost {
+    background-image: none;
+    background-color: rgba(0, 0, 0, 0);
+    color: #C2C9DB;
+    border: 1px solid rgba(194, 201, 219, 0.1);
+}
+
+// Danger.
+.button.danger {
+    background-image: none;
+    background-color: rgba(255, 93, 106, 0.1);
+    border: 1px solid rgba(255, 93, 106, 0.3);
+    color: #ff5d6a;
+}
+
+// Icon-only square (32×32).
+.button.icon-only {
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+}
+
+// Close shorthand.
+.button.close {
+    background-image: none;
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px solid rgba(255, 0, 0, 0.1);
+    color: #fafaff;
+}
+
+// === TextEntry =======================================================
+// .textentry is what TextEntry / NumberEntry emit. Recessed dark surface.
+.textentry {
+    background-color: #11141D;
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #fafaff;
+    min-height: 32px;
+    align-items: center;
+    gap: 8px;
+}
+// `.placeholder` lives on TextEntry's inner Label child (TextEntry.cs:670
+.textentry .placeholder { color: #687AA6; }
+
+// === Badge ===========================================================
+.Badge, .badge {
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    background-color: #283043;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+.Badge label, .badge label {
+    font-family: Poppins;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #C2C9DB;
+    font-weight: 700;
+}
+.Badge icon, .badge icon { font-size: 10px; color: #C2C9DB; }
+.Badge .number, .badge .number {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 1px 4px;
+    border-radius: 2px;
+    margin-left: 2px;
+}
+.Badge.online, .badge.online       { background-color: rgba(0, 0, 0, 0.9); }
+.Badge.online label, .Badge.online icon,
+.badge.online label, .badge.online icon { color: #ffffff; }
+.Badge.clear, .badge.clear         { background-color: rgba(25, 29, 42, 0.75); border: 1px solid rgba(194, 201, 219, 0.1); }
+.Badge.positive, .badge.positive   { background-color: rgba(99, 217, 107, 0.1); }
+.Badge.positive label, .Badge.positive icon,
+.badge.positive label, .badge.positive icon { color: #63d96b; }
+.Badge.negative, .badge.negative   { background-color: rgba(255, 93, 106, 0.1); }
+.Badge.negative label, .Badge.negative icon,
+.badge.negative label, .badge.negative icon { color: #ff5d6a; }
+.Badge.promise, .badge.promise     { background-color: rgba(255, 189, 50, 0.1); }
+.Badge.promise label, .Badge.promise icon,
+.badge.promise label, .badge.promise icon { color: #ffbd32; }
+
+// === Avatar ==========================================================
+.Avatar .avatar, .avatar .avatar {
+    width: 24px; height: 24px;
+    background-image: linear-gradient(to bottom right, #465477 0%, #283043 100%);
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+.Avatar.large .avatar, .avatar.large .avatar { width: 32px; height: 32px; }
+.Avatar.small .avatar, .avatar.small .avatar { width: 16px; height: 16px; border-radius: 2px; }
+
+// === Switch ==========================================================
+.Switch, .switch {
+    flex-direction: row;
+    cursor: pointer;
+}
+.Switch .inner, .switch .inner {
+    width: 58px; height: 34px;
+    background-image: linear-gradient(to bottom right, #283043 0%, #191D2A 100%);
+    border-radius: 17px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.Switch .background, .switch .background {
+    width: 100%; height: 100%;
+    background-color: #11141D;
+    border-radius: 14px;
+}
+.Switch .dot, .switch .dot {
+    position: absolute;
+    right: 32px;
+    top: 10px;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-image: linear-gradient(to bottom, #cccccc 0%, #777777 100%);
+}
+.Switch.active .inner, .switch.active .inner {
+    background-image: linear-gradient(to bottom right, #37425D 0%, #283043 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.Switch.active .dot, .switch.active .dot {
+    right: 10px;
+    background-image: linear-gradient(to bottom, #ffffff 0%, #bbbbbb 100%);
+}
+
+// === Slider ==========================================================
+.Slider, .slider {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-width: 200px;
+}
+.Slider .track, .slider .track {
+    flex-grow: 1;
+    height: 7px;
+    background-color: #283043;
+    border-radius: 4px;
+    position: relative;
+}
+.Slider .track-active, .slider .track-active {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background-color: #3273eb;
+    border-radius: 4px;
+}
+.Slider .thumb, .slider .thumb {
+    width: 16px; height: 16px;
+    background-color: #ffffff;
+    border-radius: 8px;
+}
+.Slider .value, .slider .value {
+    width: 50px;
+    text-align: right;
+    color: #C2C9DB;
+    font-size: 14px;
+}
+
+// === DropDown ========================================================
+.DropDown, .dropdown {
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background-color: rgba(0, 0, 0, 0.45);
+    border-radius: 6px;
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    color: #fafaff;
+    min-height: 32px;
+    min-width: 140px;
+    font-family: Inter;
+}
+
+// === Checkbox ========================================================
+.checkbox {
+    flex-direction: row;
+    align-items: center;
+    color: #fafaff;
+    cursor: pointer;
+    gap: 8px;
+}
+.checkbox > .checkmark {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #3273eb;
+    border-radius: 4px;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    background-color: rgba(0, 0, 0, 0);
+}
+.checkbox.is-checked > .checkmark {
+    color: #ffffff;
+    background-color: #3273eb;
+}
+
+// === Card ============================================================
+.Card, .card {
+    background-color: #11141D;
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.Card .inner, .card .inner {
+    background-color: #11141D;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+// === PackageCard (game tile) =========================================
+.PackageCard, .packagecard {
+    flex-direction: column;
+    border-radius: 6px;
+    height: 200px;
+    background-color: rgba(17, 20, 29, 0);
+}
+.PackageCard .image, .packagecard .image {
+    flex-grow: 1;
+    border: 1px solid rgba(255, 255, 255, 0.025);
+    background-position: center;
+    background-size: cover;
+    border-radius: 4px;
+    background-color: #283043;
+}
+.PackageCard column, .packagecard column { padding: 8px 2px; gap: 4px; }
+.PackageCard .package-title, .packagecard .package-title {
+    font-family: Poppins;
+    font-size: 16px;
+    font-weight: 600;
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.PackageCard .package-users, .packagecard .package-users {
+    background-color: rgba(10, 10, 10, 0.95);
+    padding: 3px 5px;
+    border-radius: 2px;
+    font-size: 11px;
+    color: #ddeeff;
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    align-items: center;
+    gap: 3px;
+}
+.PackageCard.wide, .packagecard.wide   { height: 250px; }
+.PackageCard.small, .packagecard.small { height: 200px; }
+.PackageCard.tall, .packagecard.tall   { height: 400px; }
+.PackageCard.list, .packagecard.list {
+    flex-direction: row;
+    height: 64px;
+    gap: 12px;
+    padding: 4px;
+}
+.PackageCard.list .image, .packagecard.list .image { height: 100%; flex-grow: 0; }
+
+// === Page shell ======================================================
+.Page, .page {
+    flex-direction: column;
+    background-color: #11141D;
+    flex-grow: 1;
+}
+.Page .inner, .page .inner {
+    flex-direction: row;
+    flex-grow: 1;
+    overflow: hidden;
+    width: 100%;
+}
+.Page .sidebar, .page .sidebar {
+    width: 400px;
+    flex-shrink: 0;
+    background-color: #191D2A;
+    flex-direction: column;
+    gap: 8px;
+    padding: 50px;
+    overflow-y: scroll;
+}
+.Page .pagebody, .page .pagebody {
+    flex-grow: 1;
+    flex-direction: column;
+    overflow-y: scroll;
+}
+
+// === Modal ===========================================================
+.Modal, .modal {
+    background-color: rgba(16, 17, 23, 0.86);
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+// === Popup panel (dropdowns, right-click) ============================
+.popup-panel {
+    background-color: #1b202c;
+    color: #8e9ec2;
+    border-radius: 4px;
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    overflow: hidden;
+    min-width: 200px;
+    flex-direction: column;
+}
+.popup-panel.medium      { max-width: 300px; }
+.popup-panel .information { padding: 16px; font-size: 14px; opacity: 0.5; }
+
+// === Tooltip =========================================================
+.tooltip {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(85, 85, 85, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    color: #ffffff;
+    font-family: Inter;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+// === Progress ========================================================
+.Progress, .progress {
+    width: 100%;
+    height: 6px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #191D2A;
+}
+.Progress .inner, .progress .inner             { height: 100%; background-color: #556691; }
+.Progress.primary .inner, .progress.primary .inner { background-color: #3273eb; }
+.Progress.green .inner, .progress.green .inner     { background-color: #63d96b; }
+
+// === Spinner (static shape; mockup's @keyframes spin is dropped) =====
+.Spinner, .spinner {
+    width: 32px;
+    height: 32px;
+    border: 4px solid #ffffff;
+    border-radius: 16px;
+}
+
+// === IconPanel (engine class) + library alias `i` ====================
+.iconpanel, i {
+    font-family: Material Icons;
+    font-size: 18px;
+    color: #fafaff;
+    align-items: center;
+    justify-content: center;
+}
+
+// === Form / Field / FieldControl (Sandbox.UI real classes) ===========
+.form {
+    background-image: linear-gradient(to bottom, #283043 0%, #1F2535 100%);
+    background-color: rgba(0, 0, 0, 0);
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    border-radius: 6px;
+    min-height: 60px;
+    padding: 8px;
+}
+.field {
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    border-bottom: 1px solid rgba(194, 201, 219, 0.06);
+    min-height: 28px;
+    padding: 4px 0;
+}
+.field-control {
+    background-color: #191D2A;
+    border: 1px solid rgba(194, 201, 219, 0.08);
+    border-radius: 4px;
+    min-height: 28px;
+    flex-grow: 1;
+}
+
+// === Catch-all stand-in classes (MirrorRecord) =======================
+.preview-panel {
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    background-color: rgba(40, 48, 67, 0.3);
+    min-height: 28px;
+}
+.preview-buttongroup {
+    background-color: rgba(40, 48, 67, 0.4);
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    border-radius: 8px;
+    min-height: 32px;
+}
+.preview-dropdown {
+    background-image: linear-gradient(to bottom, #37425D 0%, #283043 100%);
+    background-color: rgba(0, 0, 0, 0);
+    border: 1px solid rgba(194, 201, 219, 0.1);
+    border-radius: 8px;
+    color: #fafaff;
+    min-height: 32px;
+    position: relative;
+}
+.preview-dropdown > .inner {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 32px;
+    background-color: rgba(17, 20, 29, 0.4);
+    border-left: 1px solid rgba(194, 201, 219, 0.1);
+    align-items: center;
+    justify-content: center;
+}

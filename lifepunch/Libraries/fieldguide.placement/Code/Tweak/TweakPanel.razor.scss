@@ -1,0 +1,329 @@
+// ================================================================================================
+// FIELD KIT UI SYSTEM · Placement Kit · transform tweak panel
+//
+// SOURCE OF TRUTH: docs/design/ui-system/tokens.dc.html
+//                  (+ components.dc.html for the parts, placement-kit.dc.html for this screen)
+//
+// DRIFT NOTE. s&box cannot express a library-to-library dependency, so a kit must never @import
+// another kit's stylesheet. Every kit therefore carries its OWN copy of the token values below.
+// Nothing syncs them. If a value moves on the tokens page, hand-update it here AND in every other
+// kit's .razor.scss, then re-check the kits side by side.
+//
+// ENGINE-LEGAL SUBSET. The mockups are browser HTML and contain CSS this engine cannot parse. The
+// translations, all applied below:
+//   · never `border: 1px solid x` -> border-width + border-color only. border-style is a parse
+//     error that aborts the WHOLE stylesheet and collapses the panel to 0x0.
+//   · never box-shadow. All depth comes from the alpha surfaces.
+//   · never letter-spacing. Hierarchy is size, weight and case.
+//   · never the `inset` shorthand -> top/left/width/height, expanded.
+//   · never a percent max-height on an absolute card, and no glyph outside the shipped font
+//     anywhere (the mockups' dropdown caret included): it renders as tofu.
+//   · explicit px line-heights, never unitless ratios.
+//   · font sizes come only from {12, 13, 14, 16}. Four per panel is the budget; this sheet uses
+//     all four and no others.
+//
+// CONTRAST LAW (overrides the mockups wherever they are dimmer). Nothing a player reads to operate
+// a control is dimmer than #E8EAED. Key badges are pure #FFFFFF at weight 700. The 42px close x is
+// present and is the ONLY close affordance: no ESC badge, ever.
+//
+// SLIDER MECHANIC, unchanged from the original sheet and load-bearing: .tp-track is
+// position:relative with pointer-events:all, .tp-fill is position:absolute with pointer-events:none.
+// That combination is what lets the fill grow WITHOUT resizing the row and keeps the drag position
+// measured against the track rather than the fill. Do not "simplify" it.
+// ================================================================================================
+
+// ---- base tokens (shared across kits, copied per kit) ----
+$fk-panel-bg:     rgba( 15, 17, 21, 0.92 );
+$fk-border:       rgba( 255, 255, 255, 0.08 );
+$fk-border-hi:    rgba( 255, 255, 255, 0.12 );
+$fk-row:          rgba( 255, 255, 255, 0.05 );
+$fk-row-2:        rgba( 255, 255, 255, 0.06 );
+$fk-hover:        rgba( 255, 255, 255, 0.10 );
+$fk-track:        rgba( 255, 255, 255, 0.12 );
+$fk-track-hover:  rgba( 255, 255, 255, 0.16 );
+
+$fk-text-hi:      #F2F4F7;
+$fk-text:         #E8EAED;
+$fk-key-glyph:    #FFFFFF;
+
+// ---- kit accent (Placement Kit · hue 155) ----
+$fk-accent:       #5CE3A4;
+$fk-accent-hover: #74EAB4;
+$fk-accent-ink:   #0A1A12;
+
+$fk-ui-font:      Poppins, sans-serif;
+$fk-mono-font:    "Roboto Mono", monospace;
+
+TweakPanel {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	font-family: $fk-ui-font;
+
+	// The card is the only thing that takes clicks, so the cursor stays usable over the panel
+	// while the rest of the scene ignores it.
+	.tp-card {
+		position: absolute;
+		top: 40px;
+		right: 40px;
+		width: 420px;
+		flex-direction: column;
+		gap: 12px;
+		padding: 20px;
+		pointer-events: all;
+		background-color: $fk-panel-bg;
+		border-width: 1px;
+		border-color: $fk-border;
+		border-radius: 16px;
+		color: $fk-text;
+	}
+
+	// ---- header ----
+	.tp-hdr {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.tp-title {
+		font-size: 16px;
+		line-height: 22px;
+		font-weight: 700;
+		color: $fk-text-hi;
+	}
+	.tp-hr {
+		flex-direction: row;
+		align-items: center;
+		gap: 4px;
+	}
+	.tp-key {
+		font-family: $fk-mono-font;
+		font-size: 14px;
+		line-height: 18px;
+		font-weight: 700;
+		color: $fk-key-glyph;
+		background-color: $fk-row;
+		border-width: 1px;
+		border-color: $fk-border-hi;
+		border-radius: 5px;
+		padding: 3px 8px;
+	}
+	// 42px hit target on a 16px glyph (owner ruling: 34px is too small to hit). The negative
+	// margins pull the box back into the 20px card padding so the header stays compact.
+	.tp-x {
+		font-size: 16px;
+		line-height: 22px;
+		color: $fk-text-hi;
+		width: 42px;
+		height: 42px;
+		margin: -8px -12px -8px 0px;
+		justify-content: center;
+		align-items: center;
+		border-radius: 6px;
+		cursor: pointer;
+		pointer-events: all;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+	}
+
+	.tp-empty {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text;
+	}
+
+	// ---- one tab per tweak target ----
+	.tp-tabs {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.tp-tab {
+		font-size: 13px;
+		line-height: 18px;
+		font-weight: 500;
+		color: $fk-text-hi;
+		background-color: $fk-row;
+		border-radius: 6px;
+		padding: 5px 12px;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+		&.on {
+			font-weight: 600;
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+		}
+	}
+
+	// ---- sub line: what the numbers below are measured against ----
+	.tp-sub {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.tp-item {
+		font-size: 13px;
+		line-height: 20px;
+		font-weight: 600;
+		color: $fk-text-hi;
+	}
+	.tp-note {
+		font-family: $fk-mono-font;
+		font-size: 12px;
+		line-height: 16px;
+		color: $fk-text;
+	}
+
+	// ---- three-state step size toggle (pill group, one accent segment) ----
+	.tp-steprow {
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+	}
+	.tp-sl {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text-hi;
+	}
+	.tp-seg-group {
+		flex-direction: row;
+		align-items: center;
+		background-color: $fk-row;
+		border-radius: 99px;
+		padding: 3px;
+	}
+	.tp-seg {
+		font-family: $fk-mono-font;
+		font-size: 13px;
+		line-height: 18px;
+		font-weight: 600;
+		color: $fk-text-hi;
+		border-radius: 99px;
+		padding: 4px 12px;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+		&.on {
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+			&:hover { background-color: $fk-accent-hover; }
+		}
+	}
+
+	// ---- editable rows ----
+	.tp-rows {
+		flex-direction: column;
+		gap: 10px;
+	}
+	.tp-row {
+		flex-direction: column;
+		gap: 6px;
+		// A hairline above the first rotation row and above Scale, so the seven sliders read as
+		// three groups instead of one undifferentiated stack.
+		&.hdr {
+			border-top-width: 1px;
+			border-top-color: $fk-border;
+			padding-top: 10px;
+		}
+	}
+	.tp-rlab {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.tp-rl {
+		font-size: 13px;
+		line-height: 20px;
+		color: $fk-text-hi;
+	}
+	.tp-rv {
+		font-family: $fk-mono-font;
+		font-size: 14px;
+		line-height: 18px;
+		color: $fk-text;
+	}
+
+	.tp-slider {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+	}
+	.tp-stp {
+		font-family: $fk-mono-font;
+		font-size: 14px;
+		line-height: 18px;
+		color: $fk-text-hi;
+		width: 28px;
+		height: 28px;
+		flex-shrink: 0;
+		justify-content: center;
+		align-items: center;
+		background-color: $fk-row-2;
+		border-width: 1px;
+		border-color: $fk-hover;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover {
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+		}
+	}
+	.tp-track {
+		position: relative;
+		flex-grow: 1;
+		height: 14px;
+		border-radius: 99px;
+		background-color: $fk-track;
+		pointer-events: all;
+		cursor: pointer;
+		&:hover { background-color: $fk-track-hover; }
+
+		.tp-fill {
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			height: 100%;
+			// min-width keeps the pill from collapsing below its own radius at the bottom of a
+			// range: a slider at 0 still reads as a slider, not an empty track.
+			min-width: 14px;
+			border-radius: 99px;
+			background-color: $fk-accent;
+			pointer-events: none;
+		}
+	}
+
+	// ---- actions ----
+	.tp-btns {
+		flex-direction: row;
+		gap: 8px;
+	}
+	.tp-btn {
+		font-size: 13px;
+		line-height: 18px;
+		font-weight: 600;
+		color: $fk-text-hi;
+		background-color: $fk-row-2;
+		border-width: 1px;
+		border-color: $fk-hover;
+		border-radius: 10px;
+		padding: 10px 0px;
+		flex-grow: 1;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		transition: all 0.12s ease;
+		&:hover { background-color: $fk-hover; }
+
+		// Copy is the primary action on this card: accent fill, ink text, no hairline.
+		&.primary {
+			color: $fk-accent-ink;
+			background-color: $fk-accent;
+			border-color: $fk-accent;
+			&:hover { background-color: $fk-accent-hover; }
+		}
+	}
+}

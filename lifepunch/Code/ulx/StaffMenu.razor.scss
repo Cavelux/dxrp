@@ -1,0 +1,2137 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "lifepunchulx" (s&box ident: lifepunch.lifepunchulx · addon ident: lifepunchulx) is the sole-owned
+// intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+// sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+// LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+// Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+// Presence in this repository or on the DXRP portal grants no rights to anyone else.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Party-menu parity palette (DXRP $color-accent — issue #126 / dxura/dxrp#73)
+$bg: #14161c;
+$bg-raised: #1c1f27;
+$bg-row: #252932;
+$accent: #7170e6;
+$accent-hover: #5f5ed4;
+$accent-soft: rgba(113, 112, 230, 0.08);
+$accent-glow: rgba(113, 112, 230, 0.14);
+$accent-border: rgba(113, 112, 230, 0.35);
+$dxrp-cyan: #08b2e3;
+$danger: #e7544a;
+$text: #e8eaed;
+$text-dim: #9aa0ab;
+$text-disabled: #6b7280;
+$bg-disabled: #1e2129;
+$border: rgba(255, 255, 255, 0.07);
+$border-disabled: rgba(255, 255, 255, 0.04);
+$ulx-footer-bg: #060606;
+$shell-radius: 22px;
+
+// Legacy fallback (pre ulx-v2 — restore these + remove `.ulx-v2` from razor to revert)
+// $bg: #16181d; $bg-raised: #1f2229; $bg-row: #262a33; $border: rgba(255,255,255,0.06);
+
+@import "_shared_LifePunchUiFooter.scss";
+
+.lifepunchulx {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	// Opt into pointer input: when mounted in DXRP's HUD root the parent defaults children to
+	// pointer-events:none, so the menu must explicitly capture clicks.
+	pointer-events: all;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(4, 6, 12, 0.62);
+	font-family: Poppins, Arial, sans-serif;
+
+	// Root Poppins cascades onto <i class="material-icons"> and renders ligature names as text
+	// instead of glyphs. Match DXRP BuildMenu / engine base.scss (IconPanel, tab icons, etc.).
+	.material-icons {
+		font-family: Material Icons;
+		font-weight: normal;
+		font-style: normal;
+		text-transform: none;
+		letter-spacing: normal;
+	}
+
+	.window {
+		display: flex;
+		flex-direction: column;
+		position: relative;
+		width: 1160px;
+		height: 700px;
+		max-width: 94%;
+		max-height: 92%;
+		background-color: $bg;
+		border-radius: $shell-radius;
+		border: 1px solid $border;
+		overflow: hidden;
+		box-shadow: 0 28px 64px rgba(0, 0, 0, 0.72);
+	}
+
+	// Fixed-height watermark slot — explicit bottom radius (s&box clip + overflow:hidden alone is not enough).
+	.lp-window-watermark {
+		flex: 0 0 32px;
+		flex-shrink: 0;
+		align-self: stretch;
+		width: 100%;
+		height: 32px;
+		min-height: 32px;
+		max-height: 32px;
+		overflow: hidden;
+		background-color: $ulx-footer-bg;
+
+		&.lp-window-watermark--rounded {
+			border-radius: 0 0 $shell-radius $shell-radius;
+		}
+
+		.lp-source-footer {
+			width: 100%;
+			height: 32px;
+			min-height: 32px;
+			max-height: 32px;
+			flex: none;
+			background-color: $ulx-footer-bg;
+		}
+
+		&.lp-window-watermark--rounded .lp-source-footer {
+			border-radius: 0 0 $shell-radius $shell-radius;
+		}
+	}
+
+	// ULX scale steps — XL is the canonical layout; S/M/L only shrink the shell slightly.
+	// Do NOT override action-btn, sidebar, or tab metrics per step (that squashes glyphs).
+	&.lp-ui-size-s .window {
+		width: 1040px;
+		height: 640px;
+	}
+
+	&.lp-ui-size-m .window {
+		width: 1100px;
+		height: 670px;
+	}
+
+	&.lp-ui-size-l .window {
+		width: 1140px;
+		height: 690px;
+	}
+
+	&.lp-ui-size-xl .window {
+		width: 1160px;
+		height: 700px;
+	}
+
+	.header {
+		flex-direction: row;
+		// Lock the title bar height: as a flex child of the column .window it would otherwise be
+		// allowed to compress when the body content is tall, subtly shifting the bar across tabs.
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: space-between;
+		padding: 14px 20px 16px 20px;
+		background-color: $bg-raised;
+		border-bottom: 1px solid $border;
+
+		.title {
+			flex-direction: row;
+			align-items: center;
+			gap: 12px;
+			color: $text;
+		}
+	}
+
+	.header-actions {
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.header-chip {
+		flex-direction: row;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 12px;
+		border-radius: 999px;
+		border: 1px solid $border;
+		background-color: rgba(255, 255, 255, 0.03);
+		color: $text-dim;
+		font-size: 12px;
+		font-weight: 600;
+		cursor: default;
+
+		.material-icons {
+			font-size: 16px;
+			color: $text-dim;
+		}
+	}
+
+	.header-chip-link {
+		cursor: pointer;
+
+		&:hover {
+			border-color: $accent-border;
+			background-color: $accent-soft;
+			color: $text;
+
+			.material-icons {
+				color: $accent;
+			}
+		}
+	}
+
+	.header-chip-copied {
+		border-color: $accent-border;
+		color: $accent;
+
+		.material-icons {
+			color: $accent;
+		}
+	}
+
+	.lp-ui-chrome-btn {
+		align-items: center;
+		justify-content: center;
+		width: 34px;
+		height: 34px;
+		border-radius: 8px;
+		background-color: transparent;
+		border: 0;
+		color: $text-dim;
+		cursor: pointer;
+
+		.material-icons {
+			line-height: 1;
+		}
+
+		&:hover {
+			background-color: rgba(255, 255, 255, 0.08);
+			color: $text;
+		}
+
+		&.cog .material-icons {
+			font-size: 24px;
+		}
+
+		&.cog.active {
+			background-color: $accent-soft;
+			color: $accent;
+		}
+
+		&.close {
+			color: $danger;
+
+			.material-icons {
+				font-size: 26px;
+				color: $danger;
+			}
+
+			&:hover {
+				background-color: $danger;
+				color: #fff;
+
+				.material-icons {
+					color: #fff;
+				}
+			}
+		}
+	}
+
+	.ulx-workspace {
+		flex: 1 1 0;
+		flex-direction: column;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	// ULX watermark — same geometry as hashd shell footer; ULX palette only (blue mark, neutral URL).
+	.lp-window-watermark,
+	.lp-source-footer {
+		background-color: $ulx-footer-bg;
+		border-top-color: $border;
+
+		.lp-mark {
+			color: $accent;
+		}
+
+		.lp-url-copy {
+			color: rgba(255, 255, 255, 0.55);
+		}
+
+		.lp-url-copy:hover,
+		.lp-url-copy.copied {
+			color: $accent-hover;
+		}
+	}
+
+	.icon-btn {
+		align-items: center;
+		justify-content: center;
+		width: 34px;
+		height: 34px;
+		border-radius: 8px;
+		color: $text-dim;
+		background-color: transparent;
+		cursor: pointer;
+		// Instant hover (no colour fade). The cog and other icon buttons sit inside the window's
+		// rounded-corner overflow clip; a transitioned background repaints against that clip across the
+		// fade's frames and reads as a hover "flicker". Snapping the colour repaints once. (Same reason
+		// the dense player rows are transition-free.)
+
+		// Normalise the glyph box so different Material Icons (settings vs close) center identically in
+		// the 34x34 button — otherwise their differing font metrics make one sit slightly lower.
+		.material-icons {
+			line-height: 1;
+		}
+
+		&:hover {
+			background-color: $bg-row;
+			color: $text;
+		}
+
+		// Toggled-on state (e.g. the header Audit-log button while the viewer is open).
+		&.active {
+			background-color: rgba(79, 140, 255, 0.18);
+			color: #fff;
+
+			.material-icons {
+				color: $accent;
+			}
+		}
+
+		// Header close button: larger, more noticeable X with a red hover (matches the banner's
+		// clear-target "X").
+		&.close {
+			.material-icons {
+				font-size: 26px;
+			}
+
+			&:hover {
+				background-color: $danger;
+				color: #fff;
+
+				.material-icons {
+					color: #fff;
+				}
+			}
+		}
+
+		// Header settings cog: match the close "X" exactly (same 26px glyph in the same 34x34 button)
+		// so the two header actions are pixel-aligned. Uses its own `.cog` class (NOT `.settings`)
+		// because the top-level `.settings` rule is the Settings VIEW panel (padding/column/grow) and
+		// would otherwise leak onto this button via equal specificity and knock it out of line.
+		&.cog {
+			// Gear glyph reads heavier than the close "X" at the same size, so nudge it down a
+			// touch (24 vs 26) for matching optical scale; the 34x34 button still aligns with the X.
+			.material-icons {
+				font-size: 24px;
+			}
+		}
+
+	}
+
+	// Copy-confirmation text tint. Keeps the profile "Copied!" uniform with the other copy
+	// confirmations (footer "Addon link copied!", network tag) which all use the accent blue.
+	.copied-text {
+		color: $accent;
+	}
+
+	// Small inline clipboard button used next to copyable text (profile Steam ID, settings link).
+	// Flips its glyph to a check via the razor while the brief copied-state is active.
+	.copy-btn {
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: 22px;
+		height: 22px;
+		border-radius: 6px;
+		color: $text-dim;
+		background-color: transparent;
+		cursor: pointer;
+		transition: background-color 0.12s ease-out, color 0.12s ease-out;
+
+		.material-icons {
+			font-size: 15px;
+		}
+
+		&:hover {
+			background-color: $bg-row;
+			color: $text;
+		}
+	}
+
+	.body {
+		flex: 1 1 0;
+		flex-direction: row;
+		min-height: 0;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	// Small ownership signature pinned to the bottom-right of the right-hand column (below the action
+	// area), so the sidebar can own the full height down to the window's rounded bottom-left corner.
+	.signature {
+		flex-shrink: 0;
+		align-self: flex-end;
+		justify-content: flex-end;
+		// Nudge the text a hair up off the bottom border.
+		padding: 4px 14px 6px 14px;
+		// Match the lifepunchulx title colour ($text) but at a very low opacity — just enough to read
+		// as a distinct mark without competing with real labels.
+		color: rgba(232, 234, 237, 0.18);
+		font-size: 11px;
+		letter-spacing: 0.4px;
+		background-color: transparent;
+		// Click-to-copy the addon link: brighten on hover so it reads as interactive.
+		cursor: pointer;
+		transition: color 0.12s ease-out;
+
+		&:hover {
+			color: rgba(232, 234, 237, 0.42);
+		}
+
+		// Brief confirmation state after copying.
+		&.copied {
+			color: rgba(79, 140, 255, 0.75);
+		}
+	}
+
+	.pane-label {
+		flex-direction: row;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: space-between;
+		padding: 12px 8px 10px 16px;
+
+		.pane-title {
+			color: $text-dim;
+			font-size: 12px;
+			font-weight: 600;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		// Small chevron that collapses the sidebar. Keep text-transform OFF here so the
+		// material-icons ligature ("chevron_left") isn't uppercased into a broken glyph.
+		.collapse-btn {
+			align-items: center;
+			justify-content: center;
+			width: 26px;
+			height: 26px;
+			border-radius: 7px;
+			color: $text-dim;
+			background-color: transparent;
+			cursor: pointer;
+			// Instant hover — see .icon-btn note (rounded-corner clip repaint flicker).
+
+			.material-icons {
+				font-size: 20px;
+			}
+
+			&:hover {
+				background-color: $bg-row;
+				color: $text;
+			}
+		}
+	}
+
+	// Right-hand column: the scrolling action/profile area on top with the addon signature pinned at
+	// its bottom. Wrapping these in one column lets the sidebar own the full body height down to the
+	// window's rounded corner (instead of stopping short above a full-width signature row).
+	.main {
+		flex: 1 1 0;
+		flex-direction: column;
+		min-height: 0;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	.players {
+		flex: 0 0 300px;
+		flex-direction: column;
+		width: 300px;
+		// Hold the sidebar's width (don't let the action area squeeze it) so collapse/expand is a
+		// clean width swap rather than a fight between the two panes.
+		flex-shrink: 0;
+		background-color: $bg-raised;
+		border-right: 1px solid $border;
+		min-height: 0;
+		height: 100%;
+		overflow: hidden;
+		// Sidebar stops at the workspace bottom — the full-width watermark row owns the rounded
+		// window corners below (same layout law as hashd hub shell).
+
+		// Collapsed: shrink to a slim rail and hand the reclaimed width to the action area.
+		&.collapsed {
+			flex: 0 0 40px;
+			width: 40px;
+		}
+
+		.search-row {
+			flex-direction: row;
+			flex-wrap: nowrap;
+			align-items: center;
+			align-self: stretch;
+			flex-shrink: 0;
+			width: auto;
+			min-width: 0;
+			gap: 6px;
+			margin: 6px 12px 8px 12px;
+			padding: 2px 8px;
+			border-radius: 8px;
+			background-color: rgba(0, 0, 0, 0.18);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+
+			.material-icons {
+				flex-shrink: 0;
+				font-size: 14px;
+				color: $text-dim;
+			}
+
+			.search-input {
+				flex: 1 1 auto;
+				min-width: 0;
+				width: auto;
+				height: 24px;
+				background-color: transparent;
+				color: $text;
+				font-size: 11px;
+				line-height: 1.2;
+				border: 0;
+			}
+
+			.icon-btn {
+				flex-shrink: 0;
+				width: 20px;
+				height: 20px;
+			}
+		}
+
+		.steamid-pick {
+			flex-direction: row;
+			align-items: center;
+			align-self: stretch;
+			gap: 8px;
+			margin: 0 12px 8px 12px;
+			padding: 6px 10px;
+			border-radius: 8px;
+			background-color: $accent;
+			color: #fff;
+			font-size: 11px;
+			font-weight: 500;
+			cursor: pointer;
+
+			.material-icons {
+				font-size: 16px;
+			}
+
+			&:hover {
+				background-color: $accent-hover;
+			}
+		}
+
+		// Slim collapsed strip. The strip itself is passive (no click, no tooltip) — only the chevron
+		// button opens the sidebar, mirroring how the expanded .collapse-btn closes it. The group icon
+		// and count below are just a non-interactive online indicator.
+		.players-rail {
+			flex-direction: column;
+			align-items: center;
+			flex-grow: 1;
+			gap: 10px;
+			padding: 12px 0;
+			color: $text-dim;
+			background-color: transparent;
+
+			// Passive online indicators stacked under the chevron: total players (group icon) and staff
+			// (shield), each with its count below. No hover / tooltip — purely informational.
+			.rail-stat {
+				flex-direction: column;
+				align-items: center;
+				gap: 2px;
+
+				.material-icons {
+					font-size: 18px;
+					color: $text-dim;
+				}
+
+				.count {
+					font-size: 12px;
+					font-weight: 700;
+					color: $text;
+				}
+			}
+
+			// The only control on the rail: opens the sidebar and owns the tooltip. Same footprint and
+			// instant hover as the .collapse-btn chevron.
+			.expand-btn {
+				align-items: center;
+				justify-content: center;
+				width: 26px;
+				height: 26px;
+				border-radius: 7px;
+				color: $text-dim;
+				background-color: transparent;
+				cursor: pointer;
+				// Instant hover — see .icon-btn note (rounded-corner clip repaint flicker).
+
+				.material-icons {
+					font-size: 20px;
+				}
+
+				&:hover {
+					background-color: $bg-row;
+					color: $text;
+				}
+			}
+		}
+
+		.player-scroll {
+			flex: 1 1 auto;
+			flex-direction: column;
+			min-height: 0;
+			overflow-y: auto;
+			padding: 6px 10px 4px 10px;
+			gap: 0;
+
+			// Scroll slack so the last roster row clears the pinned settings footer.
+			.player-scroll-tail {
+				flex-shrink: 0;
+				height: 28px;
+				width: 100%;
+			}
+		}
+
+		.roster-section {
+			flex-direction: column;
+			flex-shrink: 0;
+			margin-bottom: 12px;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+
+			&.roster-section-collapsed {
+				margin-bottom: 6px;
+			}
+		}
+
+		.parent-label {
+			flex-shrink: 0;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			width: 100%;
+			color: $text;
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 1.2px;
+			text-transform: uppercase;
+			padding: 11px 10px 11px 12px;
+			margin-top: 4px;
+			background-color: rgba(0, 0, 0, 0.22);
+			border: 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 6px 6px 0 0;
+			cursor: pointer;
+
+			&:hover {
+				background-color: rgba(255, 255, 255, 0.05);
+			}
+
+			.parent-label-text {
+				flex-grow: 1;
+				min-width: 0;
+				text-align: left;
+			}
+
+			.parent-label-chevron {
+				flex-shrink: 0;
+				font-size: 18px;
+				color: $text-dim;
+			}
+		}
+
+		.roster-section-collapsed .parent-label {
+			border-radius: 6px;
+			border-bottom: 0;
+		}
+
+		.roster-section:first-child .parent-label {
+			margin-top: 0;
+		}
+
+		.roster-tier {
+			flex-direction: column;
+			flex-shrink: 0;
+			gap: 2px;
+			padding: 8px 0 6px 0;
+		}
+
+		.roster-tier-players {
+			padding-top: 8px;
+		}
+
+		.group-label {
+			flex-shrink: 0;
+			color: $accent;
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: 1.1px;
+			text-transform: uppercase;
+			padding: 0 10px 5px 18px;
+			margin-top: 2px;
+			margin-bottom: 0;
+		}
+
+		.roster-tier .player-row {
+			margin-left: 8px;
+			margin-right: 2px;
+		}
+
+		// Pinned footer — home for owner / menu-customization controls (settings cog). flex-shrink:0
+		// glues it to the bottom of the sidebar while the player list scrolls above it.
+		.players-footer {
+			flex-shrink: 0;
+			flex-direction: row;
+			align-items: center;
+			justify-content: stretch;
+			padding: 6px 10px;
+			border-top: 1px solid $border;
+		}
+
+		// Collapsed rail: center the cog in the slim 40px strip.
+		&.collapsed .players-footer {
+			justify-content: center;
+			padding: 7px 0;
+		}
+
+		// Footer entry that opens the Player & Staff Management page (currently the Settings view). A
+		// full-width row (cog + label) when the sidebar is expanded; collapses to just the centered cog.
+		.settings-entry {
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			flex-grow: 1;
+			width: 100%;
+			padding: 5px 10px;
+			border-radius: 7px;
+			color: $text-dim;
+			background-color: transparent;
+			cursor: pointer;
+			// Instant hover — see .icon-btn note (rounded-corner clip repaint flicker).
+
+			.material-icons {
+				font-size: 18px;
+				margin-left: 0;
+			}
+
+			.settings-entry-label {
+				font-size: 12px;
+				font-weight: 500;
+				line-height: 1.25;
+			}
+
+			&:hover {
+				background-color: $bg-row;
+				color: $text;
+			}
+		}
+
+		// Active state (the management page is open). Standalone class — see .tab-sel note — so it
+		// reliably wins over the base .settings-entry on equal specificity.
+		.settings-entry-on {
+			color: $text;
+
+			.material-icons {
+				color: $accent;
+			}
+		}
+
+		// Collapsed rail: shrink the entry to just the centered cog (the label is omitted in the razor).
+		&.collapsed .settings-entry {
+			flex-grow: 0;
+			justify-content: center;
+			width: 32px;
+			height: 32px;
+			padding: 0;
+
+			// No label to balance against here — keep the cog dead-centered.
+			.material-icons {
+				margin-left: 0;
+			}
+		}
+	}
+
+	.player-row {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		gap: 8px;
+		padding: 5px 10px;
+		border-radius: 7px;
+		color: $text;
+		background-color: transparent;
+		cursor: pointer;
+		// No transition on this dense list: a background fade trails as the cursor sweeps rows
+		// (the row you just left is still fading out while the next fades in), which reads as a
+		// hover "smear"/flicker. Instant hover snaps cleanly, like native list UIs. Sparse,
+		// spaced controls (the tabs) keep their transition since they can't smear.
+
+		.avatar {
+			font-size: 16px;
+			color: $text-dim;
+		}
+
+		.name {
+			flex-grow: 1;
+			font-size: 12px;
+			line-height: 1.25;
+		}
+
+		.lock {
+			font-size: 16px;
+			color: $danger;
+		}
+
+		&:hover {
+			background-color: $bg-row;
+		}
+
+		&.selected {
+			background-color: $accent;
+			color: #fff;
+
+			.avatar {
+				color: #fff;
+			}
+
+			// Pin the accent while hovering an already-selected row. Without this the :hover
+			// and .selected rules both animate background-color over the 0.12s transition and
+			// briefly blend, so the row flickers between solid accent and the faint hover grey.
+			// Nested → compiles to a separate `.player-row.selected:hover` rule, so even if
+			// s&box's CSS subset drops it the base `.selected` accent is unaffected.
+			&:hover {
+				background-color: $accent;
+			}
+		}
+	}
+
+	.actions {
+		flex-direction: column;
+		flex-grow: 1;
+		min-height: 0;
+		overflow-y: scroll;
+		padding-bottom: 16px;
+	}
+
+	.action-grid {
+		flex-direction: row;
+		flex-wrap: wrap;
+		flex-grow: 0;
+		flex-shrink: 0;
+		align-content: flex-start;
+		gap: 10px;
+		padding: 0 16px;
+	}
+
+	.tabs {
+		flex-direction: row;
+		flex-shrink: 0;
+		gap: 6px;
+		padding: 10px 16px 12px 16px;
+		background-color: rgba(0, 0, 0, 0.22);
+		border-bottom: 1px solid $border;
+
+		.tab {
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			padding: 8px 16px;
+			border-radius: 9px;
+			color: $text-dim;
+			font-size: 13px;
+			font-weight: 500;
+			cursor: pointer;
+			background-color: transparent;
+			border: 1px solid transparent;
+			transition: background-color 0.12s ease-out, color 0.12s ease-out, border-bottom-color 0.12s ease-out;
+
+			.tab-icon {
+				font-size: 16px;
+				color: $text-dim;
+			}
+
+			&:hover {
+				color: $text;
+				background-color: rgba(255, 255, 255, 0.05);
+				border-color: rgba(255, 255, 255, 0.06);
+
+				.tab-icon {
+					color: $accent;
+				}
+			}
+		}
+
+		// Selected tab: full accent ring on all four sides (matches hover language). Pull down 1px
+		// so the bottom border covers the .tabs strip rule — do NOT use border-bottom-color: $bg;
+		// that leaves a dark sliver between fill and sides (same class of bug as profile borders).
+		.tab-sel {
+			color: $text;
+			font-weight: 600;
+			background-color: $accent-soft;
+			border: 1px solid $accent-border;
+			margin-bottom: -1px;
+
+			.tab-icon {
+				color: $accent;
+			}
+
+			&:hover {
+				color: $text;
+				background-color: $accent-soft;
+				border-color: $accent-border;
+
+				.tab-icon {
+					color: $accent;
+				}
+			}
+		}
+
+		// Network identifier parked in the dead space at the right end of the tab strip: a small
+		// "Network" caption stacked over the agnostic identifier. margin-left:auto pushes it flush
+		// right; pointer-events:none so it never reads or behaves like a clickable tab.
+		.network-block {
+			flex-direction: column;
+			// Center the caption over the value (rather than right-aligning both) so "Network" reads
+			// as a uniform header above the identifier; margin-left:auto still parks the whole block
+			// at the right end of the tab strip.
+			align-items: center;
+			justify-content: center;
+			gap: 2px;
+			margin-left: auto;
+			padding: 6px 12px;
+			border-radius: 10px;
+			border: 1px solid $border;
+			background-color: rgba(0, 0, 0, 0.18);
+			// Label-only until an owner configures a website; .network-block-link then re-enables clicks.
+			pointer-events: none;
+
+			.network-block-label {
+				color: $text-dim;
+				font-size: 10px;
+				font-weight: 700;
+				letter-spacing: 1px;
+				text-transform: uppercase;
+			}
+
+			.network-block-value {
+				color: $text;
+				font-size: 13px;
+				font-weight: 600;
+			}
+
+		}
+
+		// Once a website is set the block becomes a click-to-copy control (mirrors the signature).
+		// STANDALONE class (compiles to `.tabs .network-block-link`), NOT a `.network-block.linkable`
+		// compound class+class rule — s&box's CSS subset won't reliably match those, so pointer-events
+		// would never flip and the tag would stay unclickable. Defined after .network-block so it wins
+		// on equal specificity (same trick as .tab-sel). Toggled from the razor when a URL is saved.
+		.network-block-link {
+			pointer-events: auto;
+			cursor: pointer;
+			transition: background-color 0.12s ease-out;
+
+			.network-block-value {
+				color: $accent;
+			}
+
+			&:hover {
+				background-color: $bg-row;
+
+				.network-block-label {
+					color: $text;
+				}
+
+				.network-block-value {
+					color: $accent-hover;
+				}
+			}
+		}
+
+		// Brief confirmation tint after copying the link.
+		.network-block-copied .network-block-value {
+			color: $accent;
+		}
+	}
+
+	.target-banner {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		gap: 8px;
+		margin: 12px 16px;
+		padding: 13px 14px;
+		border-radius: 8px;
+		background-color: $bg-raised;
+		border: 1px solid $border;
+		color: $text-dim;
+		font-size: 13px;
+
+		.material-icons {
+			font-size: 18px;
+			color: $accent;
+		}
+
+		.target-name {
+			flex-grow: 1;
+		}
+
+		// Clearer "a player is selected" state: accent border + tint + full-strength text.
+		&.active {
+			background-color: $accent-soft;
+			border: 1px solid $accent-border;
+			color: $text;
+			font-weight: 500;
+		}
+
+		.clear-target {
+			width: 24px;
+			height: 24px;
+			color: $text-dim;
+
+			.material-icons {
+				font-size: 16px;
+				color: $text-dim;
+			}
+
+			&:hover {
+				background-color: $danger;
+				color: #fff;
+
+				.material-icons {
+					color: #fff;
+				}
+			}
+		}
+	}
+
+	.arg-form {
+		flex-direction: column;
+		flex-shrink: 0;
+		margin: 0 16px 12px 16px;
+		padding: 12px;
+		border-radius: 10px;
+		background-color: $bg-raised;
+		border: 1px solid $accent;
+
+		.arg-form-head {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			color: $text;
+			font-size: 15px;
+			font-weight: 600;
+			padding-bottom: 8px;
+		}
+	}
+
+	.arg-row {
+		flex-direction: column;
+		gap: 6px;
+		padding-bottom: 10px;
+
+		label {
+			color: $text-dim;
+			font-size: 12px;
+		}
+
+		.arg-input {
+			background-color: $bg-row;
+			color: $text;
+			border: 1px solid $border;
+			border-radius: 8px;
+			padding: 8px 12px;
+			font-size: 14px;
+		}
+	}
+
+	.chips {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-bottom: 6px;
+
+		.chip {
+			padding: 6px 12px;
+			border-radius: 14px;
+			background-color: $bg-row;
+			color: $text;
+			font-size: 12px;
+			cursor: pointer;
+			transition: background-color 0.12s ease-out, color 0.12s ease-out, border-bottom-color 0.12s ease-out;
+
+			&:hover {
+				background-color: #2d323d;
+				color: $text;
+			}
+
+			&.active {
+				background-color: $accent-soft;
+				color: $accent;
+				border: 1px solid $accent-border;
+			}
+
+			&.disabled,
+			&.disabled:hover {
+				pointer-events: none;
+				cursor: default;
+				background-color: $bg-disabled;
+				color: $text-disabled;
+				border: 1px solid $border-disabled;
+			}
+		}
+	}
+
+	.job-dropdown {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+	}
+
+	.job-dropdown-header {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		background-color: $bg-row;
+		color: $text;
+		border: 1px solid $border;
+		border-radius: 8px;
+		padding: 8px 12px;
+		font-size: 14px;
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.job-swatch {
+		width: 14px;
+		height: 14px;
+		border-radius: 3px;
+		flex-shrink: 0;
+		border: 1px solid rgba(255,255,255,0.2);
+	}
+
+	.job-placeholder {
+		color: $text-dim;
+		white-space: nowrap;
+	}
+
+	.job-chevron {
+		margin-left: auto;
+		font-size: 18px;
+	}
+
+	.job-dropdown-list {
+		display: flex;
+		flex-direction: column;
+		flex-shrink: 0;
+		margin-top: 4px;
+		// Low enough that the open list + Confirm always stay inside the window frame at every
+		// UI scale — the list scrolls for the rest.
+		max-height: 200px;
+		overflow-y: auto;
+		border: 1px solid $border;
+		border-radius: 8px;
+		background-color: $bg-raised;
+		padding: 4px;
+	}
+
+	.job-filter {
+		width: 100%;
+		flex-shrink: 0;
+		margin-bottom: 4px;
+	}
+
+	// Scroll slack: lets the last job row scroll fully inside the list's bottom border
+	// (s&box under-measures the scroll max; same fix as .player-scroll-tail).
+	.job-list-tail {
+		flex-shrink: 0;
+		height: 12px;
+		width: 100%;
+	}
+
+	.job-option {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		// Keep natural row height so the list overflows and scrolls — without this the flex column
+		// compresses every row to cram the whole list in view (same law as .wp-row / .player-row).
+		flex-shrink: 0;
+		gap: 8px;
+		padding: 6px 8px;
+		border-radius: 6px;
+		background: transparent;
+		color: $text;
+		font-size: 13px;
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.job-option:hover {
+		background-color: #2d323d;
+	}
+
+	.job-option.active {
+		background-color: $accent-soft;
+		color: $accent;
+	}
+
+	.confirm-btn {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		margin-top: 4px;
+		padding: 10px;
+		border-radius: 8px;
+		background-color: $accent;
+		color: #fff;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+
+		.material-icons {
+			font-size: 18px;
+		}
+
+		&:hover {
+			background-color: $accent-hover;
+		}
+	}
+
+	// Spacers fill the final row's empty columns so real boxes keep their uniform 1/4 width.
+	.action-spacer {
+		flex-grow: 1;
+		flex-basis: 0;
+		min-width: 120px;
+		height: 0;
+	}
+
+	.action-btn {
+		flex-direction: column;
+		// Grow to fill the row edge-to-edge (flush with the inner border). flex-basis:0 + grow makes
+		// every box an equal 1/4 share; min-width forces exactly 4 per row. Short rows are padded with
+		// .action-spacer so boxes never stretch beyond 1/4.
+		flex-grow: 1;
+		flex-basis: 0;
+		min-width: 120px;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		height: 90px;
+		flex-shrink: 0;
+		padding: 8px 6px;
+		border-radius: 11px;
+		background-color: $bg-row;
+		border: 1px solid $border;
+		color: $text;
+		font-size: 13px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.12s ease-out, color 0.12s ease-out, border-color 0.12s ease-out;
+
+		span {
+			flex-shrink: 0;
+			text-align: center;
+			white-space: normal;
+			line-height: 15px;
+		}
+
+		.material-icons {
+			flex-shrink: 0;
+			font-size: 22px;
+			line-height: 1;
+			color: $accent;
+			padding: 8px;
+			border-radius: 10px;
+			background-color: $accent-soft;
+		}
+
+		&:hover {
+			background-color: #2d323d;
+			border-color: rgba(113, 112, 230, 0.28);
+			color: $text;
+
+			.material-icons {
+				color: $accent;
+				background-color: $accent-soft;
+			}
+		}
+
+		&.disabled,
+		&.disabled:hover {
+			pointer-events: none;
+			cursor: default;
+			background-color: $bg-disabled;
+			border-color: $border-disabled;
+			color: $text-disabled;
+
+			.material-icons {
+				color: $text-disabled;
+				background-color: rgba(255, 255, 255, 0.03);
+			}
+		}
+	}
+
+	.empty {
+		color: $text-dim;
+		font-size: 13px;
+		padding: 8px 16px 0 16px;
+	}
+
+	.profile {
+		flex-direction: column;
+		flex-grow: 1;
+		min-height: 0;
+		padding: 16px;
+		gap: 14px;
+
+		.profile-head {
+			flex-direction: row;
+			flex-shrink: 0;
+			align-items: center;
+			gap: 10px;
+			color: $text;
+			font-size: 16px;
+			font-weight: 600;
+		}
+
+		.profile-card {
+			position: relative;
+			flex-direction: column;
+			flex-grow: 1;
+			min-height: 0;
+			align-items: center;
+			gap: 12px;
+			padding: 18px;
+			border-radius: 12px;
+			background-color: $bg-raised;
+			border: 1px solid $border;
+			overflow: hidden;
+
+			// Quick-teleport box (Goto / Bring / Return) pinned to the card's top-right corner so it
+			// reads as part of the player it acts on, not a floating control up by the header.
+			.profile-tp {
+				position: absolute;
+				top: 14px;
+				right: 14px;
+				flex-direction: row;
+				align-items: center;
+				gap: 6px;
+
+				// Matches the command-grid .action-btn: rest = bg-row tile with an accent icon,
+				// hover = accent fill with a white icon — same highlight language across the menu.
+				.tp-btn {
+					align-items: center;
+					justify-content: center;
+					width: 32px;
+					height: 32px;
+					border-radius: 7px;
+					background-color: $bg-row;
+					cursor: pointer;
+					transition: background-color 0.12s ease-out, color 0.12s ease-out;
+
+					.material-icons {
+						font-size: 17px;
+						color: $accent;
+					}
+
+					&:hover {
+						background-color: #2d323d;
+
+						.material-icons {
+							color: $accent;
+						}
+					}
+
+					&.disabled,
+					&.disabled:hover {
+						pointer-events: none;
+						cursor: default;
+						background-color: $bg-disabled;
+						border: 1px solid $border-disabled;
+
+						.material-icons {
+							color: $text-disabled;
+						}
+					}
+				}
+			}
+
+			.profile-avatar {
+				flex-shrink: 0;
+				width: 64px;
+				height: 64px;
+				border-radius: 50%;
+				border: 2px solid rgba(113, 112, 230, 0.3);
+			}
+
+			.profile-name {
+				flex-shrink: 0;
+				color: $text;
+				font-size: 18px;
+				font-weight: 600;
+			}
+
+			// The fields are the only scrollable region — avatar, name and the action button stay
+			// pinned (flex-shrink: 0) so adding fields never reflows or squishes them.
+			.profile-fields {
+				flex-direction: column;
+				flex-grow: 1;
+				min-height: 0;
+				overflow-y: scroll;
+				width: 100%;
+				gap: 2px;
+				padding-bottom: 4px;
+
+				// Scroll slack so the last stat row (Deaths) clears the pinned action buttons.
+				.profile-fields-tail {
+					flex-shrink: 0;
+					height: 24px;
+					width: 100%;
+				}
+
+				.field {
+					flex-direction: row;
+					flex-shrink: 0;
+					align-items: center;
+					justify-content: space-between;
+					gap: 12px;
+					padding: 10px 4px;
+					border-bottom: 1px solid $border;
+
+					.k {
+						flex-shrink: 0;
+						color: $text-dim;
+						font-size: 13px;
+					}
+
+					.v {
+						color: $text;
+						font-size: 14px;
+						font-weight: 600;
+						text-align: right;
+					}
+
+					// Steam ID value + inline copy button. Standalone class (not `.v.v-copy`) so the
+					// s&box CSS subset matches it reliably; flex row keeps the glyph beside the number.
+					.v-copy {
+						flex-direction: row;
+						align-items: center;
+						justify-content: flex-end;
+						gap: 6px;
+					}
+				}
+			}
+
+			.confirm-btn {
+				flex-shrink: 0;
+				width: 100%;
+			}
+		}
+	}
+
+	// Lower-emphasis sibling of .confirm-btn (e.g. the profile's "View audit log" shortcut).
+	.confirm-btn.secondary {
+		// Sit closer to the primary "Actions for this player" button above (tighten the card gap).
+		margin-top: -6px;
+		background-color: $bg-row;
+		color: $text;
+
+		.material-icons {
+			color: $accent;
+		}
+
+		&:hover {
+			background-color: #2d323d;
+			color: $text;
+
+			.material-icons {
+				color: $accent;
+			}
+		}
+	}
+
+	// --- Audit viewer: full-window pane mirroring the DXRP portal Audit page ---
+	.audit {
+		flex-direction: column;
+		flex-grow: 1;
+		min-height: 0;
+		padding: 16px;
+		gap: 12px;
+		overflow-y: scroll;
+
+		.audit-head {
+			flex-direction: row;
+			flex-shrink: 0;
+			align-items: center;
+			gap: 10px;
+			color: $text;
+			font-size: 16px;
+			font-weight: 600;
+
+			.material-icons {
+				color: $accent;
+				font-size: 20px;
+			}
+		}
+
+		.audit-filters {
+			flex-direction: row;
+			flex-shrink: 0;
+			gap: 10px;
+
+			.audit-filter {
+				flex-direction: row;
+				flex-grow: 1;
+				flex-basis: 0;
+				align-items: center;
+				gap: 6px;
+				padding: 1px 10px;
+				border-radius: 7px;
+				background-color: $bg-row;
+				border: 1px solid $border;
+
+				.material-icons {
+					font-size: 16px;
+					color: $text-dim;
+				}
+
+				.audit-input {
+					flex-grow: 1;
+					height: 30px;
+					background-color: transparent;
+					color: $text;
+					font-size: 12px;
+					border: 0;
+				}
+
+				.icon-btn {
+					width: 22px;
+					height: 22px;
+				}
+			}
+		}
+
+		.audit-table {
+			flex-direction: column;
+			flex-grow: 1;
+			min-height: 0;
+			border-radius: 10px;
+			border: 1px solid $border;
+			background-color: $bg-raised;
+			overflow: hidden;
+		}
+
+		.audit-scroll {
+			flex-direction: column;
+			flex-grow: 1;
+			min-height: 0;
+			overflow-y: scroll;
+		}
+
+		.audit-row {
+			flex-direction: row;
+			flex-shrink: 0;
+			align-items: center;
+			gap: 10px;
+			padding: 9px 12px;
+			border-bottom: 1px solid $border;
+			color: $text;
+			font-size: 12px;
+
+			&:hover {
+				background-color: rgba(255, 255, 255, 0.03);
+			}
+
+			.c-when {
+				flex-shrink: 0;
+				width: 78px;
+				color: $text-dim;
+			}
+
+			.c-action {
+				flex-shrink: 0;
+				width: 116px;
+			}
+
+			.c-player {
+				flex-grow: 1;
+				flex-basis: 0;
+				min-width: 0;
+				font-weight: 500;
+
+				// Server/automated entries (SteamId 0) read as "system" — dimmed + italic, matching
+				// the portal Audit page where non-player actors are de-emphasised.
+				&.system {
+					color: $text-dim;
+					font-weight: 400;
+					font-style: italic;
+				}
+			}
+
+			.c-entity {
+				flex-shrink: 0;
+				width: 96px;
+				color: $text-dim;
+			}
+
+			.c-desc {
+				flex-grow: 2;
+				flex-basis: 0;
+				min-width: 0;
+				color: $text;
+			}
+		}
+
+		// Sticky-feeling header row: raised tint, uppercase labels, no hover.
+		.audit-row-head {
+			flex-shrink: 0;
+			background-color: $bg-row;
+			color: $text-dim;
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+
+			&:hover {
+				background-color: $bg-row;
+			}
+
+			.c-when,
+			.c-entity {
+				color: $text-dim;
+			}
+		}
+
+		.action-pill {
+			padding: 3px 8px;
+			border-radius: 10px;
+			background-color: rgba(79, 140, 255, 0.16);
+			color: $accent;
+			font-size: 11px;
+			font-weight: 600;
+		}
+
+		.audit-empty {
+			color: $text-dim;
+			font-size: 13px;
+			padding: 16px;
+		}
+	}
+
+	.settings {
+		flex-direction: column;
+		flex-grow: 1;
+		min-height: 0;
+		padding: 16px;
+		gap: 14px;
+		overflow: hidden;
+
+		.settings-head {
+			flex-direction: row;
+			flex-shrink: 0;
+			align-items: center;
+			gap: 10px;
+			color: $text;
+			font-size: 16px;
+			font-weight: 600;
+
+			.material-icons {
+				color: $accent;
+				font-size: 20px;
+			}
+		}
+
+		// Boxed customization group (matches the waypoint list panel). Holds the label, hint and editor.
+		.settings-group {
+			flex-direction: column;
+			flex-shrink: 0;
+			gap: 8px;
+			padding: 16px;
+			border-radius: 10px;
+			border: 1px solid $border;
+			background-color: $bg-raised;
+		}
+
+		.settings-label {
+			color: $text;
+			font-size: 13px;
+			font-weight: 600;
+		}
+
+		.settings-hint {
+			color: $text-dim;
+			font-size: 12px;
+		}
+
+		.panel-size-row {
+			flex-direction: row;
+			gap: 8px;
+			margin-top: 4px;
+		}
+
+		.panel-size-opt {
+			display: flex;
+			flex-direction: row;
+			flex-grow: 1;
+			align-items: center;
+			justify-content: center;
+			height: 34px;
+			padding: 0 10px;
+			border-radius: 999px;
+			border: 1px solid $border;
+			background-color: $bg-row;
+			color: $text-dim;
+			font-size: 12px;
+			font-weight: 700;
+			line-height: 1;
+			cursor: pointer;
+
+			&:hover {
+				color: $text;
+				border-color: rgba(255, 255, 255, 0.14);
+			}
+
+			&.active {
+				background-color: $accent-soft;
+				border-color: rgba(113, 112, 230, 0.45);
+				color: $accent;
+			}
+		}
+
+		// Input + Save row, identical language to the waypoint .wp-bar.
+		// touch less on the right) floats the Save button inset from the bar edges — matching the Return
+		// bar's "respect the border" look rather than sitting flush to the frame.
+		.settings-bar {
+			flex-direction: row;
+			align-items: center;
+			gap: 8px;
+			margin-top: 4px;
+			padding: 4px 6px;
+			border-radius: 7px;
+			background-color: $bg-row;
+			border: 1px solid $border;
+
+			> .material-icons {
+				font-size: 16px;
+				color: $text-dim;
+			}
+
+			.settings-input {
+				flex-grow: 1;
+				height: 32px;
+				background-color: transparent;
+				color: $text;
+				font-size: 12px;
+				border: 0;
+			}
+
+			.settings-btn {
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				flex-shrink: 0;
+				height: 28px;
+				padding: 0 12px;
+				border-radius: 6px;
+				font-size: 12px;
+				font-weight: 600;
+				cursor: pointer;
+
+				.material-icons {
+					font-size: 15px;
+				}
+
+				&.save {
+					background-color: $accent;
+					color: #fff;
+
+					&:hover {
+						background-color: $accent-hover;
+					}
+				}
+
+				// Brief post-save confirmation so the click clearly registers.
+				&.saved {
+					background-color: #2ecc71;
+					color: #fff;
+
+					&:hover {
+						background-color: #2ecc71;
+					}
+				}
+			}
+		}
+
+		.settings-current {
+			flex-direction: row;
+			align-items: center;
+			gap: 6px;
+			color: $text-dim;
+			font-size: 11px;
+
+			.settings-current-text {
+				color: $text-dim;
+				font-size: 11px;
+			}
+		}
+
+		.settings-readonly {
+			color: $text;
+			font-size: 12px;
+		}
+
+		// Placeholder body for menus that aren't built yet (Player & Staff Management).
+		.coming-soon {
+			flex-grow: 1;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			color: $text-dim;
+
+			.material-icons {
+				font-size: 44px;
+				color: $text-dim;
+			}
+
+			.coming-soon-title {
+				font-size: 18px;
+				font-weight: 600;
+				color: $text;
+			}
+
+			.coming-soon-hint {
+				font-size: 12px;
+				color: $text-dim;
+			}
+		}
+	}
+
+	.waypoints {
+		flex-direction: column;
+		flex-grow: 1;
+		min-height: 0;
+		padding: 16px;
+		gap: 12px;
+		overflow: hidden;
+
+		.wp-head {
+			flex-direction: row;
+			flex-shrink: 0;
+			align-items: center;
+			gap: 10px;
+			color: $text;
+			font-size: 16px;
+			font-weight: 600;
+
+			.material-icons {
+				color: $accent;
+				font-size: 20px;
+			}
+		}
+
+		.wp-bar {
+			flex-direction: row;
+			flex-shrink: 0;
+			align-items: center;
+			gap: 10px;
+			padding: 5px 10px;
+			border-radius: 7px;
+			background-color: $bg-row;
+			border: 1px solid $border;
+
+			> .material-icons {
+				font-size: 16px;
+				color: $text-dim;
+				flex-shrink: 0;
+			}
+
+			.wp-input {
+				flex-grow: 1;
+				min-width: 0;
+				height: 32px;
+				background-color: transparent;
+				color: $text;
+				font-size: 13px;
+				line-height: 1.2;
+				border: 0;
+			}
+
+			.wp-btn {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				flex-shrink: 0;
+				height: 32px;
+				padding: 0 14px;
+				border-radius: 7px;
+				font-size: 12px;
+				font-weight: 600;
+				cursor: pointer;
+
+				.material-icons {
+					font-size: 15px;
+				}
+
+				&.go {
+					background-color: $accent;
+					color: #fff;
+
+					&:hover {
+						background-color: $accent-hover;
+					}
+				}
+
+				&.set {
+					background-color: $bg-raised;
+					color: $text;
+					border: 1px solid $border;
+
+					&:hover {
+						background-color: #2d313b;
+					}
+				}
+
+				&.disabled,
+				&.disabled:hover {
+					pointer-events: none;
+					cursor: default;
+					background-color: $bg-disabled;
+					color: $text-disabled;
+					border: 1px solid $border-disabled;
+				}
+			}
+		}
+
+		// Flex slot: absorbs leftover height at XL without stretching the bordered list box.
+		.wp-list-region {
+			flex: 1 1 auto;
+			flex-direction: column;
+			min-height: 0;
+			overflow: hidden;
+		}
+
+		.wp-list {
+			flex: 1 1 auto;
+			flex-direction: column;
+			min-height: 0;
+			border-radius: 10px;
+			border: 1px solid $border;
+			background-color: $bg-raised;
+			overflow-y: auto;
+		}
+
+		.wp-row {
+			flex-direction: row;
+			flex-shrink: 0;
+			align-items: center;
+			gap: 10px;
+			padding: 8px 12px;
+			border-bottom: 1px solid $border;
+			color: $text;
+			font-size: 13px;
+
+			&:last-child {
+				border-bottom: 0;
+			}
+
+			&:hover {
+				background-color: rgba(255, 255, 255, 0.03);
+			}
+
+			> .material-icons {
+				font-size: 16px;
+				color: $accent;
+			}
+
+			.wp-name {
+				flex-grow: 1;
+				flex-basis: 0;
+				min-width: 0;
+				font-weight: 500;
+			}
+
+			.wp-go-row {
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				flex-shrink: 0;
+				height: 28px;
+				padding: 0 12px;
+				border-radius: 6px;
+				background-color: $accent;
+				color: #fff;
+				font-size: 12px;
+				font-weight: 600;
+				cursor: pointer;
+
+				.material-icons {
+					font-size: 15px;
+				}
+
+				&:hover {
+					background-color: $accent-hover;
+				}
+			}
+
+			.wp-clear {
+				flex-shrink: 0;
+				align-items: center;
+				justify-content: center;
+				width: 28px;
+				height: 28px;
+				border-radius: 6px;
+				background-color: $bg-row;
+				color: $text-dim;
+				cursor: pointer;
+
+				.material-icons {
+					font-size: 16px;
+				}
+
+				&:hover {
+					background-color: rgba(231, 84, 74, 0.16);
+					color: $danger;
+				}
+			}
+		}
+
+		.wp-empty {
+			color: $text-dim;
+			font-size: 13px;
+			padding: 16px;
+		}
+
+		// --- "Return a player" — compact block pinned bottom-right --------
+		// Header, hint and the SteamID64 bar share one fixed-width column aligned to the right, so the
+		// whole block is uniform with the field instead of spanning the full window (a SteamID64 is only
+		// 17 digits). The bar inside fills this width via the base .wp-bar rule (.wp-input flex-grow:1).
+		.wp-return-section {
+			flex-direction: column;
+			align-self: flex-end;
+			flex-shrink: 0;
+			// Small drop below the waypoint list so the section isn't crowding the list above it.
+			margin-top: 10px;
+			// Tight 8px rhythm so the header, hint and bar read as one compact block (hint→bar = 8px).
+			gap: 8px;
+			// Match the bar's width so the header + hint line up with it (left edges flush) instead of
+			// sticking out ~20px to the left. Text stays left-aligned; the hint just wraps a little more.
+			width: 300px;
+
+			// Smaller header, pulled down to sit right on top of the hint line (the negative margin
+			// tightens the header→hint gap to ~3px on top of the section's 8px).
+			.wp-head {
+				// Indent the text a bit further right than the bar's left edge so the block reads
+				// naturally rather than pixel-locked to the SteamID64 bar (the bar stays put — it's a
+				// separate right-aligned element).
+				padding-left: 16px;
+				font-size: 14px;
+				gap: 8px;
+
+				.material-icons {
+					font-size: 17px;
+				}
+			}
+
+			.wp-sit-hint {
+				flex-shrink: 0;
+				margin-top: -5px;
+				padding-left: 16px;
+				color: $text-dim;
+				font-size: 10px;
+			}
+		}
+
+		// Return bar kept SHALLOW (a direct .waypoints descendant, not nested under .wp-return-section):
+		// s&box's SCSS silently drops 4-deep rules, so `.waypoints .wp-return-section .wp-bar .wp-input`
+		// never applied and the field kept flex-grow:1, stretching the bar full width with a trailing gap
+		// past Return. At this depth the field is fixed-width and the bar hugs it, flush-right.
+		.wp-return-bar {
+			align-self: flex-end;
+			flex-grow: 0;
+			width: auto;
+			padding: 5px 10px;
+			gap: 10px;
+
+			.wp-input {
+				flex-grow: 0;
+				width: 160px;
+			}
+
+			.wp-btn {
+				display: flex;
+				height: 32px;
+				padding: 0 14px;
+				border-radius: 6px;
+			}
+		}
+	}
+
+	// ulx-v2 flavor layer — remove `ulx-v2` from StaffMenu.razor root to fall back to simpler chrome.
+	&.ulx-v2 {
+		.title-badge {
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 12px;
+			background-color: $accent-soft;
+			border: 1px solid rgba(113, 112, 230, 0.28);
+			box-shadow: 0 0 18px $accent-glow;
+
+			.material-icons {
+				color: $accent;
+				font-size: 22px;
+			}
+		}
+
+		.title-stack {
+			flex-direction: column;
+			gap: 2px;
+		}
+
+		.title-primary {
+			color: $text;
+			font-size: 18px;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+		}
+
+		.title-sub {
+			color: $text-dim;
+			font-size: 11px;
+			font-weight: 600;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+		}
+
+		.coming-soon .material-icons {
+			color: $text-disabled;
+		}
+	}
+}

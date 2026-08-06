@@ -1,0 +1,559 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.fieldguide.daynight</name>
+    </assembly>
+    <members>
+        <member name="T:FieldGuide.DayNight.DayNightClock">
+             <summary>
+             The host-authoritative day/night clock: the ONE thin networked surface in this kit. Everything else
+             (grading, weights, weather, time-set math) is pure and testable; this component is the small, honest
+             piece that cannot run headless because it depends on s&amp;box networking.
+            
+             Ownership model: in a peer-hosted s&amp;box session the HOST owns the clock. It accumulates game-time each
+             fixed tick and publishes three <c>[Sync(SyncFlags.FromHost)]</c> fields; clients never write them, they
+             observe and locally extrapolate so the sun advances smoothly between snapshots. Single-player (networking
+             inactive) is the host-of-one and just reads its own field directly.
+            
+             THE PAUSE PIN (the hardening worth understanding). A paused host STOPS writing <see cref="P:FieldGuide.DayNight.DayNightClock.NetTimeOfDay"/>.
+             A client only corrects its extrapolated clock toward the host snapshot when that value CHANGES, so with
+             only a time field on the wire, a paused host would leave every client free-running forever (host frozen at
+             noon, clients cycling a whole day). <see cref="P:FieldGuide.DayNight.DayNightClock.NetTimePaused"/> fixes it: the host publishes the pause
+             state on the same FromHost surface, and while it is true a client PINS its local clock to the snapshot and
+             skips the advance. The instant the host unpauses, extrapolation resumes and re-locks onto the moving
+             snapshot. Keep both fields on the wire together, this is the fix, do not drop it.
+            
+             Add this component to your session/game-manager GameObject once. Drive the look with
+             <see cref="T:FieldGuide.DayNight.DayNightDriver"/> (or read <see cref="M:FieldGuide.DayNight.DayNightClock.GetTimeHours"/> / <see cref="M:FieldGuide.DayNight.DayNightClock.EffectiveWeather(System.Int32)"/> yourself).
+             </summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.Config">
+            <summary>Tuning (config over constants). Static, not replicated, set the SAME config on every peer
+            (it is authoring data, identical everywhere, not session state). Defaults to the reference grade.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.WorldSeed">
+            <summary>The world seed the deterministic weather roll hashes against. Set it to whatever your game uses
+            as its per-world seed so host and clients roll the same weather. Replicated so a mid-day joiner agrees.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.NetTimeOfDay">
+            <summary>TOTAL game-hours since world start (dayIndex = floor(t/24), hour-of-day = t % 24). Host writes
+            it each tick; clients observe and extrapolate. FromHost so only the host's write survives.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.NetTimePaused">
+            <summary>Pause replication (see the class remarks). The host's authority-only pause state, published on
+            the SAME FromHost surface as <see cref = "P:FieldGuide.DayNight.DayNightClock.NetTimeOfDay"/> so a client can tell a paused host from a slow
+            one and stop free-running. Default false = the clock runs.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.NetWeatherOverride">
+            <summary>Weather override: -1 = derive from the (seed, dayIndex) hash; >=0 = a forced
+            <see cref = "T:FieldGuide.DayNight.WeatherKind"/> (a pin, or an authority carrying a specific day's roll to a late joiner).
+            FromHost so the host owns it.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightClock.For(Sandbox.Scene)">
+            <summary>Find the clock for a scene (first one). Returns null before it exists.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightClock.GetTimeHours">
+            <summary>The effective clock: the host reads its authoritative <see cref="P:FieldGuide.DayNight.DayNightClock.NetTimeOfDay"/>, a client reads
+            its locally-extrapolated clock (smoothed toward the host snapshots). Feed this to the grade and the sky
+            weights so they can never disagree.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.CurrentDay">
+            <summary>The current day index (floor(time / 24)).</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightClock.EffectiveWeather(System.Int32)">
+            <summary>The effective weather for a day: the host override if set, else the deterministic pure roll for
+            (<see cref="P:FieldGuide.DayNight.DayNightClock.WorldSeed"/>, dayIndex).</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.CurrentWeather">
+            <summary>The effective weather RIGHT NOW.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightClock.SetTimeOfDay(System.Single)">
+            <summary>Set the clock to an hour-of-day, preserving the current day (so weather does not re-roll). Snaps
+            the client extrapolation trackers so a joiner does not ease across a deliberate jump. Authority only.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightClock.NudgeTime(System.Single)">
+            <summary>Nudge the clock by a signed delta in game-hours (clamped at 0). Authority only.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightClock.TimePaused">
+            <summary>Is the clock paused (authority-side)?</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightClock.SetPaused(System.Boolean)">
+            <summary>Pause or resume the clock. Authority only; the pause state replicates on the FromHost surface so
+            clients stop free-running (see the class remarks).</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightClock.SetWeatherOverride(System.Int32)">
+            <summary>Force a weather kind (>=0) or clear back to the deterministic hash roll (-1). Authority only.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.DayNightConfig">
+             <summary>
+             All the tuning for the day/night cycle in one passed-in struct (library law: config over constants).
+             Every pure math call (<see cref="T:FieldGuide.DayNight.SkyGrade"/>, <see cref="T:FieldGuide.DayNight.SkyWeights"/>) and the clock accumulate take a
+             config by reference, so a library consumer never reads a project-global static. Grab
+             <see cref="P:FieldGuide.DayNight.DayNightConfig.Default"/> and tweak the fields you care about.
+            
+             The values in <see cref="P:FieldGuide.DayNight.DayNightConfig.Default"/> are the exact reference grade from the source game: an afternoon
+             anchor at 15:00, a symmetric 12 h day (sunrise 6, sunset 18), a warm HDR sun and sky, and a deep-blue
+             night. The arc is DERIVED from <see cref="F:FieldGuide.DayNight.DayNightConfig.SunDirection"/> (its noon pitch/yaw come from LookAt→Angles),
+             so nudging <see cref="F:FieldGuide.DayNight.DayNightConfig.SunDirection"/> moves the whole arc without touching the pitch/yaw fields.
+            
+             EXPOSURE IS NOT IN HERE ON PURPOSE. The whole diurnal look comes from sun rotation + light/sky/envmap
+             colours, never from tone-mapping. If your game locks camera exposure, night renders genuinely dark under
+             it; this kit never writes exposure, so it will not fight your camera. See the README.
+             </summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SunriseHour">
+            <summary>Game-hour daylight begins. Default 6, giving a symmetric 12 h day with
+            <see cref="F:FieldGuide.DayNight.DayNightConfig.SunsetHour"/>.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SunsetHour">
+            <summary>Game-hour daylight ends. Default 18.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.DayLengthMinutes">
+            <summary>Real-time MINUTES per in-game day at the NIGHT pace. Because <see cref="F:FieldGuide.DayNight.DayNightConfig.DayRateScale"/> slows
+            the daylight arc, this is the night-arc pace, not the whole-cycle length.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.DayRateScale">
+            <summary>Clock-rate multiplier applied through full daylight so the day lasts longer than the night;
+            night stays at rate 1 so its real-time length is preserved exactly. The default is solved so the
+            effective day:night real-time ratio is 3.0 (see <see cref="M:FieldGuide.DayNight.SkyGrade.ClockRateScale(System.Single,FieldGuide.DayNight.DayNightConfig@)"/> and the ratio
+            self-test). Change the daylight window or twilight width and re-solve this against your target.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.TwilightHours">
+            <summary>Smoothstep ramp width (game-hours) at each daylight edge, shared by the pace ramp and the
+            twilight colour blend so the pace shift is masked by the sky already transitioning.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.StartHours">
+            <summary>Game-hour a fresh session's clock starts at.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.StartPaused">
+            <summary>Whether a fresh session starts paused (held at <see cref="F:FieldGuide.DayNight.DayNightConfig.StartHours"/> until something sets
+            the time). Default false = the clock runs.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.HorizonPitch">
+            <summary>Near-horizon sun pitch at sunrise/sunset.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.YawSpan">
+            <summary>Total east→west yaw the sun sweeps across the day.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.NightPitch">
+            <summary>Fixed low-moon pitch for deep night.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SunDirection">
+            <summary>Reference sun direction. The arc's noon pitch/yaw are derived from this (LookAt→Angles), so
+            the arc always threads the current reference sun.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SunColor">
+            <summary>Reference sun key colour at the anchor daylight. The daytime lerp is anchored so the sun key
+            EQUALS this exactly at <see cref="F:FieldGuide.DayNight.DayNightConfig.AnchorHours"/>.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SkyAmbient">
+            <summary>Reference ambient (sky-fill) colour at the anchor daylight.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SkyTint">
+            <summary>Reference SkyBox2D tint at the anchor daylight.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.EnvmapTint">
+            <summary>Reference EnvmapProbe tint at the anchor daylight.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.AnchorHours">
+            <summary>The daylight hour the reference grade is authored at. At this hour (Clear weather) the computed
+            grade equals the reference values above exactly.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.NoonKey">
+            <summary>Sun key the daytime lerp reaches toward noon.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.HorizonKey">
+            <summary>Deep warm sun key at the horizon edge (sunrise/sunset).</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.NightKey">
+            <summary>Deep-night sun key.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.NightAmbient">
+            <summary>Deep-night ambient (SkyColor) fill.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.NightSkyTint">
+            <summary>Deep-night SkyBox2D tint.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.NightEnvTint">
+            <summary>Deep-night EnvmapProbe tint.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.WeatherDimCloudy">
+            <summary>Sun-key dim multiplier under Cloudy weather (1 = no dim).</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.WeatherDimRain">
+            <summary>Sun-key dim multiplier under Rain weather.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SkyNightHour">
+            <summary>Hour-of-day anchors for the four sky slots the consumer crossfades (night / morning / noon /
+            evening). Evenly 6 h apart by default and aligned to sunrise/sunset so every segment is a clean
+            adjacent-pair crossfade and the midnight wrap is continuous.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SkyMorningHour">
+            <summary>Hour-of-day the MORNING sky slot owns outright (weight 1). Default 6, at sunrise.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SkyNoonHour">
+            <summary>Hour-of-day the NOON sky slot owns outright (weight 1). Default 12.</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightConfig.SkyEveningHour">
+            <summary>Hour-of-day the EVENING sky slot owns outright (weight 1). Default 18, at sunset.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightConfig.Default">
+            <summary>The reference grade lifted verbatim from the source game. Afternoon anchor, symmetric 12 h day,
+            20 real-minute night pace, day 3x longer than night, warm HDR daylight, deep-blue night.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.DayNightDriver">
+             <summary>
+             OPTIONAL convenience driver. Put it on the same GameObject as your scene's DirectionalLight and it applies
+             the day/night grade every frame from the <see cref="T:FieldGuide.DayNight.DayNightClock"/> in the scene: sun rotation + colour,
+             SkyBox2D tint, and EnvmapProbe tint. It resolves the sun from its own GameObject and the sky/envmap from
+             the scene (first of each). Delete this file if you would rather call <see cref="M:FieldGuide.DayNight.SkyGrade.ApplyGradeTo(Sandbox.DirectionalLight,Sandbox.SkyBox2D,Sandbox.EnvmapProbe,System.Single,FieldGuide.DayNight.WeatherKind,FieldGuide.DayNight.DayNightConfig@)"/>
+             yourself.
+            
+             It never touches exposure/shadows/fog, so it will not fight a locked-exposure camera.
+            
+             The <see cref="P:FieldGuide.DayNight.DayNightDriver.ShowCycle"/> seam generalizes the source game's "am I possessing a character?" gate. While
+             it returns false the driver holds the stable ANCHOR grade (a fully-lit, non-moving model-viewer look) and
+             leaves the sky at your authoring backdrop; the moment it returns true the live cycle resumes at the true
+             game time (the clock keeps ticking underneath regardless). Default: always show the cycle.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightDriver.Config">
+            <summary>Tuning. Defaults to the reference grade; set it to match your clock's config.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightDriver.ShowCycle">
+            <summary>Return false to hold the stable anchor grade instead of the live cycle (e.g. while the local
+            player is in a menu / god-camera authoring mode). Null-safe: null means always show the cycle.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightDriver.AuthoringSkyTint">
+            <summary>Optional sky tint to force while <see cref="P:FieldGuide.DayNight.DayNightDriver.ShowCycle"/> is false (your authoring backdrop). If
+            null the anchor sky tint is used.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.DayNightDemoBootstrap">
+             <summary>
+             Wires the demo scene in code so the whole kit is exercised from one component.
+            
+             The scene it builds is the kit's hero case: a lit ground plane with a few shapes on it, a
+             <see cref="T:FieldGuide.DayNight.DayNightClock"/> running the time, and a <see cref="T:FieldGuide.DayNight.DayNightDriver"/> on the scene's
+             DirectionalLight. Nothing else. That is enough, because the kit's product IS the light: the sun sweeps,
+             the shadows swing across the ground, the colour grade warms into dusk and drops into a genuinely dark
+             night, and none of it touches camera exposure. The shapes exist to catch that light and throw the
+             shadows that make the sweep readable; a bare plane shows almost nothing.
+            
+             Two surfaces sit on top. The hint card (left) is up from the first frame and prints the live sky
+             weights, which is the only way to SEE the sky seam in a kit that deliberately ships no sky art. The
+             time panel (right) is the kit's dev tuning surface, opened here because a demo whose point is
+             "drive the cycle" should not hide the control behind a keypress.
+            
+             Everything it builds ships with the engine: the dev primitives and the default material. The kit adds
+             no art of its own.
+            
+             DEMO CONTENT IS INERT BY CONSTRUCTION (library law 11). Two things make that true here rather than by
+             instruction. First, the kit ships no scanned GameResource, so there is no demo content that can load
+             itself into a consumer's game the way a stray demo asset would. Second, the demo's UI is gated on
+             <see cref="P:FieldGuide.DayNight.DayNightDemoBootstrap.DemoActive"/>, a flag ONLY this bootstrap sets: a consumer who forgets to delete Code/Demo,
+             and who somehow ends up with the hint card component in a scene, still renders nothing.
+            
+             Not part of the kit's runtime surface: delete Code/Demo when you drop the kit into your own project.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightDemoBootstrap.DemoActive">
+            <summary>
+            True once this bootstrap has run in this session. The demo's own UI checks it before rendering, so
+            demo content cannot appear in a consumer's game just because Code/Demo was left in the project.
+            Nothing outside Code/Demo reads or writes it.
+            </summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightDemoBootstrap.DemoWorldSeed">
+            <summary>The world seed the deterministic weather roll hashes against. Any int works; this one is
+            just a fixed number so the demo rolls the same weather every run and two people comparing notes see
+            the same days.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightDemoBootstrap.DemoDayLengthMinutes">
+            <summary>Real minutes per in-game day at the night pace. Short by default: the whole point of the
+            demo is watching a full cycle, and the shipped default of 20 minutes is a long wait for that.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightDemoBootstrap.DemoStartHour">
+            <summary>Game-hour the demo starts at. Mid-morning, so the first thing on screen is a lit scene with
+            a sun that is visibly climbing rather than a black frame.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.DayNightDemoBootstrap.Shape">
+            <summary>One shape in the demo cluster, sized in ENGINE UNITS per axis. The builder divides the size
+            by the model's own bounds to get the scale, so the table below reads as real dimensions and survives
+            the engine changing what a dev primitive measures (the shipped box is 50 units, the sphere 64).</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightDemoBootstrap.Shape.#ctor(System.String,Vector3,Vector3,Color)">
+            <summary>One shape in the demo cluster, sized in ENGINE UNITS per axis. The builder divides the size
+            by the model's own bounds to get the scale, so the table below reads as real dimensions and survives
+            the engine changing what a dev primitive measures (the shipped box is 50 units, the sphere 64).</summary>
+        </member>
+        <member name="F:FieldGuide.DayNight.DayNightDemoBootstrap.Cluster">
+             <summary>
+             The cluster. A tall slab, a low wall, two blocks and a ball, spread out and at different heights.
+            
+             The shapes are chosen for their SHADOWS, not their looks. A tall thin slab throws a long finger that
+             swings a quarter turn across the plane over one day, which is the single clearest read on "the sun is
+             actually moving"; the low wall gives a hard edge for the terminator to crawl along at dawn and dusk;
+             the ball is the only curved surface, so it is where the warm key and the cool sky fill are visibly
+             two different colours rather than one flat tone.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightDemoBootstrap.EnsureClock">
+             <summary>
+             The clock, configured for a demo rather than for a game.
+            
+             The one non-default value is the day length. Everything else is <see cref="P:FieldGuide.DayNight.DayNightConfig.Default"/>
+             verbatim, on purpose: a demo that tunes the grade is showing you ITS look, not the kit's, and the
+             shipped default is the reference grade a consumer gets on install.
+             </summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.DayNightSelfTest">
+             <summary>
+             A pure self-test battery for the kit's deterministic math, ported from the source game's pure-test suite.
+             None of it needs a running scene or networking, it exercises <see cref="T:FieldGuide.DayNight.SkyGrade"/>, <see cref="T:FieldGuide.DayNight.SkyWeights"/>,
+             <see cref="T:FieldGuide.DayNight.WeatherRoll"/>, and <see cref="T:FieldGuide.DayNight.TimeMath"/> against the default config and returns a pass/fail
+             report. It is the kit's compile-in-isolation smoke proof and doubles as executable documentation.
+            
+             Run it from the s&amp;box console with <c>fg_daynight_selftest</c>, or call <see cref="M:FieldGuide.DayNight.DayNightSelfTest.RunAll"/> from your own
+             harness. Every case is a pure function of the config, so a green run here is meaningful without the editor.
+             </summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.DayNightSelfTest.Case">
+            <summary>One test result.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightSelfTest.Case.#ctor(System.String,System.Boolean,System.String)">
+            <summary>One test result.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightSelfTest.RunAll">
+            <summary>Run every case against <see cref="P:FieldGuide.DayNight.DayNightConfig.Default"/>. Returns the per-case results; the
+            caller decides how to surface them.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightSelfTest.RunFromConsole">
+            <summary>Console entry: run the battery and print a one-line-per-case report plus a summary.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.SkyGrade">
+             <summary>
+             The pure grading math: a total game-hour + weather + config in, a sun rotation and four colour grades out.
+             No engine state, no randomness, so a host and every client compute the SAME look from the same clock, and
+             the editor / a headless test can render or check the exact cycle a play session shows.
+            
+             ANCHOR-EXACT BY CONSTRUCTION: at <see cref="F:FieldGuide.DayNight.DayNightConfig.AnchorHours"/> (Clear) every output equals the
+             reference grade in the config, so pinning the anchor reproduces the authored look byte-for-byte. The
+             daytime arc is derived from <see cref="F:FieldGuide.DayNight.DayNightConfig.SunDirection"/> and lerps FROM the reference colours,
+             and a twilight band smoothstep-blends dusk/dawn to the night grade so there is no hard flip at the horizon.
+            
+             This math NEVER touches exposure, shadows, or fog. Apply it and your night is dark because the sun and sky
+             colours are dark, not because tone-mapping moved.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.SkyGrade.Smoothstep(System.Single)">
+            <summary>Smoothstep 0→1 with clamp, the twilight blend easing (deterministic; no engine state).</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.SkyGrade.ComputeGrade(System.Single,FieldGuide.DayNight.WeatherKind,FieldGuide.DayNight.DayNightConfig@,Rotation@,Color@,Color@,Color@,Color@)">
+            <summary>Compute the sun rotation + all four colour grades for a TOTAL game-hour + weather. Anchor-exact:
+            at <see cref="F:FieldGuide.DayNight.DayNightConfig.AnchorHours"/> (Clear) every value equals the config reference grade. Never
+            computes exposure, that stays whatever your camera set it to.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.SkyGrade.ClockRateScale(System.Single,FieldGuide.DayNight.DayNightConfig@)">
+            <summary>PURE: the clock-advance rate MULTIPLIER for a given hour-of-day (0..24), applied to the base
+            pace in <see cref="T:FieldGuide.DayNight.DayNightClock"/>. The daylight arc runs slower (<see cref="F:FieldGuide.DayNight.DayNightConfig.DayRateScale"/>)
+            so the day lasts longer, while night keeps rate 1 so night real-time is preserved exactly. The two ramps
+            live INSIDE the daylight window (a <see cref="F:FieldGuide.DayNight.DayNightConfig.TwilightHours"/>-wide smoothstep at each edge),
+            reaching rate 1 exactly at sunrise/sunset so there is no rate discontinuity at the night boundary. Bounded
+            to [DayRateScale, 1], pure, so host and every client derive the same rate and stay in lockstep.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.SkyGrade.ApplyGradeTo(Sandbox.DirectionalLight,Sandbox.SkyBox2D,Sandbox.EnvmapProbe,System.Single,FieldGuide.DayNight.WeatherKind,FieldGuide.DayNight.DayNightConfig@)">
+            <summary>Apply the computed grade to a specific sun/sky/envmap trio. Leaves exposure / shadows / fog
+            alone. Pass null for any of sky/env you do not have. This is the ONLY method here that writes engine
+            state; everything above is pure.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.SkyWeights">
+             <summary>
+             THE SKY SEAM. This kit does not ship a sky shader or sky art (see the README, "Why no sky shader").
+             Instead it publishes, for any total game-hour, four normalized blend weights (morning, noon, evening,
+             night) summing to 1 with only the adjacent anchor pair non-zero. Your game decides what to DO with them:
+             crossfade four equirect skybox textures in your own shader, lerp four flat sky colours, swap SkyBox2D
+             materials, or ignore them entirely and just read <see cref="M:FieldGuide.DayNight.DayNightClock.GetTimeHours"/>.
+            
+             The weights are a STATELESS pure function of the hour: no easing state, no temporal smoothing. So an
+             explicit time jump (a menu preset, a pin) lands the exact target weights the same frame (an instant snap),
+             while natural clock advance moves the hour smoothly and therefore crossfades smoothly. Both behaviours fall
+             out of purity, do not add smoothing on top.
+            
+             Feed it the SAME hour the lighting grade uses (<see cref="M:FieldGuide.DayNight.DayNightClock.GetTimeHours"/>) and the sky can
+             never disagree with the sun.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.SkyWeights.WeightsFor(System.Single,FieldGuide.DayNight.DayNightConfig@)">
+            <summary>Pure: map a TOTAL game-hour to the four slot weights, using the four sky anchors in the config.
+            Component order is (x = morning, y = noon, z = evening, w = night) so it drops straight into a shader
+            float4 or your own four-way lerp. Continuous across every anchor including the midnight wrap, so the
+            crossfade never pops.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.SkyWeights.WeightsFor(System.Single)">
+            <summary>Convenience: <see cref="M:FieldGuide.DayNight.SkyWeights.WeightsFor(System.Single,FieldGuide.DayNight.DayNightConfig@)"/> with the default anchors
+            (night 0, morning 6, noon 12, evening 18).</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.TimeMath">
+            <summary>Pure helpers for setting the clock from a UI. Kept separate from the networked component so they
+            are trivially unit-testable and reusable (a preview tool, an editor slider, a debug console).</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.TimeMath.ComputeSetHour(System.Single,System.Single)">
+            <summary>Set the clock to an hour-of-day while PRESERVING the current day index, so the deterministic
+            per-day weather roll does not re-roll when a player scrubs the time within a day. Result =
+            floor(current/24)*24 + clamp(hourOfDay, 0, 24). Example: day 1 at 15:30 (total 39.5), set 06:00 → 30.0
+            (still day 1).</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.TimeMath.ComputeSliderHour(System.Single)">
+             <summary>Map a slider/drag fraction across a track (0 left, 1 right) to a quantized hour-of-day in
+             [0,24], rounded to the nearest in-game MINUTE (1/60 h). A pixel-cheap throttle with no timer state: a
+             drag emits at most one distinct value per minute of readout. Feed the result into
+             <see cref="M:FieldGuide.DayNight.TimeMath.ComputeSetHour(System.Single,System.Single)"/> to keep the day index.
+            
+             The result is clamped AFTER quantizing, and that clamp is load-bearing: one minute is not exactly
+             representable in binary, so 1440 steps of 1/60 accumulate to 24.000002 and a full-right drag would
+             hand <see cref="M:FieldGuide.DayNight.TimeMath.ComputeSetHour(System.Single,System.Single)"/> a value past the end of the day. Round first, clamp second.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.RainStreaks">
+             <summary>
+             OPTIONAL cosmetic rain module (delete the Weather/ folder if you don't want it). A cheap box-streak shower
+             centred on a point you provide, so the deterministic Rain weather is visible without pulling in your
+             player or camera types. It uses only the engine dev box primitive and an xorshift jitter (no System.Random,
+             no gameplay), and it is entirely client-local.
+            
+             Wire it in two lines: set <see cref="P:FieldGuide.DayNight.RainStreaks.Center"/> to a delegate returning where the shower should sit (usually
+             the local player or camera position, in engine units), and each frame call <see cref="M:FieldGuide.DayNight.RainStreaks.SetRaining(System.Boolean)"/> with
+             whether the current weather is <see cref="F:FieldGuide.DayNight.WeatherKind.Rain"/> (ask your <see cref="T:FieldGuide.DayNight.DayNightClock"/>). Or
+             just add it to a GameObject and set <see cref="P:FieldGuide.DayNight.RainStreaks.Center"/>; a sibling script can call SetRaining.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.RainStreaks.Center">
+            <summary>Where the shower centres (engine units). Defaults to this component's own world position.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.RainStreaks.StreakCount">
+            <summary>Number of streaks in the pool. Set before first enable.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.RainStreaks.SetRaining(System.Boolean)">
+            <summary>Turn the shower on or off. Cheap to call every frame with your weather check.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.RainStreaks.NextJitter">
+            <summary>Cheap per-streak scatter in [0,1), an xorshift on local state, NOT System.Random. Cosmetic
+            only; never feeds anything deterministic.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.WeatherKind">
+            <summary>Weather kinds (visual-only). Rolled per in-game day as a PURE hash of (seed, dayIndex), so a host
+            and every observer agree on the day's weather from the replicated seed + clock alone, with no extra
+            networking. The int order is the wire/override value: an authority pin publishes the forced kind as its
+            int, and any deserializer maps back through this enum.</summary>
+        </member>
+        <member name="T:FieldGuide.DayNight.WeatherRoll">
+            <summary>The deterministic per-day weather roll. Pure and self-contained: no DateTime, no System.Random,
+            just an FNV-1a hash of the world seed and the day index bucketed into the three kinds. Same inputs always
+            yield the same kind, so two peers deriving weather from the same seed never disagree and the roll never
+            flaps mid-day.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.WeatherRoll.For(System.Int32,System.Int32)">
+            <summary>Roll the weather for a given (world seed, day index). Distribution: ~60% Clear, ~25% Cloudy,
+            ~15% Rain. Byte-stable and deterministic; the hash (offset basis, prime, salt) is ported unchanged from
+            the source game, so a save that recorded a WB day rolls the same kind here.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightHintCard.CardOpen">
+            <summary>Console fallback: `daynight_hint 1` / `daynight_hint 0` shows or hides the card (H also
+            toggles). Starts SHOWN, unlike the time panel, because it is the thing that tells you the time panel
+            exists.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightHintCard.Weights">
+            <summary>The live sky weights as four short atomic runs. Split into separate spans rather than one
+            sentence so a wrap breaks BETWEEN runs; a single long run wraps mid-word, which is a live bug class
+            in this engine's text layout.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.PanelOpen">
+            <summary>Console fallback: `daynight_panel 1` / `daynight_panel 0` opens or closes the time panel
+            (N also toggles).</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.OpenOnStart">
+             <summary>
+             Whether this panel starts open. Off by default: a dev tuning surface that appears unbidden over a
+             consumer's game is a bug, not a feature. Turn it on for a scene whose whole point is the panel, the
+             way the kit's own demo does.
+            
+             This is what decides the panel's boot state, and it is the ONLY thing that decides it. See the boot
+             block in OnUpdate for why that matters.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.MinDayLengthMinutes">
+            <summary>Shortest in-game day the pace slider allows, in real minutes at the night pace.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.MaxDayLengthMinutes">
+            <summary>Longest in-game day the pace slider allows, in real minutes at the night pace.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.Clock">
+            <summary>The scene's clock, re-resolved while it is missing so a panel built before the clock still
+            finds it. Null until one exists, which the markup handles with an explicit empty state.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.IsAuthority">
+            <summary>Single-player, or the host of a live session. Only here do the clock's setters do anything,
+            so the card states the case rather than letting a drag fail silently.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.ClockText">
+            <summary>The hero readout, HH:MM on a 24-hour clock. Minutes floor rather than round so the display
+            never shows :60 at the top of an hour.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.WeatherText">
+            <summary>Names the weather AND where it came from, because "rain" alone does not tell you whether the
+            deterministic roll produced it or somebody pinned it.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.PaceText">
+            <summary>The pace the clock is running at right now, as the rate multiplier the daylight ramp applies.
+            Reads 1.00x through the night and DayRateScale at midday.</summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.Dials">
+            <summary>Built per read rather than held in a static, so the pace row always reflects the current
+            MinDayLengthMinutes / MaxDayLengthMinutes properties.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightPanel.ValueText(FieldGuide.DayNight.DayNightPanel.Dial)">
+            <summary>Row value text. Time of day reads as the 0..1 fraction the slider is at (the readable clock
+            is the hero line above it); day length reads in real minutes.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightPanel.TrackPointer(Sandbox.UI.PanelEvent,FieldGuide.DayNight.DayNightPanel.DialRow,System.Boolean)">
+             <summary>
+             Draggable track: onmousedown JUMPS to the click, onmousemove SCRUBS while the panel is Active.
+            
+             Both the 28px transparent grab wrapper and the 14px visible track carry this handler, and a press on
+             the track bubbles to the wrapper as well, so a single click can run it twice. That is harmless
+             BECAUSE the write is absolute (set to the value under the cursor), not relative: two runs of the same
+             press land on the same value. Keep it absolute if you touch this.
+             </summary>
+        </member>
+        <member name="P:FieldGuide.DayNight.DayNightPanel.Jumps">
+            <summary>The four named hours, read off the clock's own config so a game with a different daylight
+            window still gets its real dawn and dusk rather than 6 and 18.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightPanel.IsAtHour(System.Single)">
+            <summary>Is the clock within a minute of this named hour? A jump lands exactly, so a one-minute window
+            is enough to light the chip and narrow enough that it goes out as soon as time moves on.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightPanel.WriteDayLength(System.Single)">
+             <summary>
+             Write a new day length onto the clock AND every driver in the scene.
+            
+             DayNightConfig is a STRUCT, so `clock.Config.DayLengthMinutes = x` would mutate a temporary copy and
+             change nothing. Read, edit, write back. The drivers get the same value because a consumer is told to
+             keep clock and driver config identical, and a tuning panel that quietly desynchronised them would be
+             the exact bug the docs warn about.
+            
+             AUTHORITY-GUARDED, unlike the clock's own setters which guard themselves. Config is authoring data and
+             is NOT replicated, so a client that changed its own day length would extrapolate at a different pace
+             than the host and drift between every snapshot. The guard has to live here.
+             </summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightPanel.ResetAll">
+            <summary>Back to the shipped reference grade: default config on the clock and every driver, weather
+            released to the deterministic roll, clock running, time at the config's start hour.</summary>
+        </member>
+        <member name="M:FieldGuide.DayNight.DayNightPanel.CopyConfig">
+            <summary>Put the tuned config on the system clipboard as a paste-ready C# block. Game-side
+            Sandbox.UI.Clipboard.SetText, so it works in play without an editor round trip. Only the fields this
+            panel can move are emitted; everything else stays whatever Default gives you.</summary>
+        </member>
+    </members>
+</doc>

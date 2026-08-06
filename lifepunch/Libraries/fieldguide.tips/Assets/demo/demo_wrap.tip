@@ -1,0 +1,35 @@
+{
+  "Id": "demo_wrap",
+  "Text": "That is the loop. Press *T* for the Tips Studio and edit these very tips. *R* replays.",
+  "TextPad": "That is the loop. The Studio is a keyboard tool: press *T* to open it and edit these very tips. *R* replays.",
+  "Icon": "✅",
+  "Priority": 100,
+  "PrerequisiteTipIds": [
+    "demo_switch"
+  ],
+  "Completion": {
+    "Kind": "Signal",
+    "Action": "",
+    "Key": "",
+    "Name": "fg_tips_studio_opened",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "MaxShowSeconds": 0,
+  "Relevance": {
+    "Kind": "Flag",
+    "Action": "",
+    "Key": "",
+    "Name": "fg_tips_demo",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "__references": [],
+  "__version": 0
+}

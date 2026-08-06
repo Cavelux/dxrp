@@ -1,0 +1,87 @@
+@using Sandbox
+@using Sandbox.UI
+@using System
+@namespace FieldGuide.Placement
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+@*
+	The demo's on-screen key card, up from the first frame. A tool scene with no visible instructions
+	reads as a broken scene: you press nothing, nothing happens, you close it. So this says what the demo
+	is and which keys do what, before you have touched anything.
+
+	Rows render in MAIN markup via @foreach per the fragment-undermeasure gotcha. H hides the card (a
+	letter, never an F key, which the editor eats in play). No ESC anywhere: house law.
+
+	Look and layout follow the Field Kit UI system: docs/design/ui-system/placement-kit.dc.html for
+	this screen, tokens.dc.html for the values. Font sizes come from the {12, 13, 14, 16} panel scale
+	and there is no letter-spacing; the stylesheet head lists the rest of the engine-legality rules.
+
+	Not part of the kit's runtime surface: delete Code/Demo when you drop the kit into your own project.
+*@
+
+<root>
+@if ( CardOpen )
+{
+	<div class="hc-card">
+		<div class="hc-hdr">
+			<span class="hc-title">PLACEMENT KIT DEMO</span>
+			<div class="hc-x" onclick=@(() => CardOpen = false)>×</div>
+		</div>
+
+		<div class="hc-lede">Fit the three accessories to the citizen with the panel on the right, then bake the offsets into your own code.</div>
+
+		<div class="hc-rows">
+			@foreach ( var r in Keys )
+			{
+				string key = r.key;     // plain locals before interpolating: an inline tuple read can render blank
+				string what = r.what;
+				<div class="hc-row">
+					<span class="hc-key">@key</span>
+					<span class="hc-what">@what</span>
+				</div>
+			}
+		</div>
+
+		<div class="hc-foot">Copy on the tweak panel puts that accessory's offset line on your clipboard.</div>
+	</div>
+}
+</root>
+
+@code
+{
+	static bool _open = true;
+
+	/// <summary>Console fallback: `placement_hint 1` / `placement_hint 0` shows or hides the card (H also
+	/// toggles). Starts SHOWN, unlike the tweak panel, because it is the thing that tells you the tweak
+	/// panel exists.</summary>
+	[ConVar( "placement_hint", Help = "Show or hide the demo scene's key card (same as the H key)" )]
+	public static bool CardOpen { get => _open; set => _open = value; }
+
+	static readonly (string key, string what)[] Keys =
+	{
+		( "P", "show or hide the tweak panel (open on the right)" ),
+		( "Right mouse", "orbit the view · wheel zooms · WASD pans" ),
+		( "Q / E", "orbit left and right from the keyboard" ),
+		( "B", "ghost placement mode on and off" ),
+		( "[ ]", "cycle the placeable while in placement mode" ),
+		( "Left mouse", "place on a green spot" ),
+		( "R", "rotate the ghost · G deletes what is under the cursor" ),
+		( "H", "hide this card" ),
+	};
+
+	protected override void OnStart()
+	{
+		// `placement_hint` is a convar, and s&box persists convars across sessions. Force it SHOWN at mount
+		// so a session that was closed with the card hidden still opens with instructions on screen.
+		CardOpen = true;
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( Input.Keyboard.Pressed( "H" ) )
+			CardOpen = !CardOpen;
+	}
+
+	protected override int BuildHash() => HashCode.Combine( CardOpen );
+}

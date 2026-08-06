@@ -1,0 +1,72 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-action-if",
+  "namespaceFallback": "Test",
+  "classNameFallback": "Branch",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "Branch",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "Method",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Test",
+        "visibility": "Private",
+        "returnType": "void",
+        "parameters": [],
+        "body": [
+          {
+            "$type": "If",
+            "id": "00000000-0000-0000-0000-000000000020",
+            "condition": {
+              "$type": "Literal",
+              "id": "00000000-0000-0000-0000-000000000021",
+              "typeId": "bool",
+              "value": true
+            },
+            "then": [
+              {
+                "$type": "StateHasChanged",
+                "id": "00000000-0000-0000-0000-000000000022"
+              }
+            ],
+            "else": [
+              {
+                "$type": "Log",
+                "id": "00000000-0000-0000-0000-000000000023",
+                "level": "Info",
+                "message": {
+                  "$type": "Literal",
+                  "id": "00000000-0000-0000-0000-000000000024",
+                  "typeId": "string",
+                  "value": "no"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "Branch", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "Branch", "baseClass": "PanelComponent" },
+      { "$type": "MethodOpen", "visibility": "private", "isOverride": false, "isAsync": false, "returnType": "void", "name": "Test", "parameterList": "" },
+      { "$type": "BlockOpen", "code": "if ( true )" },
+      { "$type": "Statement", "code": "StateHasChanged()" },
+      { "$type": "BlockClose" },
+      { "$type": "BlockOpen", "code": "else" },
+      { "$type": "Statement", "code": "Log.Info( \"no\" )" },
+      { "$type": "BlockClose" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

@@ -1,0 +1,440 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.notpointless.chomnr_better_ik</name>
+    </assembly>
+    <members>
+        <member name="T:BetterIk.BoneNameAttribute">
+            <summary>Marks a string property as a bone name on the component's resolved
+            SkinnedModelRenderer. Purely a hint for the editor's control widget (see
+            Editor/BetterIk/BoneNameControlWidget.cs) to render a bone-picker dropdown instead of a
+            plain text box - has no effect on runtime behavior.</summary>
+        </member>
+        <member name="T:BetterIk.FabrikIK">
+            <summary>
+            Unconstrained FABRIK for variable-length chains (tails, tentacles, ropes). No pole vector, no
+            joint limits, no per-joint stiffness - for hinge-like limb IK, use TwoBoneIK instead. Drop on
+            the model root (or any descendant), set RootBone and EndBone to the chain's two ends; unlike
+            TwoBoneIK this cannot auto-walk a fixed depth, since a FABRIK chain's length is arbitrary, so
+            RootBone must be named explicitly.
+            </summary>
+        </member>
+        <member name="T:BetterIk.FootPlacementIK">
+            <summary>
+            Foot grounding: traces down under each foot, plants feet on real geometry, drops the pelvis
+            when the ground is lower so the far foot can reach, and aligns foot rotation to the surface
+            normal. Drop on the model root (or any descendant), set LeftFootBone/RightFootBone to the
+            ankle/foot bone names. Root and mid bones for each leg are auto-walked like TwoBoneIK; the
+            pelvis is auto-derived as the nearest common ancestor of the two resolved leg roots.
+            </summary>
+        </member>
+        <member name="P:BetterIk.FootPlacementIK.PlantHeightOffset">
+            <summary>Rest height of the plant point above the ground when planted (its bind height).</summary>
+        </member>
+        <member name="P:BetterIk.FootPlacementIK.PlantWindowSeconds">
+            <summary>Trailing window (seconds) whose minimum plant-point height is removed as hover.</summary>
+        </member>
+        <member name="P:BetterIk.FootPlacementIK.PlantMaxCorrection">
+            <summary>Upper clamp on the per-foot plant correction.</summary>
+        </member>
+        <member name="P:BetterIk.FootPlacementIK.UseFlatGround">
+            <summary>Skip tracing and use a flat world-space ground plane at FlatGroundHeight.</summary>
+        </member>
+        <member name="P:BetterIk.FootPlacementIK.CurrentPlantCorrectionL">
+            <summary>Live plant corrections (world units, positive = foot lowered), for diagnostics.</summary>
+        </member>
+        <member name="P:BetterIk.FootPlacementIK.LastPlantResidualL">
+            <summary>Live plant-point heights above the ground before correction, for diagnostics.</summary>
+        </member>
+        <member name="T:BetterIk.IHasSkinnedRenderer">
+            <summary>Implemented by every IK component that operates on a SkinnedModelRenderer, so editor
+            tooling (BoneNameControlWidget) can resolve the renderer to list bones without reflection.</summary>
+        </member>
+        <member name="T:BetterIk.LookAtIK">
+            <summary>
+            Single-bone rotation-only look-at constraint (head/eye aim), clamped to a maximum angle from the
+            bone's currently animated aim direction. Drop on the model root (or any descendant of it), set
+            BoneName to the head/eye bone name, drag in a Target. No chain resolution needed (single bone).
+            </summary>
+        </member>
+        <member name="T:BetterIk.MathBridge">
+            <summary>Direct field-for-field conversion between Sandbox's own math types and the
+            System.Numerics types used by the engine-agnostic solver core. Both represent the same
+            world space, so no basis-flip or handedness conversion is needed.</summary>
+        </member>
+        <member name="M:BetterIk.MathBridge.ToModelLocal(Sandbox.SkinnedModelRenderer,Transform)">
+            <summary>
+            SetBoneTransform expects a model-local transform (relative to the renderer's own world
+            transform), unlike TryGetBoneTransform/TryGetBoneTransformAnimation, which are documented
+            as worldspace. Confirmed live: a character placed away from the world origin showed a
+            bone landing at (world position + the character's own world offset) without this
+            conversion - invisible in earlier testing only because every prior rig sat at world
+            origin with identity rotation, where model-local and world space are numerically the same.
+            </summary>
+        </member>
+        <member name="T:BetterIk.Maths.BindPoseData">
+            <summary>Precomputed once per chain from the bind pose. Result of <see cref="M:BetterIk.Maths.TwoBoneIkSolver.AnalyzeBindPose(System.Numerics.Vector3,System.Numerics.Vector3,System.Numerics.Vector3)"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.BindPoseData.BendNormal">
+            <summary>Unit bend-plane normal derived from the bind pose.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.BindPoseData.DefaultPoleDirection">
+            <summary>Unit, root-relative direction toward the bind-pose elbow/knee offset. This is the
+            "elbow points backward, knee points forward" answer, read directly off the rig's own bind pose.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.BindPoseData.IsReliable">
+            <summary>False if the bind-pose chain was collinear (no elbow offset to read a direction from);
+            the returned directions are still valid unit vectors, just not anatomically meaningful.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.FabrikInput">
+            <summary>Per-frame input to <see cref="M:BetterIk.Maths.FabrikSolver.Solve(BetterIk.Maths.FabrikInput@)"/>. All positions are in one common
+            (typically world) space. Segment lengths are derived from JointPositions each solve - the
+            animated pose is the source of truth for lengths, same convention as the other solvers.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FabrikInput.JointPositions">
+            <summary>N >= 2, world space, animated pose. Index 0 is the chain root.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FabrikInput.Weight">
+            <summary>0-1, clamped by the solver. 0 is an exact structural passthrough (no solve runs).</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FabrikInput.Tolerance">
+            <summary>Absolute distance. The solver stops early once the end joint is within this of
+            the target.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.FabrikResult">
+            <summary>Output of <see cref="M:BetterIk.Maths.FabrikSolver.Solve(BetterIk.Maths.FabrikInput@)"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FabrikResult.JointPositions">
+            <summary>Solved joint positions, world space, same length and root-first ordering as the input.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FabrikResult.Converged">
+            <summary>True only if the end joint landed within Tolerance of the target. False for the
+            unreachable-target clamp, the target-at-root passthrough, and any case that used every
+            available iteration without reaching tolerance - not an error signal, just "did not land
+            exactly on target", matching the geometric reality of a rigid chain.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.FabrikSolver">
+            <summary>
+            Engine-agnostic, unconstrained FABRIK solver for variable-length chains (tails, tentacles,
+            ropes). No pole vectors, no joint constraints/limits, no per-joint stiffness in this version -
+            use TwoBoneIK for hinge-like limb behavior; this is for chains that don't need it. Pure and
+            stateless: identical input always produces identical output, safe to call every frame.
+            </summary>
+        </member>
+        <member name="M:BetterIk.Maths.FabrikSolver.DeriveRotations(System.Numerics.Vector3[],System.Numerics.Vector3[],System.Numerics.Quaternion[])">
+            <summary>
+            Derives per-joint world rotations from the change in segment direction between the animated
+            and solved poses, via the same shortest-arc delta-rotation philosophy already proven under
+            bone roll (IkMath.FromToRotation). No twist/roll control in this version - long chains under
+            large deflection can accumulate visually odd roll; acceptable for v1, a twist-distribution
+            pass is a possible later addition. The leaf bone (last index) has no segment of its own, so
+            it is a documented convention, not a derived truth: it reuses the last real segment's delta.
+            </summary>
+        </member>
+        <member name="T:BetterIk.Maths.FootInput">
+            <summary>Per-foot input: animated pose plus the engine-supplied ground trace result. The
+            core never raycasts; the caller performs the scene trace and forwards the result here.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootInput.HitPoint">
+            <summary>World position. Only valid when <see cref="F:BetterIk.Maths.FootInput.HasHit"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootInput.HitNormal">
+            <summary>World normal, need not be normalized. Only valid when <see cref="F:BetterIk.Maths.FootInput.HasHit"/>.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.FootPlacementInput">
+            <summary>Per-frame input to <see cref="M:BetterIk.Maths.FootPlacementSolver.Solve(BetterIk.Maths.FootPlacementInput@)"/>. Angles are radians.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.OriginPosition">
+            <summary>Character ground-plane reference (typically the model root world position).</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.UpAxis">
+            <summary>World up. Normalized by the solver.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.FootHeightOffset">
+            <summary>Additive raise applied to every grounded foot's delta.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.MaxStepUp">
+            <summary>Max positive (upward) vertical correction per foot.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.MaxStepDown">
+            <summary>Max negative (downward) vertical correction per foot, as a positive number.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.MaxPelvisDrop">
+            <summary>Max pelvis drop, as a positive number.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.MaxPelvisRaise">
+            <summary>Max pelvis raise, usually 0.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.MaxFootRotationRadians">
+            <summary>Clamp on how far a foot's rotation may tilt to align with the ground normal.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.MaxGroundSlopeRadians">
+            <summary>Ground hits steeper than this (measured from up) are treated as no-hit.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementInput.Weight">
+            <summary>0-1. Applied ONLY to <see cref="F:BetterIk.Maths.FootPlacementResult.PelvisOffset"/> - per-foot
+            results are unweighted, so the caller's own two-bone solve (with its own tested,
+            endpoint-exact weight blend) is the single place feet actually get blended.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.FootPlacementResult">
+            <summary>Output of <see cref="M:BetterIk.Maths.FootPlacementSolver.Solve(BetterIk.Maths.FootPlacementInput@)"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementResult.PelvisOffset">
+            <summary>Clamped AND weight-scaled, measured along the up axis. Final, write-ready -
+            unlike the per-foot results, this already has <see cref="F:BetterIk.Maths.FootPlacementInput.Weight"/>
+            applied (see that type's doc comment for why the split is asymmetric).</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootPlacementResult.Solved">
+            <summary>False only when <see cref="F:BetterIk.Maths.FootPlacementInput.UpAxis"/> is degenerate.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.FootPlacementSolver">
+            <summary>
+            Engine-agnostic, closed-form foot-grounding solver: per-foot vertical correction and
+            ground-normal rotation alignment, plus a pelvis offset derived from both feet. Pure and
+            stateless: identical input always produces identical output, safe to call every frame.
+            </summary>
+        </member>
+        <member name="M:BetterIk.Maths.FootPlacementSolver.SmoothOffset(System.Single,System.Single,System.Single,System.Single)">
+            <summary>Framerate-independent exponential approach toward target. ratePerSecond &lt;= 0
+            disables smoothing (snaps to target); deltaTime &lt;= 0 holds at current.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.FootResult">
+            <summary>Per-foot output of <see cref="M:BetterIk.Maths.FootPlacementSolver.Solve(BetterIk.Maths.FootPlacementInput@)"/>. Unweighted - the
+            aggregate <see cref="F:BetterIk.Maths.FootPlacementInput.Weight"/> is applied only to
+            <see cref="F:BetterIk.Maths.FootPlacementResult.PelvisOffset"/>, not here (see that type's doc comment).</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootResult.Grounded">
+            <summary>True when a hit existed, its normal was usable, and the slope was within limit.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootResult.VerticalDelta">
+            <summary>Clamped, unweighted, measured along the up axis. 0 when not grounded.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.FootResult.TargetRotation">
+            <summary>Ground-aligned foot rotation goal, unweighted. Equals the input FootRotation
+            exactly when not grounded.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.LookAtBindData">
+            <summary>Precomputed once per bone from the bind pose. Result of <see cref="M:BetterIk.Maths.LookAtSolver.AnalyzeBindPose(System.Numerics.Vector3,System.Numerics.Quaternion,System.Nullable{System.Numerics.Vector3})"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtBindData.LocalAimDirection">
+            <summary>Unit, bone-local space direction the bone should be treated as "facing".</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtBindData.IsReliable">
+            <summary>False if no usable child bone existed in the bind pose (leaf bone, or a degenerate
+            child offset); <see cref="F:BetterIk.Maths.LookAtBindData.LocalAimDirection"/> is still a valid unit vector, just an arbitrary
+            deterministic fallback rather than an anatomically meaningful one.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.LookAtInput">
+            <summary>Per-frame input to <see cref="M:BetterIk.Maths.LookAtSolver.Solve(BetterIk.Maths.LookAtInput@)"/>. Positions and rotations are in one
+            common space (typically world space). Angles are radians.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtInput.BoneRotation">
+            <summary>Current animated world rotation, before this component's own adjustment.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtInput.LocalAimDirection">
+            <summary>Unit, bone-local space. From <see cref="F:BetterIk.Maths.LookAtBindData.LocalAimDirection"/>, cached
+            once and not recomputed per frame.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtInput.MaxAngleRadians">
+            <summary>Clamp measured from the current animated aim direction each frame, not a bind-pose
+            or world-space reference.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtInput.Weight">
+            <summary>0-1, clamped by the solver.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.LookAtResult">
+            <summary>Output of <see cref="M:BetterIk.Maths.LookAtSolver.Solve(BetterIk.Maths.LookAtInput@)"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtResult.BoneRotation">
+            <summary>Final blended world rotation to assign to the bone.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.LookAtResult.Solved">
+            <summary>False only when the target coincides with the bone position (no direction to aim at).</summary>
+        </member>
+        <member name="T:BetterIk.Maths.LookAtSolver">
+            <summary>
+            Engine-agnostic, closed-form single-bone look-at solver. Pure and stateless: identical input
+            always produces identical output, safe to call every frame for runtime blending.
+            </summary>
+        </member>
+        <member name="T:BetterIk.Maths.PlantToGroundSolver">
+             <summary>
+             Engine-agnostic plant-to-ground correction, the closed-form core of FootPlacementIK's
+             plant mode. It is deliberately separate from <see cref="T:BetterIk.Maths.FootPlacementSolver"/>: this mode
+             does not raycast arbitrary geometry, does not align a foot to a surface normal, and does
+             not move the pelvis. It answers one question per foot: given a plant point (e.g. the ball
+             of the foot) that HOVERS some measured height above the ground it was authored to touch,
+             how far down must the foot move so its planted moments meet the ground while its authored
+             lifts ride on top?
+            
+             The caller supplies the TRAILING-MINIMUM plant-point height over a recent window (see
+             <see cref="T:BetterIk.Maths.PlantWindow"/>): the lowest the plant point reached recently is its planted
+             level, and only that constant is removed. Authored step lifts and heel raises above the
+             planted level survive untouched, flat-authored feet come out flat, and nothing is ever
+             rotated. Pure and stateless: identical input always produces identical output.
+             </summary>
+        </member>
+        <member name="M:BetterIk.Maths.PlantToGroundSolver.ComputeCorrection(System.Single,System.Single,System.Single)">
+            <summary>
+            Vertical correction (world units, POSITIVE means lower the foot by this much) that
+            lands the planted level at <paramref name="plantRestHeight"/> above the ground.
+            </summary>
+            <param name="trailingMinHeightAboveGround">Lowest plant-point height above the ground
+            over the recent window, measured along the up axis. This is the "planted" level of the
+            authored motion.</param>
+            <param name="plantRestHeight">Height the plant point should hold above the ground when
+            planted (its bind height on the target model). 0 puts the plant point exactly on the
+            ground; a ball-of-foot plant point uses that bone's small bind height.</param>
+            <param name="maxCorrection">Upper clamp on the correction. The lower clamp is fixed at
+            0, so a plant point already at or below its rest height is never RAISED: hover is only
+            ever removed, never added (a grounded clip is never lifted off the canvas).</param>
+        </member>
+        <member name="T:BetterIk.Maths.PlantWindow">
+             <summary>
+             Trailing-minimum tracker over a fixed time window. Feed it one plant-point height per
+             frame with the current time; <see cref="M:BetterIk.Maths.PlantWindow.Push(System.Single,System.Single)"/> returns the lowest value seen within the
+             last <see cref="P:BetterIk.Maths.PlantWindow.WindowSeconds"/>. Plant-to-ground foot placement uses it to find the
+             "planted" level of a cyclic animation (the lowest the foot reached recently), so that only
+             that constant is removed and authored lifts above it are preserved.
+            
+             This is the one stateful helper in the Maths layer; the solvers themselves stay pure. It is
+             engine-agnostic (floats and a time value only), so it is unit-testable without an editor,
+             like the rest of the core. Samples are assumed pushed in non-decreasing time order (the
+             engine wall-clock during a frame loop); the newest <see cref="P:BetterIk.Maths.PlantWindow.Capacity"/> samples are
+             retained, so at very high frame rates a window longer than the buffer can hold is measured
+             over as many recent samples as fit rather than the full duration.
+             </summary>
+        </member>
+        <member name="P:BetterIk.Maths.PlantWindow.WindowSeconds">
+            <summary>Length of the trailing window in the same time unit passed to <see cref="M:BetterIk.Maths.PlantWindow.Push(System.Single,System.Single)"/>.</summary>
+        </member>
+        <member name="M:BetterIk.Maths.PlantWindow.Reset">
+            <summary>Discard all samples (e.g. on a hard clip cut) so the window rebuilds from scratch.</summary>
+        </member>
+        <member name="M:BetterIk.Maths.PlantWindow.Push(System.Single,System.Single)">
+            <summary>
+            Record a sample and return the trailing minimum over the window ending at
+            <paramref name="now"/>. With an empty history this is just <paramref name="value"/>.
+            </summary>
+        </member>
+        <member name="M:BetterIk.Maths.PlantWindow.MinSince(System.Single)">
+            <summary>Trailing minimum over the window ending at <paramref name="now"/> without adding a sample.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.TwoBoneIkInput">
+            <summary>
+            Per-frame input to <see cref="M:BetterIk.Maths.TwoBoneIkSolver.Solve(BetterIk.Maths.TwoBoneIkInput@)"/>. All positions and rotations are in
+            one common space (the caller's choice, typically world space). Angles are radians.
+            </summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.HasPole">
+            <summary>True if a pole target is supplied via <see cref="F:BetterIk.Maths.TwoBoneIkInput.PoleHint"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.PoleHint">
+            <summary>
+            Direction from the root toward the desired elbow side (e.g. polePosition - RootPosition,
+            or a rotated default direction). Only the component perpendicular to root-to-target is used;
+            magnitude is ignored.
+            </summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.PoleAngleOffsetRadians">
+            <summary>Extra rotation applied about the root-to-target axis, after pole alignment.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.FallbackBendNormal">
+            <summary>Bend-plane normal from <see cref="M:BetterIk.Maths.TwoBoneIkSolver.AnalyzeBindPose(System.Numerics.Vector3,System.Numerics.Vector3,System.Numerics.Vector3)"/>, used as a
+            fallback when the animated chain is collinear and has no usable bend plane of its own.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.PositionWeight">
+            <summary>0-1, clamped by the solver. Multiplied by <see cref="F:BetterIk.Maths.TwoBoneIkInput.MasterWeight"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.RotationWeight">
+            <summary>0-1, clamped by the solver. Multiplied by <see cref="F:BetterIk.Maths.TwoBoneIkInput.MasterWeight"/>.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.MasterWeight">
+            <summary>0-1, clamped by the solver. Master blend for the whole IK result.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.SoftFraction">
+            <summary>0 disables soft clamping (hard clamp at max reach). Sensible range [0, 0.5).</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkInput.MaxStretch">
+            <summary>0 disables stretch. E.g. 0.2 allows the chain to lengthen up to 20% past max reach.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.TwoBoneIkResult">
+            <summary>Output of <see cref="M:BetterIk.Maths.TwoBoneIkSolver.Solve(BetterIk.Maths.TwoBoneIkInput@)"/>, already blended by the input weights.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkResult.AppliedStretch">
+            <summary>Blended uniform bone-length scale actually applied. 1 when no stretch occurred.</summary>
+        </member>
+        <member name="F:BetterIk.Maths.TwoBoneIkResult.Solved">
+            <summary>False when the chain was degenerate (near-zero bone length) and the pose was passed through unmodified.</summary>
+        </member>
+        <member name="T:BetterIk.Maths.TwoBoneIkSolver">
+            <summary>
+            Engine-agnostic, closed-form two-bone IK solver with pole vector control. Pure and stateless:
+            identical input always produces identical output, safe to call every frame for runtime blending.
+            </summary>
+        </member>
+        <member name="T:BetterIk.SandboxBoneNode">
+            <summary>Thin adapter over the real engine BoneCollection.Bone, exposing just enough to
+            let BoneChainResolver walk the skeleton. No logic beyond delegation - not unit tested.</summary>
+        </member>
+        <member name="F:BetterIk.Skeleton.BoneChainError.InsufficientAncestors">
+            <summary>The end bone has fewer than 2 ancestors via auto-walk.</summary>
+        </member>
+        <member name="F:BetterIk.Skeleton.BoneChainError.DegenerateChain">
+            <summary>Root, mid, and end resolved to fewer than 3 distinct bones (by name).</summary>
+        </member>
+        <member name="T:BetterIk.Skeleton.BoneChainResolver">
+            <summary>Resolves the root/mid/end bone chain for a two-bone IK from the end bone alone,
+            walking parent pointers, with optional manual overrides for root and mid.</summary>
+        </member>
+        <member name="M:BetterIk.Skeleton.BoneChainResolver.Resolve(BetterIk.Skeleton.IBoneNode,BetterIk.Skeleton.IBoneNode,BetterIk.Skeleton.IBoneNode)">
+            <summary>
+            Auto-walk: mid = endBone.Parent, root = mid.Parent. rootOverride/midOverride, when
+            non-null, are used verbatim instead of walking (the caller has already resolved
+            override bone-name strings to nodes, or reported a not-found error itself - this
+            function never does name lookup).
+            </summary>
+        </member>
+        <member name="M:BetterIk.Skeleton.BoneChainResolver.ResolveNamedChain(BetterIk.Skeleton.IBoneNode,System.String)">
+            <summary>
+            Walks up from endBone via .Parent, collecting every bone, until a bone named rootBoneName
+            is found (name identity, matching this class's existing convention). Unlike Resolve, this
+            does not assume a fixed chain depth - FABRIK chains are variable length, so the caller must
+            name the root explicitly rather than relying on an auto-walk.
+            </summary>
+        </member>
+        <member name="M:BetterIk.Skeleton.BoneChainResolver.FindCommonAncestor(BetterIk.Skeleton.IBoneNode,BetterIk.Skeleton.IBoneNode)">
+            <summary>Nearest common ancestor of a and b, where a node counts as its own ancestor.
+            Null if the nodes belong to disjoint trees. Identity is by name, matching this class's
+            existing name-based bone identity convention (a real adapter constructs a new wrapper
+            instance per .Parent access, so reference equality would be wrong).</summary>
+        </member>
+        <member name="F:BetterIk.Skeleton.FabrikChainError.RootNotFound">
+            <summary>Walked all the way to the skeleton root without finding a bone named RootBone.</summary>
+        </member>
+        <member name="F:BetterIk.Skeleton.FabrikChainError.ChainTooShort">
+            <summary>Root and end resolved to the same bone (by name) - a chain needs at least 2 bones.</summary>
+        </member>
+        <member name="T:BetterIk.Skeleton.FabrikChainResult">
+            <summary>Ordered root-first-to-end-last chain of bones for a variable-length FABRIK solve.</summary>
+        </member>
+        <member name="F:BetterIk.Skeleton.FabrikChainResult.Chain">
+            <summary>Root-first, end-last. Null unless Success.</summary>
+        </member>
+        <member name="T:BetterIk.Skeleton.IBoneNode">
+            <summary>Minimal shape needed to walk a skeleton toward the root. Implemented by a real
+            BoneCollection.Bone adapter in the engine layer, and by a fake node in tests.</summary>
+        </member>
+        <member name="P:BetterIk.Skeleton.IBoneNode.Parent">
+            <summary>Null at the skeleton root.</summary>
+        </member>
+        <member name="T:BetterIk.TwoBoneIK">
+            <summary>
+            Runtime two-bone IK (arm/leg) with pole vector control. Drop on the model root (or any
+            descendant of it - the component finds the SkinnedModelRenderer via GetComponentInParent),
+            set EndBone to the hand/foot bone name, optionally drag in a Target and PoleTarget. Walks
+            up the skeleton automatically to find the mid and root bones; no per-model setup needed.
+            </summary>
+        </member>
+    </members>
+</doc>

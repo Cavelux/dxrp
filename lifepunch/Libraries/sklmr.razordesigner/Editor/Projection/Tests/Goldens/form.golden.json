@@ -1,0 +1,53 @@
+{
+  "goldenFormatVersion": 1,
+  "kind": "Form",
+  "node": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000016",
+    "kind": "Form",
+    "className": "form1",
+    "appearance": {
+      "direction": "Column"
+    },
+    "payload": {},
+    "children": [
+      {
+        "id": "a1b2c3d4-0000-0000-0000-000000000161",
+        "kind": "Field",
+        "className": "field1",
+        "appearance": {},
+        "payload": {},
+        "children": [],
+        "slots": {}
+      },
+      {
+        "id": "a1b2c3d4-0000-0000-0000-000000000162",
+        "kind": "Field",
+        "className": "field2",
+        "appearance": {},
+        "payload": {},
+        "children": [],
+        "slots": {}
+      }
+    ],
+    "slots": {}
+  },
+  "context": {
+    "forPreview": false
+  },
+  "expected": {
+    "panelOps": [
+      {
+        "$type": "SetAttribute",
+        "value": "a1b2c3d4-0000-0000-0000-000000000016",
+        "name": "data-grd-node-id"
+      }
+    ],
+    "scssLines": [
+      "flex-direction: column;",
+      "gap: 8px;"
+    ],
+    "razorAttributes": [
+      "data-grd-node-id=\u0022a1b2c3d4-0000-0000-0000-000000000016\u0022"
+    ]
+  }
+}

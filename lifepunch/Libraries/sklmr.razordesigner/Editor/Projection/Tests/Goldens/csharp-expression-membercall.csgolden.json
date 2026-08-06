@@ -1,0 +1,86 @@
+{
+  "goldenFormatVersion": 1,
+  "name": "csharp-expression-membercall",
+  "namespaceFallback": "Test",
+  "classNameFallback": "MemberCall",
+  "wiring": {
+    "baseClass": "PanelComponent",
+    "className": "MemberCall",
+    "namespace": "Test",
+    "symbols": [
+      {
+        "$type": "State",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Pkg",
+        "type": "Package",
+        "visibility": "Private"
+      },
+      {
+        "$type": "Method",
+        "id": "00000000-0000-0000-0000-000000000002",
+        "name": "Test",
+        "visibility": "Private",
+        "returnType": "void",
+        "parameters": [],
+        "body": [
+          {
+            "$type": "Set",
+            "id": "00000000-0000-0000-0000-000000000020",
+            "target": {
+              "$type": "Symbol",
+              "symbolId": "00000000-0000-0000-0000-000000000001"
+            },
+            "value": {
+              "$type": "MemberAccess",
+              "id": "00000000-0000-0000-0000-000000000021",
+              "receiver": {
+                "$type": "SymbolRef",
+                "id": "00000000-0000-0000-0000-000000000022",
+                "symbolId": "00000000-0000-0000-0000-000000000001"
+              },
+              "member": "Name"
+            }
+          },
+          {
+            "$type": "Call",
+            "id": "00000000-0000-0000-0000-000000000030",
+            "callee": {
+              "$type": "Inline",
+              "code": "Log.Info"
+            },
+            "args": [
+              {
+                "$type": "MethodCall",
+                "id": "00000000-0000-0000-0000-000000000031",
+                "callee": {
+                  "$type": "Inline",
+                  "code": "Pkg.ToString"
+                },
+                "args": [],
+                "await": false
+              }
+            ],
+            "await": false
+          }
+        ]
+      }
+    ],
+    "usings": []
+  },
+  "documentHasAnyBindings": false,
+  "expected": {
+    "ops": [
+      { "$type": "HeaderBanner", "className": "MemberCall", "namespace": "Test" },
+      { "$type": "UsingDirective", "namespace": "Sandbox" },
+      { "$type": "UsingDirective", "namespace": "Sandbox.UI" },
+      { "$type": "NamespaceOpen", "namespace": "Test" },
+      { "$type": "ClassOpen", "className": "MemberCall", "baseClass": "PanelComponent" },
+      { "$type": "FieldDecl", "visibility": "private", "fieldType": "Package", "name": "Pkg", "initialExpr": "default", "isParameter": false },
+      { "$type": "MethodOpen", "visibility": "private", "isOverride": false, "isAsync": false, "returnType": "void", "name": "Test", "parameterList": "" },
+      { "$type": "Statement", "code": "Pkg = Pkg.Name" },
+      { "$type": "Statement", "code": "Log.Info(Pkg.ToString())" },
+      { "$type": "MethodClose" },
+      { "$type": "ClassClose" }
+    ]
+  }
+}

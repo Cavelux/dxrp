@@ -1,0 +1,14 @@
+{
+  "Title": "Asset Doctor",
+  "Type": "library",
+  "Org": "mikekotys",
+  "Ident": "assetdoctor",
+  "Schema": 1,
+  "IncludeSourceFiles": false,
+  "Resources": null,
+  "PackageReferences": [],
+  "EditorReferences": null,
+  "Mounts": null,
+  "IsStandaloneOnly": false,
+  "Metadata": {}
+}

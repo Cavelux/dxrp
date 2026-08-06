@@ -1,0 +1,35 @@
+{
+  "Id": "starter_jump",
+  "Text": "Press *Space* or `A` to jump.",
+  "TextPad": "Press `A` to jump.",
+  "Icon": "🕹️",
+  "Priority": 130,
+  "PrerequisiteTipIds": [
+    "demo_move"
+  ],
+  "Completion": {
+    "Kind": "InputAction",
+    "Action": "Jump",
+    "Key": "",
+    "Name": "",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "MaxShowSeconds": 0,
+  "Relevance": {
+    "Kind": "Flag",
+    "Action": "",
+    "Key": "",
+    "Name": "fg_tips_demo",
+    "Threshold": 0,
+    "Seconds": 0,
+    "AnalogSource": "AnalogMove",
+    "Magnitude": 0,
+    "Children": []
+  },
+  "__references": [],
+  "__version": 0
+}
