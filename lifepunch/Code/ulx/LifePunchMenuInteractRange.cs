@@ -69,7 +69,7 @@ public static class LifePunchMenuInteractRange
 		var closest = worldBounds.ClosestPoint( viewerPos );
 		var delta = closest - viewerPos;
 		var horizontal = new Vector3( delta.x, delta.y, 0f ).Length;
-		var vertical = MathF.Abs( delta.z );
+		var vertical = System.Math.Abs( delta.z );
 		return horizontal <= HubOpenHorizontalUnits && vertical <= HubOpenVerticalUnits;
 	}
 
@@ -88,7 +88,7 @@ public static class LifePunchMenuInteractRange
 	{
 		var delta = targetPos - viewerPos;
 		horizontalDistance = new Vector3( delta.x, delta.y, 0f ).Length;
-		var vertical = MathF.Abs( delta.z );
+		var vertical = System.Math.Abs( delta.z );
 		return horizontalDistance <= horizontalUnits && vertical <= verticalUnits;
 	}
 

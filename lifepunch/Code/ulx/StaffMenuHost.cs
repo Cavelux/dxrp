@@ -710,12 +710,13 @@ internal static class StaffMenuHost
 			trimmed = "https://" + trimmed;
 		}
 
-		if ( !Uri.TryCreate( trimmed, UriKind.Absolute, out var uri ) || string.IsNullOrWhiteSpace( uri.Host ) )
+		var host = ParseUrlHost( trimmed );
+		if ( string.IsNullOrWhiteSpace( host ) )
 		{
 			return "network";
 		}
 
-		var host = uri.Host.ToLowerInvariant();
+		host = host.ToLowerInvariant();
 		if ( host.StartsWith( "www." ) )
 		{
 			host = host[4..];
@@ -724,6 +725,25 @@ internal static class StaffMenuHost
 		var dot = host.IndexOf( '.' );
 		var slug = dot > 0 ? host[..dot] : host;
 		return string.IsNullOrWhiteSpace( slug ) ? "network" : slug;
+	}
+
+	static string ParseUrlHost( string url )
+	{
+		var schemeEnd = url.IndexOf( "://" );
+		if ( schemeEnd < 0 )
+			return null;
+
+		var rest = url[(schemeEnd + 3)..];
+		var pathStart = rest.IndexOfAny( new[] { '/', '?', '#', ':' } );
+		var hostPort = pathStart >= 0 ? rest[..pathStart] : rest;
+		if ( string.IsNullOrWhiteSpace( hostPort ) )
+			return null;
+
+		var colon = hostPort.LastIndexOf( ':' );
+		if ( colon > 0 && !hostPort.StartsWith( "[" ) )
+			hostPort = hostPort[..colon];
+
+		return hostPort;
 	}
 
 	/// <summary>Ask the host for the current owner settings (mirrors <see cref="RefreshWaypoints"/>). No-op in editor.</summary>

@@ -92,7 +92,7 @@ public static class LifePunchGroundContact
 
 	static void LiftBy( GameObject go, float delta )
 	{
-		if ( MathF.Abs( delta ) <= Epsilon )
+		if ( System.Math.Abs( delta ) <= Epsilon )
 			return;
 
 		go.WorldPosition += Vector3.Up * delta;

@@ -4,6 +4,8 @@
 // "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* · addon ident: lifepunch)
 // ─────────────────────────────────────────────────────────────────────────────
 
+using Sandbox;
+
 namespace LifePunch.DXRP.Addons;
 
 /// <summary>
@@ -42,5 +44,5 @@ public static class LifePunchUiScale
 	};
 
 	public static LifePunchUiScaleSize Clamp( int value ) =>
-		(LifePunchUiScaleSize)Math.Clamp( value, 0, 3 );
+		(LifePunchUiScaleSize)MathX.Clamp( value, 0, 3 );
 }

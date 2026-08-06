@@ -11,6 +11,8 @@ using Sandbox.UI;
 
 namespace LifePunch.DXRP.Addons;
 
+public delegate LifePunchScrollRegionPanel LifePunchScrollPanelFactory( string slotClass );
+
 /// <summary>
 /// Manual wheel scroll for flex-bound <c>lp-ui-scroll-region</c> panels — s&amp;box often leaves
 /// <see cref="Panel.HasScrollY"/> false until layout catches up; pair with <see cref="LifePunchUiScrollPolicy"/>.
@@ -117,10 +119,10 @@ public class LifePunchScrollRegionPanel : Panel
 /// </summary>
 public static class LifePunchScrollRegionBootstrap
 {
-	private static Func<string, LifePunchScrollRegionPanel> _customFactory;
+	private static LifePunchScrollPanelFactory _customFactory;
 
 	/// <summary>Register slot-specific scroll panels (e.g. HASHD terminal log with copy support).</summary>
-	public static void SetCustomFactory( Func<string, LifePunchScrollRegionPanel> factory )
+	public static void SetCustomFactory( LifePunchScrollPanelFactory factory )
 		=> _customFactory = factory;
 
 	public static void UpgradeScrollRegions( Panel root )
