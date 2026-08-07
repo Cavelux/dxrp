@@ -508,14 +508,40 @@
 								<img class="profile-avatar" src="avatar:@profileSteamId"/>
 								<div class="profile-identity-copy">
 									<div class="profile-name">@( detail.Found ? detail.Name : "Off-roster target" )</div>
-									<div class="profile-role" style="@( string.IsNullOrEmpty( detail.RankColorHex ) ? "" : $"color: {detail.RankColorHex}" )">@detail.Role</div>
 								</div>
 							</div>
 
 							@* ONE scroll region for the whole card body -- stats, Recent Actions and Sanctions
 							   scroll together rather than as three nested boxes fighting for height. *@
 							<div class="lp-ui-scroll-region profile-body">
-								<div class="profile-fields">
+								@* 16a -- the three sanctions staff reach for constantly, at the top of the card
+								   instead of buried behind "Actions for this player". Same card grammar as the
+								   Moderation grid, destructive treatment on all three. *@
+								@if ( detail.Found )
+								{
+									<div class="quick-sanctions">
+										@foreach ( var key in QuickSanctionKeys )
+										{
+											var qs = StaffMenuActions.All.FirstOrDefault( x => x.Key == key );
+											var qsTarget = _players.FirstOrDefault( p => p.SteamId == profileSteamId );
+											var qsOk = qs is not null && StaffMenuHost.CanView( qs.PermissionId )
+											           && qsTarget.SteamId != 0 && qsTarget.CanTarget;
+											@if ( qs is not null )
+											{
+												<button class="quick-sanction @( qsOk ? "" : "control-disabled" )"
+												        tooltip="@( qsOk ? qs.Tooltip : "Not permitted on this player" )"
+												        onclick="@(() => OnActionClick( qs, qsTarget, qsOk ))">
+													<i class="material-icons">@qs.Icon</i>
+													<span class="quick-sanction-label">@qs.Label</span>
+												</button>
+											}
+										}
+									</div>
+								}
+
+								@* 16b -- IDENTITY *@
+								<div class="profile-section-head">Identity</div>
+								<div class="profile-section">
 									<div class="field">
 										<span class="k">Steam ID</span>
 										<span class="v v-copy">
@@ -527,39 +553,66 @@
 											</button>
 										</span>
 									</div>
-
-									@if ( detail.Found )
-									{
-										<div class="field">
-											<span class="k">Job</span>
-											<span class="v v-job" style="@( string.IsNullOrEmpty( detail.JobColorHex ) ? "" : $"color: {detail.JobColorHex}" )">@detail.Job</span>
+									<div class="field-pair">
+										<div class="field field-half">
+											<span class="k">Role</span>
+											<span class="v" style="@( string.IsNullOrEmpty( detail.RankColorHex ) ? "" : $"color: {detail.RankColorHex}" )">@detail.Role</span>
 										</div>
+										<div class="field field-half">
+											<span class="k">Time played</span>
+											<span class="v">@( detail.Found ? $"{detail.PlayTimeMinutes / 60}h" : "—" )</span>
+										</div>
+									</div>
+								</div>
 
-										@* Short numerics pair two-per-row; Steam ID and Bank keep the full width. *@
+								@if ( detail.Found )
+								{
+									@* 16c -- ECON. Job category is DXRP's own job-group taxonomy, not a list we invented.
+									   BTC is absent on purpose: the lpbitcoin addon exposes no per-player balance. *@
+									<div class="profile-section-head">Econ</div>
+									<div class="profile-section">
 										<div class="field-pair">
 											<div class="field field-half">
-												<span class="k">Time played</span>
-												<span class="v">@( $"{detail.PlayTimeMinutes / 60}h" )</span>
+												<span class="k">Job</span>
+												<span class="v v-job" style="@( string.IsNullOrEmpty( detail.JobColorHex ) ? "" : $"color: {detail.JobColorHex}" )">@detail.Job</span>
 											</div>
-											@* Health colour comes from DXRP's OWN HUD function, so the console and the
-											   vitals bar can never disagree. Armor uses the HUD's shield token. *@
-											<div class="field field-half">
-												<span class="k">Health</span>
-												<span class="v" style="@( $"color: {StaffMenuHost.HealthColorHex( detail.Health, detail.MaxHealth )}" )">@detail.Health / @detail.MaxHealth</span>
-											</div>
+											@{
+												var jobCategory = StaffMenuHost.GetJobCategory( profileSteamId );
+											}
+											@if ( !string.IsNullOrEmpty( jobCategory ) )
+											{
+												<div class="field field-half">
+													<span class="k">Category</span>
+													<span class="v">@jobCategory</span>
+												</div>
+											}
 										</div>
-
 										<div class="field-pair">
-											<div class="field field-half">
-												<span class="k">Armor</span>
-												<span class="v @( detail.Armor > 0 ? "v-armor" : "v-tone-zero" )">@detail.Armor</span>
-											</div>
 											<div class="field field-half">
 												<span class="k">Cash</span>
 												<span class="v @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
 											</div>
+											<div class="field field-half">
+												<span class="k">Bank</span>
+												<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+											</div>
 										</div>
+									</div>
 
+									@* 16d / 16e -- STATUS. A power flag that the player has no permission for is the
+									   whole reason this section exists, so it is rendered loudly and differently. *@
+									<div class="profile-section-head">Status</div>
+									<div class="profile-section">
+										<div class="field-pair">
+											<div class="field field-half">
+												<span class="k">Health</span>
+												<span class="v" style="@( $"color: {StaffMenuHost.HealthColorHex( detail.Health, detail.MaxHealth )}" )">@detail.Health / @detail.MaxHealth</span>
+											</div>
+											<div class="field field-half">
+												<span class="k">Armor</span>
+												<span class="v @( detail.Armor > 0 ? "v-armor" : "v-tone-zero" )">@detail.Armor</span>
+											</div>
+										</div>
 										<div class="field-pair">
 											<div class="field field-half">
 												<span class="k">Kills</span>
@@ -570,16 +623,30 @@
 												<span class="v @( detail.Deaths > 0 ? "" : "v-tone-zero" )">@detail.Deaths</span>
 											</div>
 										</div>
-
-										<div class="field">
-											<span class="k">Bank</span>
-											<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+										@{
+											var stateFlags = StaffMenuHost.GetStateFlags( profileSteamId );
+										}
+										<div class="field flags-field">
+											<span class="k">Flags</span>
+											<span class="flags-list">
+												@if ( stateFlags.Count == 0 )
+												{
+													<span class="v v-tone-zero">None</span>
+												}
+												else
+												{
+													@foreach ( var flag in stateFlags )
+													{
+														<span class="flag-chip @( flag.Illegitimate ? "flag-illegit" : "" )"
+														      tooltip="@( flag.Illegitimate ? "Active WITHOUT the permission that grants it" : "Permitted for this player" )">@flag.Label</span>
+													}
+												}
+											</span>
 										</div>
-									}
-								</div>
+									</div>
+								}
 
-								@* RECENT ACTIONS. Wired to the real audit read so it lights up the moment STAFF-07
-								   lands; until then the live build returns empty and we SAY so rather than invent rows. *@
+
 								<div class="profile-section-head">Recent actions</div>
 								<div class="profile-section">
 									@{
@@ -1029,6 +1096,9 @@
 
 	// Catalog actions grouped by the ROLE their colour communicates. Keys match StaffMenuActions.
 	// Destructive actions harm or remove; observe actions only look; self-toggles carry live state.
+	// 16a -- the sanctions surfaced as cards on the profile itself. Order is escalation order.
+	private static readonly string[] QuickSanctionKeys = { "jail", "kick", "ban" };
+
 	private static readonly string[] DestructiveActionKeys =
 	{
 		"kick", "ban", "jail", "arrest", "forceselldoor"

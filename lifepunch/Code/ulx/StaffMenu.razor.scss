@@ -1369,6 +1369,81 @@ $armor-hud: #08b2e3;
 		min-width: 0;
 	}
 
+	// 16a -- three escalation cards in one row, destructive at rest because every one of them
+	// takes something away. Sized by flex so all three always fit without wrapping.
+	.quick-sanctions {
+		flex-direction: row;
+		flex-shrink: 0;
+		gap: 6px;
+		width: 100%;
+	}
+
+	.quick-sanction {
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		flex: 1 1 0;
+		min-width: 0;
+		gap: 3px;
+		height: 54px;
+		padding: 6px;
+		border: 1px solid rgba($danger, 0.40);
+		border-radius: 8px;
+		background-color: rgba($danger, 0.07);
+		color: $danger;
+		cursor: pointer;
+	}
+
+	.quick-sanction .material-icons {
+		font-size: 20px;
+		color: $danger;
+	}
+
+	.quick-sanction-label {
+		font-size: 12px;
+		font-weight: 700;
+	}
+
+	.quick-sanction:hover {
+		border-color: $danger;
+		background-color: rgba($danger, 0.18);
+	}
+
+	.quick-sanction:active {
+		background-color: rgba($danger, 0.30);
+	}
+
+	// 16e -- an illegitimate flag must be impossible to miss; a legitimate one must read calm.
+	.flags-field {
+		align-items: flex-start;
+	}
+
+	.flags-list {
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		flex: 1 1 0;
+		min-width: 0;
+		gap: 4px;
+	}
+
+	.flag-chip {
+		flex-shrink: 0;
+		padding: 2px 7px;
+		border: 1px solid $border;
+		border-radius: 5px;
+		background-color: $surface;
+		color: $muted;
+		font-size: 11px;
+		font-weight: 700;
+	}
+
+	.flag-illegit {
+		border-color: $danger;
+		background-color: rgba($danger, 0.20);
+		color: $danger;
+	}
+
 	.profile-section-head {
 		flex-shrink: 0;
 		padding: 0 2px;

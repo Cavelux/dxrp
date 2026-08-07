@@ -74,6 +74,14 @@ public readonly record struct StaffPlayerDetail(
 /// <see cref="TypeClass"/> is the lowercased type ("ban", "warning") used as a CSS class;
 /// <see cref="IsActive"/> drives the prominent red treatment an in-force sanction requires.
 /// </summary>
+/// <summary>
+/// One live state flag on a player. <see cref="Illegitimate"/> is the point of the section: the
+/// flag is ON but the player does not hold the portal permission that grants it, which means
+/// someone is using a command they were never given. A flag a staff member legitimately holds
+/// reads as ordinary state.
+/// </summary>
+public readonly record struct StaffStateFlag( string Label, bool Illegitimate );
+
 public readonly record struct StaffSanction(
 	string Type,
 	string TypeClass,
@@ -345,6 +353,84 @@ internal static class StaffMenuHost
 		return rows;
 #else
 		return System.Array.Empty<StaffSanction>();
+#endif
+	}
+
+	/// <summary>
+	/// The player's job CATEGORY, resolved through DXRP's own taxonomy rather than a list we
+	/// invented: every job carries a GameModeJobGroupId, and the group's Name is the category the
+	/// tenant configured. Empty when the job or its group is not resolvable.
+	/// </summary>
+	public static string GetJobCategory( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
+		if ( !player.IsValid() || player.Job is null )
+		{
+			return "";
+		}
+
+		return GameModeJobs.FindGroupById( player.Job.GameModeJobGroupId )?.Name ?? "";
+#else
+		return "";
+#endif
+	}
+
+	/// <summary>
+	/// Live state flags for a player, read from the same sources the commands write to. Only ACTIVE
+	/// flags are returned. Powers (god/cloak/incognito/noclip) are checked against the permission
+	/// that grants them, so an operator can tell a staff member's own toggle from a player running
+	/// a command they should not have. Conditions (frozen/jailed/gagged) are done TO a player
+	/// rather than wielded by one, so they are never flagged illegitimate.
+	/// </summary>
+	public static IReadOnlyList<StaffStateFlag> GetStateFlags( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
+		if ( !player.IsValid() )
+		{
+			return System.Array.Empty<StaffStateFlag>();
+		}
+
+		var flags = new List<StaffStateFlag>();
+
+		void Power( bool active, string label, string permissionId )
+		{
+			if ( active )
+			{
+				flags.Add( new StaffStateFlag( label, !RankSystem.HasPermission( steamId, permissionId ) ) );
+			}
+		}
+
+		// God mode is a HealthComponent property, not a status -- same field Vitals.razor reads.
+		Power( player.HealthComponent.IsValid() && player.HealthComponent.IsGodMode, "God mode", "command.god" );
+		Power( player.HasStatus( "cloak" ), "Cloaked", "command.cloak" );
+		Power( player.HasStatus( "incognito" ), "Incognito", "command.incognito" );
+
+		var noclip = player.Controller.IsValid()
+			? player.Controller.Components.Get<MoveModeNoClip>()
+			: null;
+		Power( noclip.IsValid() && noclip.IsNoclipping, "Noclip", "ability.noclip" );
+
+		// Status ids are DXRP's own constants (Constants.FreezeStatus / PrisonerStatus / GaggedStatus).
+		if ( player.HasStatus( "freeze" ) )
+		{
+			flags.Add( new StaffStateFlag( "Frozen", false ) );
+		}
+
+		if ( player.HasStatus( "prisoner" ) )
+		{
+			flags.Add( new StaffStateFlag( "Jailed", false ) );
+		}
+
+		if ( player.HasStatus( "gagged" ) )
+		{
+			flags.Add( new StaffStateFlag( "Gagged", false ) );
+		}
+
+		return flags;
+#else
+		return System.Array.Empty<StaffStateFlag>();
 #endif
 	}
 
