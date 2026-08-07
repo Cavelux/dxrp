@@ -69,6 +69,19 @@ public readonly record struct StaffPlayerDetail(
 /// is the raw SteamID64 (0 when the actor is the server/system) so the UI can resolve an avatar and
 /// match the Player-ID filter without re-parsing <see cref="Player"/>.
 /// </summary>
+/// <summary>
+/// One sanction row, projected free of Dxura types so it flows through the Dxura-free razor.
+/// <see cref="TypeClass"/> is the lowercased type ("ban", "warning") used as a CSS class;
+/// <see cref="IsActive"/> drives the prominent red treatment an in-force sanction requires.
+/// </summary>
+public readonly record struct StaffSanction(
+	string Type,
+	string TypeClass,
+	bool IsActive,
+	string Reason,
+	string Duration,
+	string Created );
+
 public readonly record struct StaffAuditEntry(
 	string When,
 	string Action,
@@ -192,6 +205,169 @@ internal static class StaffMenuHost
 			Player.Local.LockCamera = menuOpen;
 		}
 #endif
+	}
+
+	/// <summary>
+	/// True when a self-toggle action is ACTIVE on the local player right now. Read from live DXRP
+	/// state -- the networked status dictionary for god/cloak/incognito, the controller's noclip mode
+	/// for flight -- so a lit menu card and the HUD indicator can never disagree. A local click flag
+	/// would desync the moment anything else changed the state (death, respawn, another admin,
+	/// reconnect), which is exactly what this exists to avoid. Always false in the editor build.
+	/// </summary>
+	public static bool IsSelfToggleOn( string actionKey )
+	{
+#if !LIFEPUNCH_LOCAL
+		if ( !Player.Local.IsValid() )
+		{
+			return false;
+		}
+
+		if ( actionKey == "noclip" )
+		{
+			if ( !Player.Local.Controller.IsValid() )
+			{
+				return false;
+			}
+
+			var noclip = Player.Local.Controller.Components.Get<MoveModeNoClip>();
+			return noclip.IsValid() && noclip.IsNoclipping;
+		}
+
+		// God mode is NOT a status -- it is a property on HealthComponent, and it is the exact
+		// value DXRP's own HUD reads (Vitals.razor: HealthComponent?.IsGodMode). Reading the same
+		// field is what makes drift between the card and the HUD impossible.
+		if ( actionKey == "god" )
+		{
+			return Player.Local.HealthComponent.IsValid() && Player.Local.HealthComponent.IsGodMode;
+		}
+
+		// Cloak and incognito ARE statuses. The live Statuses dictionary is keyed by the same short
+		// lowercase id as the chat command that sets them ("afk" observed in session).
+		if ( actionKey is "cloak" or "incognito" )
+		{
+			return Player.Local.HasStatus( actionKey );
+		}
+#endif
+		return false;
+	}
+
+	/// <summary>
+	/// Health colour taken from DXRP's OWN HUD function -- <c>UiUtils.HealthColorHex</c>, the one
+	/// <c>PlayerInfo.razor</c> and <c>PartyMemberCard.razor</c> both call. Calling it rather than
+	/// copying its constants is what makes console/HUD drift impossible: if DXRP retunes the ramp,
+	/// this follows. Ramp of record: #f87171 at <=15%, #facc15 mid, #22c55e high, lerped.
+	/// Empty string in the editor build, where the razor falls back to its own token.
+	/// </summary>
+	public static string HealthColorHex( int health, int maxHealth )
+	{
+#if !LIFEPUNCH_LOCAL
+		var percent = maxHealth > 0
+			? System.Math.Clamp( (float)health / maxHealth * 100f, 0f, 100f )
+			: 0f;
+		return Dxura.RP.Game.UI.UiUtils.HealthColorHex( percent );
+#else
+		return "";
+#endif
+	}
+
+	// --- Sanction history (real DXRP source, not a stub) ------------------
+	// Backed by PlayerSanctionHistorySystem, the same system DXRP's own
+	// UI/Menus/TabMenu/Sections/Components/PlayerSanctionHistory.razor consumes.
+
+	/// <summary>Bumped when a sanction request is issued, so BuildHash re-renders on arrival.</summary>
+	public static int SanctionsVersion { get; private set; }
+
+	public static bool CanViewSanctions() => CanView( "player.sanctions.view.other" );
+
+	/// <summary>
+	/// Ask the host for a player's sanction history. Idempotent per player: the system already
+	/// tracks CurrentPlayerId, so re-requesting the same player is a no-op and this is safe to
+	/// call from a render path.
+	/// </summary>
+	public static void RequestSanctions( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		if ( steamId == 0 || !CanViewSanctions() )
+		{
+			return;
+		}
+
+		var system = PlayerSanctionHistorySystem.Current;
+		if ( system is null || system.CurrentPlayerId == steamId )
+		{
+			return;
+		}
+
+		var requestId = System.Guid.NewGuid();
+		system.BeginLoadingClient( steamId, requestId );
+		system.RequestSanctionsHost( steamId, requestId );
+		SanctionsVersion++;
+#endif
+	}
+
+	public static bool SanctionsLoading( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var system = PlayerSanctionHistorySystem.Current;
+		return system is not null && system.IsLoading && system.CurrentPlayerId == steamId;
+#else
+		return false;
+#endif
+	}
+
+	/// <summary>
+	/// This player's sanctions, projected Dxura-free so the razor stays clean. Empty when the
+	/// caller lacks the portal permission or the system has not answered for this player yet --
+	/// the razor renders an explicit "no sanctions" row rather than a blank void.
+	/// </summary>
+	public static IReadOnlyList<StaffSanction> GetSanctions( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var system = PlayerSanctionHistorySystem.Current;
+		if ( system is null || !CanViewSanctions() || system.CurrentPlayerId != steamId )
+		{
+			return System.Array.Empty<StaffSanction>();
+		}
+
+		var rows = new List<StaffSanction>();
+		foreach ( var entry in system.VisibleSanctions )
+		{
+			var type = entry.Type.ToString();
+			rows.Add( new StaffSanction(
+				SplitPascalCase( type ),
+				type.ToLowerInvariant(),
+				entry.State.ToString() == "Active",
+				string.IsNullOrWhiteSpace( entry.Reason ) ? "No reason recorded" : entry.Reason,
+				entry.Duration is null ? "Permanent" : entry.Duration.Value.ToString(),
+				entry.Created.ToString( "yyyy-MM-dd HH:mm" ) ) );
+		}
+
+		return rows;
+#else
+		return System.Array.Empty<StaffSanction>();
+#endif
+	}
+
+	/// <summary>"AutomaticBan" -> "Automatic Ban", matching DXRP's own sanction label rendering.</summary>
+	private static string SplitPascalCase( string value )
+	{
+		if ( string.IsNullOrWhiteSpace( value ) )
+		{
+			return "";
+		}
+
+		var builder = new System.Text.StringBuilder( value.Length + 8 );
+		for ( var i = 0; i < value.Length; i++ )
+		{
+			if ( i > 0 && char.IsUpper( value[i] ) )
+			{
+				builder.Append( ' ' );
+			}
+
+			builder.Append( value[i] );
+		}
+
+		return builder.ToString();
 	}
 
 	private static StaffMenu? Mount()
