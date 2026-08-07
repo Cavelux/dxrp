@@ -12,13 +12,13 @@
 // Warm deep blue-gray, never pure black. Three depths carry panel structure so
 // boundaries are FELT as tone rather than drawn as lines:
 //   shell (darkest chrome) -> surface (sidebar) -> surface-raised (cards)
-$canvas: #080a0f;
-$shell: #12161d;
-$surface: #171c24;
-$surface-raised: #1c222b;
-$border: #232a35;
+$canvas: #0e0e0d;
+$shell: #171614;
+$surface: #1e1c1a;
+$surface-raised: #262320;
+$border: #34302c;
 $text: #ece9e4;
-$muted: #8d8f8c;
+$muted: #96918a;
 
 // Four accents, four fixed roles, each present at rest and small in area:
 //   blue = interactive / identity   green = status / positive
@@ -29,11 +29,13 @@ $blue-highlight: #55aaff;
 // The brand blue stays as a glyph/border colour. Solid FILLS use this washed-back
 // tint instead, so a filled control sits at the same visual weight as everything else.
 $blue-fill: #1d4b78;
-$success: #6fa88a;
-$danger: #c07f7f;
+// DXRP's own $color-good (Code/UI/styles.scss:7). Law 17 puts cash in green; the earlier
+// sage reading washed out to near-white on the stat rows and stopped carrying meaning.
+$success: #199c3b;
+$danger: #c05f5f;
 // Fourth role. Observation / inspection only -- look-but-don't-touch actions.
 // Deliberately NOT used for privilege badges: one accent, one meaning.
-$amber: #cfa25f;
+$amber: #d99a3f;
 // HUD-CANONICAL. DXRP paints the armour shield with $counter-terror-color
 // (Code/UI/styles.scss:23) in PlayerInfo/PartyMemberCard (.armor-icon, .armor-fill).
 // Health is NOT a token -- it comes from UiUtils.HealthColorHex() via StaffMenuHost, so the
