@@ -23,13 +23,11 @@
 	<div class="window">
 		<div class="header">
 			<div class="title">
-				<div class="title-badge">
-					<i class="material-icons">shield</i>
-				</div>
 				<div class="title-stack">
-					<span class="title-primary">Admin Menu</span>
-					<span class="title-sub">ULX Console</span>
+					<span class="title-primary brand-wordmark"><span class="wordmark-life">lifepunch</span><span class="ulx">.ulx</span></span>
+					<span class="title-sub">ULX CONSOLE</span>
 				</div>
+				<span class="online-status"><span class="player-online"></span>@_players.Count online</span>
 			</div>
 			<div class="header-actions">
 				<button class="header-chip @( StaffMenuHost.HasWebsite ? "header-chip-link" : "" ) @( _websiteCopied ? "header-chip-copied" : "" )"
@@ -38,7 +36,7 @@
 					<i class="material-icons">language</i>
 					<span>@(_websiteCopied ? "Link copied!" : StaffMenuHost.NetworkIdentifier)</span>
 				</button>
-				<button class="lp-ui-chrome-btn cog @( _activeTab == TabSettings ? "active" : "" )" tooltip="Settings" onclick="@OpenSettings">
+				<button class="lp-ui-chrome-btn cog @( _activeTab == TabSettings ? "chrome-active" : "" )" tooltip="Settings" onclick="@OpenSettings">
 					<i class="material-icons">settings</i>
 				</button>
 				<button class="lp-ui-chrome-btn close" tooltip="Close Menu" onclick="@CloseMenu">
@@ -52,7 +50,6 @@
 			{
 				<button class="@TabClass( category )"
 				        onclick="@(() => SelectTab( category ))">
-					<i class="material-icons tab-icon">@TabIcon( category )</i>
 					<span>@category</span>
 				</button>
 			}
@@ -60,7 +57,6 @@
 			{
 				<button class="@TabClass( TabWaypoints )"
 				        onclick="@(() => SelectTab( TabWaypoints ))">
-					<i class="material-icons tab-icon">place</i>
 					<span>Waypoints</span>
 				</button>
 			}
@@ -68,7 +64,6 @@
 			{
 				<button class="@TabClass( TabAudit )"
 				        onclick="@(() => SelectTab( TabAudit ))">
-					<i class="material-icons tab-icon">history</i>
 					<span>Audit</span>
 				</button>
 			}
@@ -121,7 +116,7 @@
 							<div class="audit-row">
 								<span class="c-when">@entry.When</span>
 								<span class="c-action"><span class="action-pill">@entry.Action</span></span>
-								<span class="c-player @( entry.PlayerSteamId == 0 ? "system" : "" )">@entry.Player</span>
+								<span class="c-player @( entry.PlayerSteamId == 0 ? "audit-player-system" : "" )">@entry.Player</span>
 								<span class="c-entity">@entry.Entity</span>
 								<span class="c-desc">@entry.Description</span>
 							</div>
@@ -146,14 +141,14 @@
 				<div class="wp-bar">
 					<i class="material-icons">place</i>
 					<TextEntry class="wp-input" Placeholder="Waypoint name" Value:bind="@_waypointName"/>
-					<button class="wp-btn go @( string.IsNullOrWhiteSpace( _waypointName ) ? "disabled" : "" )"
+					<button class="wp-btn go @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
 					        tooltip="Teleport to this waypoint"
 					        onclick="@GoToTypedWaypoint">
 						<i class="material-icons">my_location</i> Go
 					</button>
 					@if ( StaffMenuHost.CanEditWaypoints() )
 					{
-						<button class="wp-btn set @( string.IsNullOrWhiteSpace( _waypointName ) ? "disabled" : "" )"
+						<button class="wp-btn set @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
 						        tooltip="Save a waypoint at your current position + view angle"
 						        onclick="@SetWaypointFromInput">
 							<i class="material-icons">push_pin</i> Set here
@@ -215,7 +210,7 @@
 						<div class="wp-bar wp-return-bar">
 							<i class="material-icons">person</i>
 							<TextEntry class="wp-input" Placeholder="SteamID64" Value:bind="@_returnSteamId"/>
-							<button class="wp-btn go @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "disabled" : "" )"
+							<button class="wp-btn go @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled" : "" )"
 							        tooltip="Return this player to their previous position"
 							        onclick="@ReturnTypedPlayer">
 								<i class="material-icons">undo</i> Return
@@ -239,7 +234,7 @@
 					<div class="panel-size-row">
 						@foreach ( var size in _uiScaleOptions )
 						{
-							<button class="panel-size-opt @( _uiScale == size ? "active" : "" )"
+							<button class="panel-size-opt @( _uiScale == size ? "panel-size-opt-active" : "" )"
 							        onclick="@(() => SetUiScale( size ))">
 								@LifePunchUiScale.ShortLabel( size )
 							</button>
@@ -258,7 +253,7 @@
 						<div class="settings-bar">
 							<i class="material-icons">link</i>
 							<TextEntry class="settings-input" Placeholder="https://your-network.com" Value:bind="@_websiteDraft"/>
-							<button class="settings-btn save @( _websiteSaved ? "saved" : "" )"
+							<button class="settings-btn save @( _websiteSaved ? "settings-btn-saved" : "" )"
 							        tooltip="Save the network website link"
 							        onclick="@SaveWebsiteFromInput">
 								<i class="material-icons">@( _websiteSaved ? "check" : "save" )</i> @( _websiteSaved ? "Saved!" : "Save" )
@@ -308,7 +303,7 @@
 		else
 		{
 		<div class="body">
-			<div class="players @( _playersCollapsed ? "collapsed" : "" )">
+			<div class="players @( _playersCollapsed ? "players-collapsed" : "" )">
 				@if ( _playersCollapsed )
 				{
 					<div class="players-rail">
@@ -338,9 +333,12 @@
 						.Where( p => p.GroupName == StaffMenuHost.NonStaffGroup )
 						.OrderBy( p => p.Name )
 						.ToList();
+					var rosterSearchEmpty = !string.IsNullOrWhiteSpace( _searchText )
+						&& staffCount == 0
+						&& nonStaff.Count == 0;
 
 					<div class="pane-label">
-						<span class="pane-title">Online Players (@_players.Count)</span>
+						<span class="pane-title">Players <span class="online-count">@_players.Count online</span></span>
 						<button class="collapse-btn" tooltip="Hide sidebar" onclick="@TogglePlayers">
 							<i class="material-icons">chevron_left</i>
 						</button>
@@ -348,7 +346,7 @@
 
 					<div class="search-row">
 						<i class="material-icons">search</i>
-						<TextEntry class="search-input" Placeholder="Steam ID" Value:bind="@_searchText"/>
+						<TextEntry class="search-input" Placeholder="Search players or SteamID" Value:bind="@_searchText"/>
 						@if ( !string.IsNullOrEmpty( _searchText ) )
 						{
 							<button class="icon-btn" onclick="@ClearSearch"><i class="material-icons">close</i></button>
@@ -364,6 +362,10 @@
 					}
 
 					<div class="lp-ui-scroll-region player-scroll">
+						@if ( rosterSearchEmpty )
+						{
+							<div class="roster-empty">No online players match this search.</div>
+						}
 						<div class="roster-section @(_staffSectionCollapsed ? "roster-section-collapsed" : "")">
 							<button class="parent-label" onclick="@ToggleStaffSection">
 								<span class="parent-label-text">Staff (@staffCount)</span>
@@ -377,11 +379,15 @@
 										<div class="group-label">@group.Name (@group.Players.Count)</div>
 										@foreach ( var player in group.Players )
 										{
-											<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "selected" : "" )"
+											<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "player-row-selected" : "" )"
 											        tooltip="View player profile"
 											        onclick="@(() => Select( player.SteamId ))">
 												<i class="material-icons avatar">person</i>
-												<span class="name">@player.Name</span>
+												<span class="player-online"></span>
+												<span class="player-copy">
+													<span class="name">@player.Name</span>
+													<span class="role">@player.Role</span>
+												</span>
 												@if ( !player.CanTarget )
 												{
 													<i class="material-icons lock" tooltip="Equal or higher rank — cannot target">lock</i>
@@ -403,11 +409,15 @@
 								<div class="roster-tier roster-tier-players">
 									@foreach ( var player in nonStaff )
 									{
-										<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "selected" : "" )"
+										<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "player-row-selected" : "" )"
 										        tooltip="View player profile"
 										        onclick="@(() => Select( player.SteamId ))">
 											<i class="material-icons avatar">person</i>
-											<span class="name">@player.Name</span>
+											<span class="player-online"></span>
+											<span class="player-copy">
+												<span class="name">@player.Name</span>
+												<span class="role">@player.Role</span>
+											</span>
 											@if ( !player.CanTarget )
 											{
 												<i class="material-icons lock" tooltip="Equal or higher rank — cannot target">lock</i>
@@ -441,7 +451,7 @@
 					var hasTarget = selected.SteamId != 0;
 					// The profile pane previews whoever was clicked (_profileSteamId); it does NOT
 					// imply selection — only "Actions for this player" commits a command target.
-					var profileSteamId = _profileSteamId ?? 0;
+					var profileSteamId = _profileSteamId ?? _selectedSteamId ?? 0;
 				}
 
 				@if ( _showProfile && profileSteamId != 0 )
@@ -459,17 +469,17 @@
 								var tpTarget = _players.FirstOrDefault( p => p.SteamId == profileSteamId );
 								var canTp = tpTarget.SteamId != 0 && tpTarget.CanTarget && profileSteamId != StaffMenuHost.LocalSteamId;
 								<div class="profile-tp">
-									<button class="tp-btn @( canTp ? "" : "disabled" )"
+									<button class="tp-btn @( canTp ? "" : "control-disabled" )"
 									        tooltip="Go to Player"
 									        onclick="@(() => QuickTeleport( "goto", tpTarget ))">
 										<i class="material-icons">my_location</i>
 									</button>
-									<button class="tp-btn @( canTp ? "" : "disabled" )"
+									<button class="tp-btn @( canTp ? "" : "control-disabled" )"
 									        tooltip="Bring Player"
 									        onclick="@(() => QuickTeleport( "bring", tpTarget ))">
 										<i class="material-icons">pan_tool</i>
 									</button>
-									<button class="tp-btn @( canTp ? "" : "disabled" )"
+									<button class="tp-btn @( canTp ? "" : "control-disabled" )"
 									        tooltip="Return Player"
 									        onclick="@(() => QuickTeleport( "return", tpTarget ))">
 										<i class="material-icons">undo</i>
@@ -541,7 +551,7 @@
 
 							@if ( StaffMenuHost.CanViewAudit() )
 							{
-								<button class="confirm-btn secondary" onclick="@(() => OpenAuditForPlayer( profileSteamId ))">
+								<button class="confirm-btn confirm-btn-secondary" onclick="@(() => OpenAuditForPlayer( profileSteamId ))">
 									<i class="material-icons">history</i> View audit log
 								</button>
 							}
@@ -550,29 +560,75 @@
 				}
 				else
 				{
-				<div class="target-banner @( _selectedSteamId != null ? "active" : "" )">
-					<i class="material-icons">@( _selectedSteamId != null ? "person" : "public" )</i>
-					<span class="target-name">@( hasTarget ? selected.Name : ( _selectedSteamId != null ? $"SteamID {_selectedSteamId}" : "No player selected — self & server actions only" ) )</span>
+				<div class="target-identity @( _selectedSteamId != null ? "target-identity-active" : "" )">
 					@if ( _selectedSteamId != null )
 					{
-						<button class="icon-btn clear-target" tooltip="Deselect player" onclick="@Deselect">
-							<i class="material-icons">close</i>
-						</button>
+						<div class="target-identity-main">
+							<i class="material-icons">person</i>
+							<div class="target-identity-copy">
+								<span class="target-name">@( hasTarget ? selected.Name : $"SteamID {_selectedSteamId}" )</span>
+								@if ( hasTarget && !string.IsNullOrWhiteSpace( selected.Role ) )
+								{
+									<span class="target-role">@selected.Role</span>
+								}
+								<span class="target-steamid">SteamID @_selectedSteamId</span>
+							</div>
+						</div>
+						<div class="target-identity-state">
+							@if ( hasTarget )
+							{
+								<span class="target-online">Online roster player</span>
+									<span class="targetability @( selected.CanTarget ? "targetability-targetable" : "targetability-protected" )">@( selected.CanTarget ? "Targetable" : "Protected or unavailable" )</span>
+							}
+							else
+							{
+								<span class="target-off-roster">Off-roster target — availability unknown</span>
+								<span class="targetability targetability-protected">Unavailable for player actions</span>
+							}
+						</div>
+						<div class="target-identity-actions">
+							@if ( hasTarget )
+							{
+								<button class="profile-preview-btn" onclick="@(() => Select( profileSteamId ))">
+									<i class="material-icons">visibility</i> View profile
+								</button>
+							}
+							<button class="icon-btn clear-target" tooltip="Deselect player" onclick="@Deselect">
+								<i class="material-icons">close</i>
+							</button>
+						</div>
+					}
+					else
+					{
+						<i class="material-icons">public</i>
+						<div class="target-identity-copy">
+							<span class="target-name">No target selected</span>
+							<span class="target-identity-hint">Self and server actions remain available.</span>
+						</div>
 					}
 				</div>
 
 				@if ( _pendingAction is { } pending )
 				{
+					var requiredArgsComplete = pending.Args
+						.Where( arg => arg.Required )
+						.All( arg => !string.IsNullOrWhiteSpace( ValueFor( arg.Name ) ) );
+					var targetContext = pending.TargetMode == StaffActionTarget.OtherPlayer
+						? ( hasTarget ? selected.Name : "No target selected" )
+						: ( pending.TargetMode == StaffActionTarget.SelfOnly ? "Self" : "Server" );
 					<div class="arg-form">
 						<div class="arg-form-head">
-							<span>@pending.Label@( hasTarget && pending.TargetMode == StaffActionTarget.OtherPlayer ? $" — {selected.Name}" : "" )</span>
+							<div class="arg-context">
+								<span class="arg-action">@pending.Label</span>
+								<span class="arg-target">Target: @targetContext</span>
+							</div>
 							<button class="icon-btn" onclick="@CancelArgs"><i class="material-icons">close</i></button>
 						</div>
 
 						@foreach ( var arg in pending.Args )
 						{
 							<div class="arg-row">
-								<label>@arg.Label@( arg.Required ? "" : " (optional)" )</label>
+								<label>@arg.Label <span class="arg-required">@( arg.Required ? "Required" : "Optional" )</span></label>
 
 								@if ( arg.Kind == StaffArgKind.Duration )
 								{
@@ -581,7 +637,7 @@
 										{
 											var allowed = pending.Key != "ban"
 												|| StaffMenuConfig.IsBanDurationAllowed( StaffMenuHost.LocalRankOrder, preset.Hours );
-											<button class="chip @( _duration == preset.Token ? "active" : "" ) @( allowed ? "" : "disabled" )"
+											<button class="chip @( _duration == preset.Token ? "chip-active" : "" ) @( allowed ? "" : "control-disabled" )"
 											        onclick="@(() => SetDuration( preset.Token, allowed ))">
 												@preset.Label
 											</button>
@@ -615,7 +671,7 @@
 												<TextEntry class="arg-input job-filter" Placeholder="Filter jobs" Value:bind="@_jobFilter"/>
 												@foreach ( var job in FilteredJobOptions() )
 												{
-													<button type="button" class="job-option @( _job == job.Token ? "active" : "" )"
+													<button type="button" class="job-option @( _job == job.Token ? "job-option-active" : "" )"
 													        onclick="@(() => SetJob( job.Token ))">
 														<span class="job-swatch" style="background-color: @job.ColorHex"></span>
 														<span>@job.Label</span>
@@ -643,7 +699,12 @@
 							</div>
 						}
 
-						<button class="confirm-btn" onclick="@(() => ConfirmArgs( selected ))">
+						@if ( !requiredArgsComplete )
+						{
+							<div class="arg-required-hint">Complete the required fields before confirming.</div>
+						}
+
+							<button class="confirm-btn @( requiredArgsComplete ? "" : "control-disabled" )" onclick="@(() => ConfirmArgs( selected ))">
 							<i class="material-icons">check</i> Confirm @pending.Label
 						</button>
 					</div>
@@ -658,17 +719,23 @@
 					@foreach ( var action in GetVisibleTabActions() )
 					{
 						var enabled = IsEnabled( action, selected, hasTarget );
-						<button class="action-btn @( enabled ? "" : "disabled" )"
+						var description = string.IsNullOrWhiteSpace( action.Tooltip ) ? action.Label : action.Tooltip;
+							<button class="action-btn @( enabled ? "" : "control-disabled" )"
 						        tooltip="@( string.IsNullOrEmpty( action.Tooltip ) ? action.Label : action.Tooltip )"
 						        onclick="@(() => OnActionClick( action, selected, enabled ))">
 							<i class="material-icons">@action.Icon</i>
-							<span>@action.Label</span>
+							<span class="action-label">@action.Label</span>
+							<span class="action-description">@description</span>
+							@if ( !enabled && action.TargetMode == StaffActionTarget.OtherPlayer )
+							{
+								<span class="action-disabled-reason">@( _selectedSteamId is null ? "Select a player target to use this action." : "The selected target is protected or unavailable." )</span>
+							}
 						</button>
 					}
 
-					@* Invisible spacers pad the final row to a multiple of 4 so real boxes keep their
-					   1/4 width (uniform) instead of flex-growing to fill the leftover space. *@
-					@for ( var i = 0; i < (4 - GetVisibleTabActions().Count % 4) % 4; i++ )
+					@* Invisible spacers complete the final three-card row so real cards retain their
+					   uniform flex width instead of growing into unused space. *@
+					@for ( var i = 0; i < (3 - GetVisibleTabActions().Count % 3) % 3; i++ )
 					{
 						<div class="action-spacer"></div>
 					}
