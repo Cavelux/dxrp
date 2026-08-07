@@ -1100,6 +1100,9 @@ internal static class StaffMenuHost
 			case StaffDispatchKind.LocalToggle:
 				DispatchLocalToggle( action );
 				break;
+			case StaffDispatchKind.GiveMoney:
+				DispatchGiveMoney( targetSteamId, args );
+				break;
 		}
 #endif
 	}
@@ -1149,6 +1152,30 @@ internal static class StaffMenuHost
 
 				break;
 		}
+	}
+
+	/// <summary>
+	/// Hand a currency grant to the host. The client parses its own form here, but every value is
+	/// re-validated host-side -- this parse is for the UI's benefit, never for authority.
+	/// </summary>
+	private static void DispatchGiveMoney( long targetSteamId, IReadOnlyDictionary<string, string> args )
+	{
+#if !LIFEPUNCH_LOCAL
+		args.TryGetValue( "amount", out var rawAmount );
+		args.TryGetValue( "reason", out var reason );
+		args.TryGetValue( "destination", out var destination );
+
+		if ( !uint.TryParse( rawAmount?.Trim(), out var amount ) || amount == 0 )
+		{
+			return;
+		}
+
+		if ( StaffMenuBridgeService.Instance.IsValid() )
+		{
+			StaffMenuBridgeService.Instance.GiveMoneyHost(
+				targetSteamId, amount, destination == "bank", reason ?? "" );
+		}
+#endif
 	}
 
 	private static void DispatchChatCommand( StaffAction action, long targetSteamId, IReadOnlyDictionary<string, string> args )

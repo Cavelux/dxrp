@@ -1371,6 +1371,46 @@ $armor-hud: #08b2e3;
 
 	// 16a -- three escalation cards in one row, destructive at rest because every one of them
 	// takes something away. Sized by flex so all three always fit without wrapping.
+	// 17f -- the restated grant, immediately above the button that executes it.
+	.grant-confirm {
+		flex-direction: column;
+		flex-shrink: 0;
+		gap: 3px;
+		padding: 9px 11px;
+		border: 1px solid rgba($danger, 0.50);
+		border-radius: 7px;
+		background-color: rgba($danger, 0.10);
+	}
+
+	.grant-confirm-line {
+		color: $text;
+		font-size: 13px;
+	}
+
+	.grant-amount {
+		color: $danger;
+		font-weight: 700;
+	}
+
+	.grant-target {
+		color: $text;
+		font-weight: 700;
+	}
+
+	.grant-confirm-sub {
+		color: $muted;
+		font-size: 11px;
+	}
+
+	.confirm-btn-danger {
+		border-color: $danger;
+		background-color: rgba($danger, 0.30);
+	}
+
+	.confirm-btn-danger:hover {
+		background-color: rgba($danger, 0.44);
+	}
+
 	.quick-sanctions {
 		flex-direction: row;
 		flex-shrink: 0;

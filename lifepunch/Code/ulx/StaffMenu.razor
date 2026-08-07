@@ -805,6 +805,15 @@
 									</div>
 									<TextEntry class="arg-input" Placeholder="@arg.Placeholder" Value:bind="@_duration"/>
 								}
+								else if ( arg.Kind == StaffArgKind.Destination )
+								{
+									<div class="chips">
+										<button class="chip @( _destination == "cash" ? "chip-active" : "" )"
+										        onclick="@(() => SetDestination( "cash" ))">Cash</button>
+										<button class="chip @( _destination == "bank" ? "chip-active" : "" )"
+										        onclick="@(() => SetDestination( "bank" ))">Bank</button>
+									</div>
+								}
 								else if ( arg.Kind == StaffArgKind.Number )
 								{
 									<TextEntry class="arg-input" Numeric="@true" Placeholder="@arg.Placeholder" Value:bind="@_amount"/>
@@ -864,8 +873,16 @@
 							<div class="arg-required-hint">Complete the required fields before confirming.</div>
 						}
 
-							<button class="confirm-btn @( requiredArgsComplete ? "" : "control-disabled" )" onclick="@(() => ConfirmArgs( selected ))">
-							<i class="material-icons">check</i> Confirm @pending.Label
+						@if ( pending.Dispatch == StaffDispatchKind.GiveMoney && _grantConfirm && requiredArgsComplete )
+						{
+							<div class="grant-confirm">
+								<span class="grant-confirm-line">Give <span class="grant-amount">$@_amount</span> to <span class="grant-target">@targetContext</span>, into their <span class="grant-amount">@_destination</span>?</span>
+								<span class="grant-confirm-sub">This is audited and cannot be reversed from this console.</span>
+							</div>
+						}
+
+							<button class="confirm-btn @( requiredArgsComplete ? "" : "control-disabled" ) @( _grantConfirm ? "confirm-btn-danger" : "" )" onclick="@(() => ConfirmArgs( selected ))">
+							<i class="material-icons">@( _grantConfirm ? "warning" : "check" )</i> @( _grantConfirm ? "Yes, give the money" : $"Confirm {pending.Label}" )
 						</button>
 					</div>
 				}
@@ -1016,6 +1033,19 @@
 	private bool _currentCopied;
 
 	private StaffAction? _pendingAction;
+
+	// Currency-grant form state. _destination defaults to cash because that is the common refund
+	// case; _grantConfirm makes the grant a deliberate two-step (17f) -- a mistyped zero on a
+	// grant is not recoverable by the recipient's goodwill.
+	private string _destination = "cash";
+	private bool _grantConfirm;
+
+	private void SetDestination( string destination )
+	{
+		_destination = destination;
+		_grantConfirm = false;   // changing the target of the money re-arms the confirm
+		StateHasChanged();
+	}
 	private string _reason = "";
 	private string _duration = "";
 	private string _amount = "";
@@ -1374,6 +1404,7 @@
 	private void CancelArgs()
 	{
 		_pendingAction = null;
+		_grantConfirm = false;
 		_jobDropdownOpen = false;
 		StateHasChanged();
 	}
@@ -1435,12 +1466,22 @@
 			args[arg.Name] = value;
 		}
 
+		// A currency grant arms first and fires on the second press, with the amount and the
+		// recipient restated in between.
+		if ( action.Dispatch == StaffDispatchKind.GiveMoney && !_grantConfirm )
+		{
+			_grantConfirm = true;
+			StateHasChanged();
+			return;
+		}
+
 		Dispatch( action, selected, args );
 		CancelArgs();
 	}
 
 	private string ValueFor( string argName ) => argName switch
 	{
+		"destination" => _destination,
 		"reason" => _reason,
 		"duration" => _duration,
 		"amount" => _amount,
@@ -1716,6 +1757,7 @@
 			HashCode.Combine( _players.Count, _playersCollapsed, _staffSectionCollapsed, _playersSectionCollapsed ),
 			_activeTab,
 			_pendingAction?.Key,
+			HashCode.Combine( _destination, _grantConfirm ),
 			HashCode.Combine( _reason, _duration, _amount, _name, _job, _jobFilter, _jobDropdownOpen ),
 			HashCode.Combine( _auditPlayerId, _auditEntity, _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ),
 			HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId, _wpPendingDelete, StaffMenuHost.SanctionsVersion ),

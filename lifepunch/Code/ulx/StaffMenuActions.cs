@@ -38,7 +38,13 @@ public enum StaffDispatchKind
 {
 	AdminRpc,
 	ChatCommand,
-	LocalToggle
+	LocalToggle,
+
+	/// <summary>
+	/// Currency grant. Its own kind rather than a chat command because DXRP exposes none: the
+	/// client sends a request and the HOST validates the caller's permission and executes.
+	/// </summary>
+	GiveMoney
 }
 
 /// <summary>How the UI should render/validate an argument input.</summary>
@@ -47,7 +53,10 @@ public enum StaffArgKind
 	Text,
 	Duration,
 	Number,
-	Job
+	Job,
+
+	/// <summary>Cash or bank. Rendered as a two-chip picker, not free text.</summary>
+	Destination
 }
 
 /// <summary>
@@ -169,6 +178,20 @@ public static class StaffMenuActions
 
 		new( "unarrest", "Unarrest", CategoryCommands, "command.unarrest",
 			StaffDispatchKind.ChatCommand, "unarrest", StaffActionTarget.OtherPlayer, NoArgs, "no_accounts", "Unarrest player" ),
+
+		// Staff currency grant, for refunds and event payouts. Gated on the portal's own
+		// economy.manage permission -- the tier the portal assigns to Owner and Super Admin --
+		// rather than on a rank name we invented here. The grid hides actions the caller lacks
+		// permission for, and the host re-checks regardless of what the client believes.
+		new( "givemoney", "Give Money", CategoryCommands, "economy.manage",
+			StaffDispatchKind.GiveMoney, "givemoney", StaffActionTarget.OtherPlayer,
+			new[]
+			{
+				new StaffActionArg( "amount", "Amount", StaffArgKind.Number, true, "e.g. 5000" ),
+				new StaffActionArg( "destination", "Destination", StaffArgKind.Destination, true, "Cash or bank" ),
+				new StaffActionArg( "reason", "Reason", StaffArgKind.Text, true, "Refund for lost printer, event payout..." )
+			},
+			"payments", "Grant currency to this player (audited)" ),
 
 		new( "forcerpname", "Force RP Name", CategoryCommands, "command.forcerpname",
 			StaffDispatchKind.ChatCommand, "forcerpname", StaffActionTarget.OtherPlayer,

@@ -43,6 +43,53 @@ public sealed class StaffMenuBridgeService : SingletonComponent<StaffMenuBridgeS
 		_ = SendWaypointsToCaller( caller );
 	}
 
+	/// <summary>
+	/// Execute a staff currency grant. HOST-AUTHORITATIVE by construction: the client sends a
+	/// request and nothing more. It does not decide whether the grant is allowed, and a modified
+	/// client sending a forged request is rejected on the permission check alone.
+	///
+	/// Every guard here is a hard return, not a clamp: a grant that fails validation does not
+	/// execute in a reduced form. Amount is <c>uint</c>, so a deduction is not merely disallowed
+	/// but unrepresentable.
+	///
+	/// The grant runs through <c>Player.PayHost</c> -- DXRP's own economy path, the one paydays and
+	/// purchases use -- so MoneyEnabled, the overflow guard, the transaction lock and the audit
+	/// write all still apply. PayHost audits both destinations: ModifyPlayerBalance for bank,
+	/// Audit("WalletDeposit") for cash. Nothing here writes a balance field directly.
+	/// </summary>
+	[Rpc.Host]
+	public void GiveMoneyHost( long targetSteamId, uint amount, bool inBank, string reason )
+	{
+		var caller = Rpc.Caller;
+
+		if ( !RankSystem.HasPermission( caller.SteamId, Permission.ManageEconomy ) )
+		{
+			return;
+		}
+
+		if ( amount == 0 )
+		{
+			return;
+		}
+
+		// No blank-reason grants, ever -- the reason is the audit entry's only human content.
+		if ( string.IsNullOrWhiteSpace( reason ) )
+		{
+			return;
+		}
+
+		var target = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == targetSteamId );
+		if ( !target.IsValid() )
+		{
+			return;
+		}
+
+		// The issuer is recorded in the reason string because that is what reaches the portal
+		// audit; without it the entry would say what happened but not who did it.
+		var audited = $"Staff grant by {caller.DisplayName} ({caller.SteamId}): {reason.Trim()}";
+		_ = target.PayHost( amount, audited, inBank );
+	}
+
 	[Rpc.Host]
 	public void RequestSettingsHost()
 	{
