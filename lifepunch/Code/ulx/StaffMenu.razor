@@ -132,6 +132,7 @@
 		else if ( _activeTab == TabWaypoints )
 		{
 			<div class="waypoints">
+				<div class="wp-main">
 				<div class="wp-head">
 					<i class="material-icons">place</i>
 					<span>Waypoints</span>
@@ -205,6 +206,8 @@
 				</div>
 					}
 					<div class="wp-list-tail"></div>
+				</div>
+
 				</div>
 
 				@if ( StaffMenuHost.CanView( "ability.teleport" ) )
@@ -540,111 +543,104 @@
 								}
 
 								@* 16b -- IDENTITY *@
-								<div class="profile-section-head">Identity</div>
-								<div class="profile-section">
-									<div class="field">
-										<span class="k">Steam ID</span>
-										<span class="v v-copy">
-											<span class="@( _steamIdCopied ? "copied-text" : "" )">@( _steamIdCopied ? "Copied!" : profileSteamId.ToString() )</span>
-											<button class="copy-btn"
-											        tooltip="@( _steamIdCopied ? "Copied!" : "Copy Steam ID" )"
-											        onclick="@(() => CopySteamId( profileSteamId ))">
-												<i class="material-icons">@( _steamIdCopied ? "check" : "content_copy" )</i>
-											</button>
-										</span>
-									</div>
-									<div class="field-pair">
-										<div class="field field-half">
-											<span class="k">Role</span>
-											<span class="v" style="@( string.IsNullOrEmpty( detail.RankColorHex ) ? "" : $"color: {detail.RankColorHex}" )">@detail.Role</span>
-										</div>
-										<div class="field field-half">
-											<span class="k">Time played</span>
-											<span class="v">@( detail.Found ? $"{detail.PlayTimeMinutes / 60}h" : "—" )</span>
-										</div>
-									</div>
-								</div>
-
-								@if ( detail.Found )
-								{
-									@* 16c -- ECON. Job category is DXRP's own job-group taxonomy, not a list we invented.
-									   BTC is absent on purpose: the lpbitcoin addon exposes no per-player balance. *@
-									<div class="profile-section-head">Econ</div>
-									<div class="profile-section">
-										<div class="field-pair">
-											<div class="field field-half">
-												<span class="k">Job</span>
-												<span class="v v-job" style="@( string.IsNullOrEmpty( detail.JobColorHex ) ? "" : $"color: {detail.JobColorHex}" )">@detail.Job</span>
+								@* The three info sections sit SIDE BY SIDE. Stacking them left a third of the card's
+								   width empty and pushed Status down until the buttons clipped it. Pairs group
+								   tightly inside each column; the distribution happens across the width. *@
+								<div class="profile-columns">
+									<div class="profile-col">
+										<div class="profile-section-head">Identity</div>
+										<div class="profile-section">
+											<div class="field">
+												<span class="k">Steam ID</span>
+												<span class="v v-copy">
+													<span class="@( _steamIdCopied ? "copied-text" : "" )">@( _steamIdCopied ? "Copied!" : profileSteamId.ToString() )</span>
+													<button class="copy-btn"
+													        tooltip="@( _steamIdCopied ? "Copied!" : "Copy Steam ID" )"
+													        onclick="@(() => CopySteamId( profileSteamId ))">
+														<i class="material-icons">@( _steamIdCopied ? "check" : "content_copy" )</i>
+													</button>
+												</span>
 											</div>
-											@{
-												var jobCategory = StaffMenuHost.GetJobCategory( profileSteamId );
-											}
-											@if ( !string.IsNullOrEmpty( jobCategory ) )
-											{
-												<div class="field field-half">
-													<span class="k">Category</span>
-													<span class="v">@jobCategory</span>
+											<div class="field">
+												<span class="k">Role</span>
+												<span class="v" style="@( string.IsNullOrEmpty( detail.RankColorHex ) ? "" : $"color: {detail.RankColorHex}" )">@detail.Role</span>
+											</div>
+											<div class="field">
+												<span class="k">Time played</span>
+												<span class="v">@( detail.Found ? $"{detail.PlayTimeMinutes / 60}h" : "—" )</span>
+											</div>
+										</div>
+									</div>
+
+									@if ( detail.Found )
+									{
+										<div class="profile-col">
+											<div class="profile-section-head">Econ</div>
+											<div class="profile-section">
+												<div class="field">
+													<span class="k">Job</span>
+													<span class="v v-job" style="@( string.IsNullOrEmpty( detail.JobColorHex ) ? "" : $"color: {detail.JobColorHex}" )">@detail.Job</span>
 												</div>
-											}
-										</div>
-										<div class="field-pair">
-											<div class="field field-half">
-												<span class="k">Cash</span>
-												<span class="v @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+												@{
+													var jobCategory = StaffMenuHost.GetJobCategory( profileSteamId );
+												}
+												@if ( !string.IsNullOrEmpty( jobCategory ) )
+												{
+													<div class="field">
+														<span class="k">Category</span>
+														<span class="v">@jobCategory</span>
+													</div>
+												}
+												<div class="field">
+													<span class="k">Cash</span>
+													<span class="v @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+												</div>
+												<div class="field">
+													<span class="k">Bank</span>
+													<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+												</div>
 											</div>
-											<div class="field field-half">
-												<span class="k">Bank</span>
-												<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
-											</div>
 										</div>
-									</div>
 
-									@* 16d / 16e -- STATUS. A power flag that the player has no permission for is the
-									   whole reason this section exists, so it is rendered loudly and differently. *@
-									<div class="profile-section-head">Status</div>
-									<div class="profile-section">
-										<div class="field-pair">
-											<div class="field field-half">
-												<span class="k">Health</span>
-												<span class="v" style="@( $"color: {StaffMenuHost.HealthColorHex( detail.Health, detail.MaxHealth )}" )">@detail.Health / @detail.MaxHealth</span>
-											</div>
-											<div class="field field-half">
-												<span class="k">Armor</span>
-												<span class="v @( detail.Armor > 0 ? "v-armor" : "v-tone-zero" )">@detail.Armor</span>
-											</div>
-										</div>
-										<div class="field-pair">
-											<div class="field field-half">
-												<span class="k">Kills</span>
-												<span class="v @( detail.Kills > 0 ? "" : "v-tone-zero" )">@detail.Kills</span>
-											</div>
-											<div class="field field-half">
-												<span class="k">Deaths</span>
-												<span class="v @( detail.Deaths > 0 ? "" : "v-tone-zero" )">@detail.Deaths</span>
-											</div>
-										</div>
-										@{
-											var stateFlags = StaffMenuHost.GetStateFlags( profileSteamId );
-										}
-										<div class="field flags-field">
-											<span class="k">Flags</span>
-											<span class="flags-list">
-												@if ( stateFlags.Count == 0 )
-												{
-													<span class="v v-tone-zero">None</span>
+										<div class="profile-col">
+											<div class="profile-section-head">Status</div>
+											<div class="profile-section">
+												<div class="field">
+													<span class="k">Health</span>
+													<span class="v" style="@( $"color: {StaffMenuHost.HealthColorHex( detail.Health, detail.MaxHealth )}" )">@detail.Health / @detail.MaxHealth</span>
+												</div>
+												<div class="field">
+													<span class="k">Armor</span>
+													<span class="v @( detail.Armor > 0 ? "v-armor" : "v-tone-zero" )">@detail.Armor</span>
+												</div>
+												<div class="field">
+													<span class="k">Kills / Deaths</span>
+													<span class="v">@detail.Kills / @detail.Deaths</span>
+												</div>
+												@{
+													var stateFlags = StaffMenuHost.GetStateFlags( profileSteamId );
 												}
-												else
-												{
-													@foreach ( var flag in stateFlags )
-													{
-														<span class="flag-chip @( flag.Illegitimate ? "flag-illegit" : "" )"
-														      tooltip="@( flag.Illegitimate ? "Active WITHOUT the permission that grants it" : "Permitted for this player" )">@flag.Label</span>
-													}
-												}
-											</span>
+												<div class="field flags-field">
+													<span class="k">Flags</span>
+													<span class="flags-list">
+														@if ( stateFlags.Count == 0 )
+														{
+															<span class="v v-tone-zero">None</span>
+														}
+														else
+														{
+															@foreach ( var flag in stateFlags )
+															{
+																<span class="flag-chip @( flag.Illegitimate ? "flag-illegit" : "" )"
+																      tooltip="@( flag.Illegitimate ? "Active WITHOUT the permission that grants it" : "Permitted for this player" )">@flag.Label</span>
+															}
+														}
+													</span>
+												</div>
+											</div>
 										</div>
-									</div>
-								}
+									}
+								</div>
 
 
 								<div class="profile-section-head">Recent actions</div>

@@ -15,10 +15,10 @@
 $canvas: #0f1011;
 $shell: #17181a;
 $surface: #1e1f21;
-$surface-raised: #26282b;
-$border: #333538;
+$surface-raised: #272829;
+$border: #343536;
 $text: #e4e6e8;
-$muted: #8b8e91;
+$muted: #8d8f90;
 
 // Four accents, four fixed roles, each present at rest and small in area:
 //   blue = interactive / identity   green = status / positive
@@ -1259,7 +1259,6 @@ $armor-hud: #08b2e3;
 		position: relative;
 		align-items: stretch;
 		flex: 1 1 auto;
-		max-width: 720px;
 		width: 100%;
 		gap: 7px;
 		padding: 12px 14px;
@@ -1484,6 +1483,21 @@ $armor-hud: #08b2e3;
 		color: $danger;
 	}
 
+	.profile-columns {
+		flex-direction: row;
+		align-items: flex-start;
+		flex-shrink: 0;
+		gap: 10px;
+		width: 100%;
+	}
+
+	.profile-col {
+		flex-direction: column;
+		flex: 1 1 0;
+		min-width: 0;
+		gap: 4px;
+	}
+
 	.profile-section-head {
 		flex-shrink: 0;
 		padding: 0 2px;
@@ -1697,11 +1711,23 @@ $armor-hud: #08b2e3;
 
 	.audit,
 	.settings,
+	// The list and the Return card sit SIDE BY SIDE. Stacked, the list rows spanned the whole
+	// workspace so a short waypoint name sat a long way from its own Go button, and the space
+	// beneath the card was empty. Two columns shorten the rows and use the width.
 	.waypoints {
+		flex-direction: row;
+		align-items: stretch;
 		flex: 1 1 auto;
 		gap: 13px;
 		padding: 16px;
 		overflow: hidden;
+	}
+
+	.wp-main {
+		flex-direction: column;
+		flex: 2 1 0;
+		min-width: 0;
+		gap: 13px;
 	}
 
 	.audit {
@@ -1978,10 +2004,11 @@ $armor-hud: #08b2e3;
 	}
 
 	.wp-return-section {
-		align-self: stretch;
-		flex-shrink: 0;
+		flex-direction: column;
+		align-self: flex-start;
+		flex: 1 1 0;
+		min-width: 0;
 		gap: 7px;
-		width: 100%;
 	}
 
 	// 12c -- in-place confirm chips, sized and spaced like the delete control they replace.
