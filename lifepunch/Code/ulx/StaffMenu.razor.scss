@@ -972,10 +972,13 @@ $danger: #ff4d5a;
 		text-align: center;
 	}
 
+	// Unavailable is a quiet state, not an error: the reason sits below the
+	// description at a lower weight than $muted so the card reads as inert
+	// rather than alarming. Red stays reserved for destructive intent.
 	.action-disabled-reason {
 		font-size: 13px;
 		line-height: 1.25;
-		color: $danger;
+		color: rgba($muted, 0.66);
 		text-align: center;
 	}
 
