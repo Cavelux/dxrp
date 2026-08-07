@@ -1417,6 +1417,10 @@ $armor-hud: #08b2e3;
 		width: 100%;
 	}
 
+	// Neutral at REST: the card is a surface like any other and the ICON carries the
+	// destructive role. A red field on three resting cards made the quick-sanction row
+	// the loudest thing on the profile, ahead of the player it describes. The fill
+	// arrives on hover, where it means "this is what you are about to do".
 	.quick-sanction {
 		flex-direction: column;
 		align-items: center;
@@ -1426,10 +1430,10 @@ $armor-hud: #08b2e3;
 		gap: 3px;
 		height: 54px;
 		padding: 6px;
-		border: 1px solid rgba($danger, 0.40);
+		border: 1px solid $border;
 		border-radius: 8px;
-		background-color: rgba($danger, 0.07);
-		color: $danger;
+		background-color: $surface-raised;
+		color: $text;
 		cursor: pointer;
 	}
 
@@ -2087,6 +2091,14 @@ $armor-hud: #08b2e3;
 	.wp-return-bar .wp-input {
 		flex: 1 1 auto;
 		width: 100%;
+	}
+
+	// The input takes all the slack (flex: 1 1 auto above), so the button is the thing
+	// that gets squeezed -- and "Return" was breaking mid-word rather than holding its
+	// width. Pin it to its content and forbid the break.
+	.wp-return-bar .wp-btn {
+		flex-shrink: 0;
+		white-space: nowrap;
 	}
 
 	.lp-window-watermark {
