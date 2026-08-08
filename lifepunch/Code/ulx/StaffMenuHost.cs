@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
 //
-// "lifepunchulx" (s&box ident: lifepunch.lifepunchulx · addon ident: lifepunchulx) is the sole-owned
+// "lifepunchulx" (s&box ident: lifepunch.ulx · addon ident: lifepunchulx) is the sole-owned
 // intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
 // sublicensing, copying, or reuse by ANY person or entity — including DXRP and
 // LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
@@ -69,6 +69,27 @@ public readonly record struct StaffPlayerDetail(
 /// is the raw SteamID64 (0 when the actor is the server/system) so the UI can resolve an avatar and
 /// match the Player-ID filter without re-parsing <see cref="Player"/>.
 /// </summary>
+/// <summary>
+/// One sanction row, projected free of Dxura types so it flows through the Dxura-free razor.
+/// <see cref="TypeClass"/> is the lowercased type ("ban", "warning") used as a CSS class;
+/// <see cref="IsActive"/> drives the prominent red treatment an in-force sanction requires.
+/// </summary>
+/// <summary>
+/// One live state flag on a player. <see cref="Illegitimate"/> is the point of the section: the
+/// flag is ON but the player does not hold the portal permission that grants it, which means
+/// someone is using a command they were never given. A flag a staff member legitimately holds
+/// reads as ordinary state.
+/// </summary>
+public readonly record struct StaffStateFlag( string Label, bool Illegitimate );
+
+public readonly record struct StaffSanction(
+	string Type,
+	string TypeClass,
+	bool IsActive,
+	string Reason,
+	string Duration,
+	string Created );
+
 public readonly record struct StaffAuditEntry(
 	string When,
 	string Action,
@@ -192,6 +213,247 @@ internal static class StaffMenuHost
 			Player.Local.LockCamera = menuOpen;
 		}
 #endif
+	}
+
+	/// <summary>
+	/// True when a self-toggle action is ACTIVE on the local player right now. Read from live DXRP
+	/// state -- the networked status dictionary for god/cloak/incognito, the controller's noclip mode
+	/// for flight -- so a lit menu card and the HUD indicator can never disagree. A local click flag
+	/// would desync the moment anything else changed the state (death, respawn, another admin,
+	/// reconnect), which is exactly what this exists to avoid. Always false in the editor build.
+	/// </summary>
+	public static bool IsSelfToggleOn( string actionKey )
+	{
+#if !LIFEPUNCH_LOCAL
+		if ( !Player.Local.IsValid() )
+		{
+			return false;
+		}
+
+		if ( actionKey == "noclip" )
+		{
+			if ( !Player.Local.Controller.IsValid() )
+			{
+				return false;
+			}
+
+			var noclip = Player.Local.Controller.Components.Get<MoveModeNoClip>();
+			return noclip.IsValid() && noclip.IsNoclipping;
+		}
+
+		// God mode is NOT a status -- it is a property on HealthComponent, and it is the exact
+		// value DXRP's own HUD reads (Vitals.razor: HealthComponent?.IsGodMode). Reading the same
+		// field is what makes drift between the card and the HUD impossible.
+		if ( actionKey == "god" )
+		{
+			return Player.Local.HealthComponent.IsValid() && Player.Local.HealthComponent.IsGodMode;
+		}
+
+		// Cloak and incognito ARE statuses. The live Statuses dictionary is keyed by the same short
+		// lowercase id as the chat command that sets them ("afk" observed in session).
+		if ( actionKey is "cloak" or "incognito" )
+		{
+			return Player.Local.HasStatus( actionKey );
+		}
+#endif
+		return false;
+	}
+
+	/// <summary>
+	/// Health colour taken from DXRP's OWN HUD function -- <c>UiUtils.HealthColorHex</c>, the one
+	/// <c>PlayerInfo.razor</c> and <c>PartyMemberCard.razor</c> both call. Calling it rather than
+	/// copying its constants is what makes console/HUD drift impossible: if DXRP retunes the ramp,
+	/// this follows. Ramp of record: #f87171 at <=15%, #facc15 mid, #22c55e high, lerped.
+	/// Empty string in the editor build, where the razor falls back to its own token.
+	/// </summary>
+	public static string HealthColorHex( int health, int maxHealth )
+	{
+#if !LIFEPUNCH_LOCAL
+		var percent = maxHealth > 0
+			? System.Math.Clamp( (float)health / maxHealth * 100f, 0f, 100f )
+			: 0f;
+		return Dxura.RP.Game.UI.UiUtils.HealthColorHex( percent );
+#else
+		return "";
+#endif
+	}
+
+	// --- Sanction history (real DXRP source, not a stub) ------------------
+	// Backed by PlayerSanctionHistorySystem, the same system DXRP's own
+	// UI/Menus/TabMenu/Sections/Components/PlayerSanctionHistory.razor consumes.
+
+	/// <summary>Bumped when a sanction request is issued, so BuildHash re-renders on arrival.</summary>
+	public static int SanctionsVersion { get; private set; }
+
+	public static bool CanViewSanctions() => CanView( "player.sanctions.view.other" );
+
+	/// <summary>
+	/// Ask the host for a player's sanction history. Idempotent per player: the system already
+	/// tracks CurrentPlayerId, so re-requesting the same player is a no-op and this is safe to
+	/// call from a render path.
+	/// </summary>
+	public static void RequestSanctions( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		if ( steamId == 0 || !CanViewSanctions() )
+		{
+			return;
+		}
+
+		var system = PlayerSanctionHistorySystem.Current;
+		if ( system is null || system.CurrentPlayerId == steamId )
+		{
+			return;
+		}
+
+		var requestId = System.Guid.NewGuid();
+		system.BeginLoadingClient( steamId, requestId );
+		system.RequestSanctionsHost( steamId, requestId );
+		SanctionsVersion++;
+#endif
+	}
+
+	public static bool SanctionsLoading( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var system = PlayerSanctionHistorySystem.Current;
+		return system is not null && system.IsLoading && system.CurrentPlayerId == steamId;
+#else
+		return false;
+#endif
+	}
+
+	/// <summary>
+	/// This player's sanctions, projected Dxura-free so the razor stays clean. Empty when the
+	/// caller lacks the portal permission or the system has not answered for this player yet --
+	/// the razor renders an explicit "no sanctions" row rather than a blank void.
+	/// </summary>
+	public static IReadOnlyList<StaffSanction> GetSanctions( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var system = PlayerSanctionHistorySystem.Current;
+		if ( system is null || !CanViewSanctions() || system.CurrentPlayerId != steamId )
+		{
+			return System.Array.Empty<StaffSanction>();
+		}
+
+		var rows = new List<StaffSanction>();
+		foreach ( var entry in system.VisibleSanctions )
+		{
+			var type = entry.Type.ToString();
+			rows.Add( new StaffSanction(
+				SplitPascalCase( type ),
+				type.ToLowerInvariant(),
+				entry.State.ToString() == "Active",
+				string.IsNullOrWhiteSpace( entry.Reason ) ? "No reason recorded" : entry.Reason,
+				entry.Duration is null ? "Permanent" : entry.Duration.Value.ToString(),
+				entry.Created.ToString( "yyyy-MM-dd HH:mm" ) ) );
+		}
+
+		return rows;
+#else
+		return System.Array.Empty<StaffSanction>();
+#endif
+	}
+
+	/// <summary>
+	/// The player's job CATEGORY, resolved through DXRP's own taxonomy rather than a list we
+	/// invented: every job carries a GameModeJobGroupId, and the group's Name is the category the
+	/// tenant configured. Empty when the job or its group is not resolvable.
+	/// </summary>
+	public static string GetJobCategory( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
+		if ( !player.IsValid() || player.Job is null )
+		{
+			return "";
+		}
+
+		return GameModeJobs.FindGroupById( player.Job.GameModeJobGroupId )?.Name ?? "";
+#else
+		return "";
+#endif
+	}
+
+	/// <summary>
+	/// Live state flags for a player, read from the same sources the commands write to. Only ACTIVE
+	/// flags are returned. Powers (god/cloak/incognito/noclip) are checked against the permission
+	/// that grants them, so an operator can tell a staff member's own toggle from a player running
+	/// a command they should not have. Conditions (frozen/jailed/gagged) are done TO a player
+	/// rather than wielded by one, so they are never flagged illegitimate.
+	/// </summary>
+	public static IReadOnlyList<StaffStateFlag> GetStateFlags( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
+		if ( !player.IsValid() )
+		{
+			return System.Array.Empty<StaffStateFlag>();
+		}
+
+		var flags = new List<StaffStateFlag>();
+
+		void Power( bool active, string label, string permissionId )
+		{
+			if ( active )
+			{
+				flags.Add( new StaffStateFlag( label, !RankSystem.HasPermission( steamId, permissionId ) ) );
+			}
+		}
+
+		// God mode is a HealthComponent property, not a status -- same field Vitals.razor reads.
+		Power( player.HealthComponent.IsValid() && player.HealthComponent.IsGodMode, "God mode", "command.god" );
+		Power( player.HasStatus( "cloak" ), "Cloaked", "command.cloak" );
+		Power( player.HasStatus( "incognito" ), "Incognito", "command.incognito" );
+
+		var noclip = player.Controller.IsValid()
+			? player.Controller.Components.Get<MoveModeNoClip>()
+			: null;
+		Power( noclip.IsValid() && noclip.IsNoclipping, "Noclip", "ability.noclip" );
+
+		// Status ids are DXRP's own constants (Constants.FreezeStatus / PrisonerStatus / GaggedStatus).
+		if ( player.HasStatus( "freeze" ) )
+		{
+			flags.Add( new StaffStateFlag( "Frozen", false ) );
+		}
+
+		if ( player.HasStatus( "prisoner" ) )
+		{
+			flags.Add( new StaffStateFlag( "Jailed", false ) );
+		}
+
+		if ( player.HasStatus( "gagged" ) )
+		{
+			flags.Add( new StaffStateFlag( "Gagged", false ) );
+		}
+
+		return flags;
+#else
+		return System.Array.Empty<StaffStateFlag>();
+#endif
+	}
+
+	/// <summary>"AutomaticBan" -> "Automatic Ban", matching DXRP's own sanction label rendering.</summary>
+	private static string SplitPascalCase( string value )
+	{
+		if ( string.IsNullOrWhiteSpace( value ) )
+		{
+			return "";
+		}
+
+		var builder = new System.Text.StringBuilder( value.Length + 8 );
+		for ( var i = 0; i < value.Length; i++ )
+		{
+			if ( i > 0 && char.IsUpper( value[i] ) )
+			{
+				builder.Append( ' ' );
+			}
+
+			builder.Append( value[i] );
+		}
+
+		return builder.ToString();
 	}
 
 	private static StaffMenu? Mount()
@@ -838,6 +1100,9 @@ internal static class StaffMenuHost
 			case StaffDispatchKind.LocalToggle:
 				DispatchLocalToggle( action );
 				break;
+			case StaffDispatchKind.GiveMoney:
+				DispatchGiveMoney( targetSteamId, args );
+				break;
 		}
 #endif
 	}
@@ -887,6 +1152,30 @@ internal static class StaffMenuHost
 
 				break;
 		}
+	}
+
+	/// <summary>
+	/// Hand a currency grant to the host. The client parses its own form here, but every value is
+	/// re-validated host-side -- this parse is for the UI's benefit, never for authority.
+	/// </summary>
+	private static void DispatchGiveMoney( long targetSteamId, IReadOnlyDictionary<string, string> args )
+	{
+#if !LIFEPUNCH_LOCAL
+		args.TryGetValue( "amount", out var rawAmount );
+		args.TryGetValue( "reason", out var reason );
+		args.TryGetValue( "destination", out var destination );
+
+		if ( !uint.TryParse( rawAmount?.Trim(), out var amount ) || amount == 0 )
+		{
+			return;
+		}
+
+		if ( StaffMenuBridgeService.Instance.IsValid() )
+		{
+			StaffMenuBridgeService.Instance.GiveMoneyHost(
+				targetSteamId, amount, destination == "bank", reason ?? "" );
+		}
+#endif
 	}
 
 	private static void DispatchChatCommand( StaffAction action, long targetSteamId, IReadOnlyDictionary<string, string> args )

@@ -1,7 +1,7 @@
 @* ─────────────────────────────────────────────────────────────────────────────
    PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
 
-   "lifepunchulx" (s&box ident: lifepunch.lifepunchulx · addon ident: lifepunchulx) is the sole-owned
+   "lifepunchulx" (s&box ident: lifepunch.ulx · addon ident: lifepunchulx) is the sole-owned
    intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
    sublicensing, copying, or reuse by ANY person or entity — including DXRP and
    LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
@@ -23,12 +23,9 @@
 	<div class="window">
 		<div class="header">
 			<div class="title">
-				<div class="title-badge">
-					<i class="material-icons">shield</i>
-				</div>
 				<div class="title-stack">
-					<span class="title-primary">Admin Menu</span>
-					<span class="title-sub">ULX Console</span>
+					<span class="title-primary brand-wordmark"><span class="wordmark-life">lifepunch</span><span class="ulx">.ulx</span></span>
+					<span class="title-sub">ULX CONSOLE</span>
 				</div>
 			</div>
 			<div class="header-actions">
@@ -38,7 +35,7 @@
 					<i class="material-icons">language</i>
 					<span>@(_websiteCopied ? "Link copied!" : StaffMenuHost.NetworkIdentifier)</span>
 				</button>
-				<button class="lp-ui-chrome-btn cog @( _activeTab == TabSettings ? "active" : "" )" tooltip="Settings" onclick="@OpenSettings">
+				<button class="lp-ui-chrome-btn cog @( _activeTab == TabSettings ? "chrome-active" : "" )" tooltip="Settings" onclick="@OpenSettings">
 					<i class="material-icons">settings</i>
 				</button>
 				<button class="lp-ui-chrome-btn close" tooltip="Close Menu" onclick="@CloseMenu">
@@ -52,7 +49,6 @@
 			{
 				<button class="@TabClass( category )"
 				        onclick="@(() => SelectTab( category ))">
-					<i class="material-icons tab-icon">@TabIcon( category )</i>
 					<span>@category</span>
 				</button>
 			}
@@ -60,7 +56,6 @@
 			{
 				<button class="@TabClass( TabWaypoints )"
 				        onclick="@(() => SelectTab( TabWaypoints ))">
-					<i class="material-icons tab-icon">place</i>
 					<span>Waypoints</span>
 				</button>
 			}
@@ -68,7 +63,6 @@
 			{
 				<button class="@TabClass( TabAudit )"
 				        onclick="@(() => SelectTab( TabAudit ))">
-					<i class="material-icons tab-icon">history</i>
 					<span>Audit</span>
 				</button>
 			}
@@ -121,7 +115,7 @@
 							<div class="audit-row">
 								<span class="c-when">@entry.When</span>
 								<span class="c-action"><span class="action-pill">@entry.Action</span></span>
-								<span class="c-player @( entry.PlayerSteamId == 0 ? "system" : "" )">@entry.Player</span>
+								<span class="c-player @( entry.PlayerSteamId == 0 ? "audit-player-system" : "" )">@entry.Player</span>
 								<span class="c-entity">@entry.Entity</span>
 								<span class="c-desc">@entry.Description</span>
 							</div>
@@ -138,6 +132,7 @@
 		else if ( _activeTab == TabWaypoints )
 		{
 			<div class="waypoints">
+				<div class="wp-main">
 				<div class="wp-head">
 					<i class="material-icons">place</i>
 					<span>Waypoints</span>
@@ -146,14 +141,14 @@
 				<div class="wp-bar">
 					<i class="material-icons">place</i>
 					<TextEntry class="wp-input" Placeholder="Waypoint name" Value:bind="@_waypointName"/>
-					<button class="wp-btn go @( string.IsNullOrWhiteSpace( _waypointName ) ? "disabled" : "" )"
+					<button class="wp-btn wp-btn-quiet @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
 					        tooltip="Teleport to this waypoint"
 					        onclick="@GoToTypedWaypoint">
 						<i class="material-icons">my_location</i> Go
 					</button>
 					@if ( StaffMenuHost.CanEditWaypoints() )
 					{
-						<button class="wp-btn set @( string.IsNullOrWhiteSpace( _waypointName ) ? "disabled" : "" )"
+						<button class="wp-btn wp-btn-primary @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
 						        tooltip="Save a waypoint at your current position + view angle"
 						        onclick="@SetWaypointFromInput">
 							<i class="material-icons">push_pin</i> Set here
@@ -166,8 +161,8 @@
 					var filteredWaypoints = FilteredWaypoints( waypoints );
 				}
 
-				<div class="wp-list-region">
 				<div class="lp-ui-scroll-region wp-list">
+					<div class="wp-list-tail"></div>
 					@foreach ( var name in filteredWaypoints )
 					{
 						<div class="wp-row">
@@ -178,9 +173,21 @@
 							</button>
 							@if ( StaffMenuHost.CanEditWaypoints() )
 							{
-								<button class="wp-clear" tooltip="Delete waypoint" onclick="@(() => ClearWaypoint( name ))">
-									<i class="material-icons">delete</i>
-								</button>
+								@if ( _wpPendingDelete == name )
+								{
+									<button class="wp-confirm-yes" tooltip="@( $"Delete \"{name}\" permanently" )" onclick="@(() => ConfirmClearWaypoint( name ))">
+										<i class="material-icons">check</i>
+									</button>
+									<button class="wp-confirm-no" tooltip="Keep waypoint" onclick="@CancelClearWaypoint">
+										<i class="material-icons">close</i>
+									</button>
+								}
+								else
+								{
+									<button class="wp-clear" tooltip="Delete waypoint" onclick="@(() => AskClearWaypoint( name ))">
+										<i class="material-icons">delete</i>
+									</button>
+								}
 							}
 						</div>
 					}
@@ -195,9 +202,12 @@
 					{
 						<div class="wp-empty">
 							No waypoint matches @(_waypointName?.Trim()).
-						</div>
-					}
+							<div class="wp-list-tail"></div>
 				</div>
+					}
+					<div class="wp-list-tail"></div>
+				</div>
+
 				</div>
 
 				@if ( StaffMenuHost.CanView( "ability.teleport" ) )
@@ -215,7 +225,7 @@
 						<div class="wp-bar wp-return-bar">
 							<i class="material-icons">person</i>
 							<TextEntry class="wp-input" Placeholder="SteamID64" Value:bind="@_returnSteamId"/>
-							<button class="wp-btn go @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "disabled" : "" )"
+							<button class="wp-btn go @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled" : "" )"
 							        tooltip="Return this player to their previous position"
 							        onclick="@ReturnTypedPlayer">
 								<i class="material-icons">undo</i> Return
@@ -239,7 +249,7 @@
 					<div class="panel-size-row">
 						@foreach ( var size in _uiScaleOptions )
 						{
-							<button class="panel-size-opt @( _uiScale == size ? "active" : "" )"
+							<button class="panel-size-opt @( _uiScale == size ? "panel-size-opt-active" : "" )"
 							        onclick="@(() => SetUiScale( size ))">
 								@LifePunchUiScale.ShortLabel( size )
 							</button>
@@ -258,7 +268,7 @@
 						<div class="settings-bar">
 							<i class="material-icons">link</i>
 							<TextEntry class="settings-input" Placeholder="https://your-network.com" Value:bind="@_websiteDraft"/>
-							<button class="settings-btn save @( _websiteSaved ? "saved" : "" )"
+							<button class="settings-btn save @( _websiteSaved ? "settings-btn-saved" : "" )"
 							        tooltip="Save the network website link"
 							        onclick="@SaveWebsiteFromInput">
 								<i class="material-icons">@( _websiteSaved ? "check" : "save" )</i> @( _websiteSaved ? "Saved!" : "Save" )
@@ -308,7 +318,7 @@
 		else
 		{
 		<div class="body">
-			<div class="players @( _playersCollapsed ? "collapsed" : "" )">
+			<div class="players @( _playersCollapsed ? "players-collapsed" : "" )">
 				@if ( _playersCollapsed )
 				{
 					<div class="players-rail">
@@ -338,9 +348,13 @@
 						.Where( p => p.GroupName == StaffMenuHost.NonStaffGroup )
 						.OrderBy( p => p.Name )
 						.ToList();
+					var rosterSearchEmpty = !string.IsNullOrWhiteSpace( _searchText )
+						&& staffCount == 0
+						&& nonStaff.Count == 0;
 
 					<div class="pane-label">
-						<span class="pane-title">Online Players (@_players.Count)</span>
+						<span class="pane-title">Players</span>
+						<span class="online-count"><span class="player-online"></span>@( $"{_players.Count} online" )</span>
 						<button class="collapse-btn" tooltip="Hide sidebar" onclick="@TogglePlayers">
 							<i class="material-icons">chevron_left</i>
 						</button>
@@ -348,7 +362,7 @@
 
 					<div class="search-row">
 						<i class="material-icons">search</i>
-						<TextEntry class="search-input" Placeholder="Steam ID" Value:bind="@_searchText"/>
+						<TextEntry class="search-input" Placeholder="Search players or SteamID" Value:bind="@_searchText"/>
 						@if ( !string.IsNullOrEmpty( _searchText ) )
 						{
 							<button class="icon-btn" onclick="@ClearSearch"><i class="material-icons">close</i></button>
@@ -364,8 +378,12 @@
 					}
 
 					<div class="lp-ui-scroll-region player-scroll">
+						@if ( rosterSearchEmpty )
+						{
+							<div class="roster-empty">No online players match this search.</div>
+						}
 						<div class="roster-section @(_staffSectionCollapsed ? "roster-section-collapsed" : "")">
-							<button class="parent-label" onclick="@ToggleStaffSection">
+							<button class="parent-label @(_staffSectionCollapsed ? "" : "parent-label-open")" onclick="@ToggleStaffSection">
 								<span class="parent-label-text">Staff (@staffCount)</span>
 								<i class="material-icons parent-label-chevron">@(_staffSectionCollapsed ? "chevron_right" : "expand_more")</i>
 							</button>
@@ -377,11 +395,15 @@
 										<div class="group-label">@group.Name (@group.Players.Count)</div>
 										@foreach ( var player in group.Players )
 										{
-											<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "selected" : "" )"
+											<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "player-row-selected" : "" )"
 											        tooltip="View player profile"
 											        onclick="@(() => Select( player.SteamId ))">
 												<i class="material-icons avatar">person</i>
-												<span class="name">@player.Name</span>
+												<span class="player-online"></span>
+												<span class="player-copy">
+													<span class="name">@player.Name</span>
+													<span class="role">@player.Role</span>
+												</span>
 												@if ( !player.CanTarget )
 												{
 													<i class="material-icons lock" tooltip="Equal or higher rank — cannot target">lock</i>
@@ -394,7 +416,7 @@
 						</div>
 
 						<div class="roster-section @(_playersSectionCollapsed ? "roster-section-collapsed" : "")">
-							<button class="parent-label" onclick="@TogglePlayersSection">
+							<button class="parent-label @(_playersSectionCollapsed ? "" : "parent-label-open")" onclick="@TogglePlayersSection">
 								<span class="parent-label-text">Players (@nonStaff.Count)</span>
 								<i class="material-icons parent-label-chevron">@(_playersSectionCollapsed ? "chevron_right" : "expand_more")</i>
 							</button>
@@ -403,11 +425,15 @@
 								<div class="roster-tier roster-tier-players">
 									@foreach ( var player in nonStaff )
 									{
-										<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "selected" : "" )"
+										<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "player-row-selected" : "" )"
 										        tooltip="View player profile"
 										        onclick="@(() => Select( player.SteamId ))">
 											<i class="material-icons avatar">person</i>
-											<span class="name">@player.Name</span>
+											<span class="player-online"></span>
+											<span class="player-copy">
+												<span class="name">@player.Name</span>
+												<span class="role">@player.Role</span>
+											</span>
 											@if ( !player.CanTarget )
 											{
 												<i class="material-icons lock" tooltip="Equal or higher rank — cannot target">lock</i>
@@ -435,13 +461,13 @@
 			</div>
 
 			<div class="main">
-			<div class="actions">
+			<div class="lp-ui-scroll-region actions @( _showProfile ? "actions-profile" : "" )">
 				@{
 					var selected = _players.FirstOrDefault( p => p.SteamId == _selectedSteamId );
 					var hasTarget = selected.SteamId != 0;
 					// The profile pane previews whoever was clicked (_profileSteamId); it does NOT
 					// imply selection — only "Actions for this player" commits a command target.
-					var profileSteamId = _profileSteamId ?? 0;
+					var profileSteamId = _profileSteamId ?? _selectedSteamId ?? 0;
 				}
 
 				@if ( _showProfile && profileSteamId != 0 )
@@ -458,81 +484,221 @@
 							{
 								var tpTarget = _players.FirstOrDefault( p => p.SteamId == profileSteamId );
 								var canTp = tpTarget.SteamId != 0 && tpTarget.CanTarget && profileSteamId != StaffMenuHost.LocalSteamId;
+								// A disabled control that says nothing reads as broken. Name the reason.
+								var tpReason = profileSteamId == StaffMenuHost.LocalSteamId
+									? "Cannot target yourself"
+									: ( tpTarget.SteamId == 0 ? "Player is not on the roster" : "Target is protected" );
 								<div class="profile-tp">
-									<button class="tp-btn @( canTp ? "" : "disabled" )"
-									        tooltip="Go to Player"
+									<button class="tp-btn tp-go @( canTp ? "" : "control-disabled" )"
+									        tooltip="@( canTp ? "Go to Player" : tpReason )"
 									        onclick="@(() => QuickTeleport( "goto", tpTarget ))">
 										<i class="material-icons">my_location</i>
 									</button>
-									<button class="tp-btn @( canTp ? "" : "disabled" )"
-									        tooltip="Bring Player"
+									<button class="tp-btn tp-bring @( canTp ? "" : "control-disabled" )"
+									        tooltip="@( canTp ? "Bring Player" : tpReason )"
 									        onclick="@(() => QuickTeleport( "bring", tpTarget ))">
 										<i class="material-icons">pan_tool</i>
 									</button>
-									<button class="tp-btn @( canTp ? "" : "disabled" )"
-									        tooltip="Return Player"
+									<button class="tp-btn tp-return @( canTp ? "" : "control-disabled" )"
+									        tooltip="@( canTp ? "Return Player" : tpReason )"
 									        onclick="@(() => QuickTeleport( "return", tpTarget ))">
 										<i class="material-icons">undo</i>
 									</button>
 								</div>
 							}
 
-							<img class="profile-avatar" src="avatar:@profileSteamId"/>
-							<div class="profile-name">@( detail.Found ? detail.Name : "Off-roster target" )</div>
+							<div class="profile-identity">
+								<img class="profile-avatar" src="avatar:@profileSteamId"/>
+								<div class="profile-identity-copy">
+									<div class="profile-name">@( detail.Found ? detail.Name : "Off-roster target" )</div>
+								</div>
+							</div>
 
-							<div class="lp-ui-scroll-region profile-fields">
-								<div class="field">
-									<span class="k">Steam ID</span>
-									<span class="v v-copy">
-										<span class="@( _steamIdCopied ? "copied-text" : "" )">@( _steamIdCopied ? "Copied!" : profileSteamId.ToString() )</span>
-										<button class="copy-btn"
-										        tooltip="@( _steamIdCopied ? "Copied!" : "Copy Steam ID" )"
-										        onclick="@(() => CopySteamId( profileSteamId ))">
-											<i class="material-icons">@( _steamIdCopied ? "check" : "content_copy" )</i>
-										</button>
-									</span>
-								</div>
-								<div class="field">
-									<span class="k">Role</span>
-									<span class="v" style="color: @( string.IsNullOrEmpty( detail.RankColorHex ) ? "#ffffff" : detail.RankColorHex )">@detail.Role</span>
-								</div>
-								<div class="field">
-									<span class="k">Time played</span>
-									<span class="v">@( detail.Found ? $"{detail.PlayTimeMinutes / 60}h" : "—" )</span>
-								</div>
-
+							@* ONE scroll region for the whole card body -- stats, Recent Actions and Sanctions
+							   scroll together rather than as three nested boxes fighting for height. *@
+							<div class="lp-ui-scroll-region profile-body">
+								@* 16a -- the three sanctions staff reach for constantly, at the top of the card
+								   instead of buried behind "Actions for this player". Same card grammar as the
+								   Moderation grid, destructive treatment on all three. *@
 								@if ( detail.Found )
 								{
-									<div class="field">
-										<span class="k">Job</span>
-										<span class="v" style="color: @( string.IsNullOrEmpty( detail.JobColorHex ) ? "#ffffff" : detail.JobColorHex )">@detail.Job</span>
-									</div>
-									<div class="field">
-										<span class="k">Health</span>
-										<span class="v" style="color: #f87171">@detail.Health / @detail.MaxHealth</span>
-									</div>
-									<div class="field">
-										<span class="k">Armor</span>
-										<span class="v" style="color: #08B2E3">@detail.Armor</span>
-									</div>
-									<div class="field">
-										<span class="k">Cash</span>
-										<span class="v" style="color: #199c3b">$@( detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
-									</div>
-									<div class="field">
-										<span class="k">Bank</span>
-										<span class="v" style="color: #199c3b">$@( detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
-									</div>
-									<div class="field">
-										<span class="k">Kills</span>
-										<span class="v">@detail.Kills</span>
-									</div>
-									<div class="field">
-										<span class="k">Deaths</span>
-										<span class="v">@detail.Deaths</span>
+									<div class="quick-sanctions">
+										@foreach ( var key in QuickSanctionKeys )
+										{
+											var qs = StaffMenuActions.All.FirstOrDefault( x => x.Key == key );
+											var qsTarget = _players.FirstOrDefault( p => p.SteamId == profileSteamId );
+											var qsOk = qs is not null && StaffMenuHost.CanView( qs.PermissionId )
+											           && qsTarget.SteamId != 0 && qsTarget.CanTarget;
+											@if ( qs is not null )
+											{
+												<button class="quick-sanction @( qsOk ? "" : "control-disabled" )"
+												        tooltip="@( qsOk ? qs.Tooltip : "Not permitted on this player" )"
+												        onclick="@(() => OnActionClick( qs, qsTarget, qsOk ))">
+													<i class="material-icons">@qs.Icon</i>
+													<span class="quick-sanction-label">@qs.Label</span>
+												</button>
+											}
+										}
 									</div>
 								}
-							<div class="profile-fields-tail"></div>
+
+								@* 16b -- IDENTITY *@
+								@* The three info sections sit SIDE BY SIDE. Stacking them left a third of the card's
+								   width empty and pushed Status down until the buttons clipped it. Pairs group
+								   tightly inside each column; the distribution happens across the width. *@
+								<div class="profile-columns">
+									<div class="profile-col">
+										<div class="profile-section-head">Identity</div>
+										<div class="profile-section">
+											<div class="field">
+												<span class="k">Steam ID</span>
+												<span class="v v-copy">
+													<span class="@( _steamIdCopied ? "copied-text" : "" )">@( _steamIdCopied ? "Copied!" : profileSteamId.ToString() )</span>
+													<button class="copy-btn"
+													        tooltip="@( _steamIdCopied ? "Copied!" : "Copy Steam ID" )"
+													        onclick="@(() => CopySteamId( profileSteamId ))">
+														<i class="material-icons">@( _steamIdCopied ? "check" : "content_copy" )</i>
+													</button>
+												</span>
+											</div>
+											<div class="field">
+												<span class="k">Role</span>
+												<span class="v v-role">@detail.Role</span>
+											</div>
+											<div class="field">
+												<span class="k">Time played</span>
+												<span class="v">@( detail.Found ? $"{detail.PlayTimeMinutes / 60}h" : "—" )</span>
+											</div>
+										</div>
+									</div>
+
+									@if ( detail.Found )
+									{
+										<div class="profile-col">
+											<div class="profile-section-head">Econ</div>
+											<div class="profile-section">
+												<div class="field">
+													<span class="k">Job</span>
+													<span class="v v-job" style="@( string.IsNullOrEmpty( detail.JobColorHex ) ? "" : $"color: {detail.JobColorHex}" )">@detail.Job</span>
+												</div>
+												@{
+													var jobCategory = StaffMenuHost.GetJobCategory( profileSteamId );
+												}
+												@if ( !string.IsNullOrEmpty( jobCategory ) )
+												{
+													<div class="field">
+														<span class="k">Category</span>
+														<span class="v">@jobCategory</span>
+													</div>
+												}
+												<div class="field">
+													<span class="k">Cash</span>
+													<span class="v @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+												</div>
+												<div class="field">
+													<span class="k">Bank</span>
+													<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+												</div>
+											</div>
+										</div>
+
+										<div class="profile-col">
+											<div class="profile-section-head">Status</div>
+											<div class="profile-section">
+												<div class="field">
+													<span class="k">Health</span>
+													<span class="v" style="@( $"color: {StaffMenuHost.HealthColorHex( detail.Health, detail.MaxHealth )}" )">@detail.Health / @detail.MaxHealth</span>
+												</div>
+												<div class="field">
+													<span class="k">Armor</span>
+													<span class="v @( detail.Armor > 0 ? "v-armor" : "v-tone-zero" )">@detail.Armor</span>
+												</div>
+												<div class="field">
+													<span class="k">Kills / Deaths</span>
+													<span class="v">@detail.Kills / @detail.Deaths</span>
+												</div>
+												@{
+													var stateFlags = StaffMenuHost.GetStateFlags( profileSteamId );
+												}
+												<div class="field flags-field">
+													<span class="k">Flags</span>
+													<span class="flags-list">
+														@if ( stateFlags.Count == 0 )
+														{
+															<span class="v v-tone-zero">None</span>
+														}
+														else
+														{
+															@foreach ( var flag in stateFlags )
+															{
+																<span class="flag-chip @( flag.Illegitimate ? "flag-illegit" : "" )"
+																      tooltip="@( flag.Illegitimate ? "Active WITHOUT the permission that grants it" : "Permitted for this player" )">@flag.Label</span>
+															}
+														}
+													</span>
+												</div>
+											</div>
+										</div>
+									}
+								</div>
+
+
+								<div class="profile-section-head">Recent actions</div>
+								<div class="profile-section">
+									@{
+										var recent = StaffMenuHost.GetAuditEntries( profileSteamId.ToString(), "" );
+									}
+									@if ( recent.Count == 0 )
+									{
+										<div class="section-empty">No recorded activity for this player.</div>
+									}
+									else
+									{
+										@foreach ( var entry in recent.Take( 8 ) )
+										{
+											<div class="event-row">
+												<span class="event-when">@entry.When</span>
+												<span class="event-act">@entry.Action</span>
+									<span class="event-what">@entry.Description</span>
+											</div>
+										}
+									}
+								</div>
+
+								@* SANCTIONS. Real DXRP source (PlayerSanctionHistorySystem) -- the same system the
+								   native TabMenu reads. An in-force sanction is the loudest thing on this card. *@
+								<div class="profile-section-head">Sanctions</div>
+								<div class="profile-section">
+									@{
+										StaffMenuHost.RequestSanctions( profileSteamId );
+										var sanctions = StaffMenuHost.GetSanctions( profileSteamId );
+									}
+									@if ( !StaffMenuHost.CanViewSanctions() )
+									{
+										<div class="section-empty">You do not have permission to view sanctions.</div>
+									}
+									else if ( StaffMenuHost.SanctionsLoading( profileSteamId ) )
+									{
+										<div class="section-empty">Loading sanction history…</div>
+									}
+									else if ( sanctions.Count == 0 )
+									{
+										<div class="section-empty">No sanctions on record.</div>
+									}
+									else
+									{
+										@foreach ( var sanction in sanctions )
+										{
+											<div class="sanction-row @( sanction.IsActive ? "sanction-active" : "" )">
+												<span class="sanction-type sanction-@sanction.TypeClass">@sanction.Type</span>
+												<span class="sanction-reason">@sanction.Reason</span>
+												<span class="sanction-meta">@( $"{sanction.Duration} · {sanction.Created}" )</span>
+											</div>
+										}
+									}
+								</div>
+
+								<div class="profile-fields-tail"></div>
 							</div>
 
 							<button class="confirm-btn" onclick="@(() => ConfirmTarget( profileSteamId ))">
@@ -541,7 +707,7 @@
 
 							@if ( StaffMenuHost.CanViewAudit() )
 							{
-								<button class="confirm-btn secondary" onclick="@(() => OpenAuditForPlayer( profileSteamId ))">
+								<button class="confirm-btn confirm-btn-secondary btn-observe" onclick="@(() => OpenAuditForPlayer( profileSteamId ))">
 									<i class="material-icons">history</i> View audit log
 								</button>
 							}
@@ -550,29 +716,75 @@
 				}
 				else
 				{
-				<div class="target-banner @( _selectedSteamId != null ? "active" : "" )">
-					<i class="material-icons">@( _selectedSteamId != null ? "person" : "public" )</i>
-					<span class="target-name">@( hasTarget ? selected.Name : ( _selectedSteamId != null ? $"SteamID {_selectedSteamId}" : "No player selected — self & server actions only" ) )</span>
+				<div class="target-identity @( _selectedSteamId != null ? "target-identity-active" : "" )">
 					@if ( _selectedSteamId != null )
 					{
-						<button class="icon-btn clear-target" tooltip="Deselect player" onclick="@Deselect">
-							<i class="material-icons">close</i>
-						</button>
+						<div class="target-identity-main">
+							<i class="material-icons">person</i>
+							<div class="target-identity-copy">
+								<span class="target-name">@( hasTarget ? selected.Name : $"SteamID {_selectedSteamId}" )</span>
+								@if ( hasTarget && !string.IsNullOrWhiteSpace( selected.Role ) )
+								{
+									<span class="target-role">@selected.Role</span>
+								}
+								<span class="target-steamid">SteamID @_selectedSteamId</span>
+							</div>
+						</div>
+						<div class="target-identity-state">
+							@if ( hasTarget )
+							{
+								<span class="target-online">Online roster player</span>
+									<span class="targetability @( selected.CanTarget ? "targetability-targetable" : "targetability-protected" )">@( selected.CanTarget ? "Targetable" : "Protected or unavailable" )</span>
+							}
+							else
+							{
+								<span class="target-off-roster">Off-roster target — availability unknown</span>
+								<span class="targetability targetability-protected">Unavailable for player actions</span>
+							}
+						</div>
+						<div class="target-identity-actions">
+							@if ( hasTarget )
+							{
+								<button class="profile-preview-btn btn-observe" onclick="@(() => Select( profileSteamId ))">
+									<i class="material-icons">visibility</i> View profile
+								</button>
+							}
+							<button class="icon-btn clear-target" tooltip="Deselect player" onclick="@Deselect">
+								<i class="material-icons">close</i>
+							</button>
+						</div>
+					}
+					else
+					{
+						<i class="material-icons">public</i>
+						<div class="target-identity-copy">
+							<span class="target-name">No target selected</span>
+							<span class="target-identity-hint">Self and server actions remain available.</span>
+						</div>
 					}
 				</div>
 
 				@if ( _pendingAction is { } pending )
 				{
+					var requiredArgsComplete = pending.Args
+						.Where( arg => arg.Required )
+						.All( arg => !string.IsNullOrWhiteSpace( ValueFor( arg.Name ) ) );
+					var targetContext = pending.TargetMode == StaffActionTarget.OtherPlayer
+						? ( hasTarget ? selected.Name : "No target selected" )
+						: ( pending.TargetMode == StaffActionTarget.SelfOnly ? "Self" : "Server" );
 					<div class="arg-form">
 						<div class="arg-form-head">
-							<span>@pending.Label@( hasTarget && pending.TargetMode == StaffActionTarget.OtherPlayer ? $" — {selected.Name}" : "" )</span>
+							<div class="arg-context">
+								<span class="arg-action">@pending.Label</span>
+								<span class="arg-target">Target: @targetContext</span>
+							</div>
 							<button class="icon-btn" onclick="@CancelArgs"><i class="material-icons">close</i></button>
 						</div>
 
 						@foreach ( var arg in pending.Args )
 						{
 							<div class="arg-row">
-								<label>@arg.Label@( arg.Required ? "" : " (optional)" )</label>
+								<label>@arg.Label <span class="arg-required">@( arg.Required ? "Required" : "Optional" )</span></label>
 
 								@if ( arg.Kind == StaffArgKind.Duration )
 								{
@@ -581,13 +793,22 @@
 										{
 											var allowed = pending.Key != "ban"
 												|| StaffMenuConfig.IsBanDurationAllowed( StaffMenuHost.LocalRankOrder, preset.Hours );
-											<button class="chip @( _duration == preset.Token ? "active" : "" ) @( allowed ? "" : "disabled" )"
+											<button class="chip @( _duration == preset.Token ? "chip-active" : "" ) @( allowed ? "" : "control-disabled" )"
 											        onclick="@(() => SetDuration( preset.Token, allowed ))">
 												@preset.Label
 											</button>
 										}
 									</div>
 									<TextEntry class="arg-input" Placeholder="@arg.Placeholder" Value:bind="@_duration"/>
+								}
+								else if ( arg.Kind == StaffArgKind.Destination )
+								{
+									<div class="chips">
+										<button class="chip @( _destination == "cash" ? "chip-active" : "" )"
+										        onclick="@(() => SetDestination( "cash" ))">Cash</button>
+										<button class="chip @( _destination == "bank" ? "chip-active" : "" )"
+										        onclick="@(() => SetDestination( "bank" ))">Bank</button>
+									</div>
 								}
 								else if ( arg.Kind == StaffArgKind.Number )
 								{
@@ -615,7 +836,7 @@
 												<TextEntry class="arg-input job-filter" Placeholder="Filter jobs" Value:bind="@_jobFilter"/>
 												@foreach ( var job in FilteredJobOptions() )
 												{
-													<button type="button" class="job-option @( _job == job.Token ? "active" : "" )"
+													<button type="button" class="job-option @( _job == job.Token ? "job-option-active" : "" )"
 													        onclick="@(() => SetJob( job.Token ))">
 														<span class="job-swatch" style="background-color: @job.ColorHex"></span>
 														<span>@job.Label</span>
@@ -643,8 +864,21 @@
 							</div>
 						}
 
-						<button class="confirm-btn" onclick="@(() => ConfirmArgs( selected ))">
-							<i class="material-icons">check</i> Confirm @pending.Label
+						@if ( !requiredArgsComplete )
+						{
+							<div class="arg-required-hint">Complete the required fields before confirming.</div>
+						}
+
+						@if ( pending.Dispatch == StaffDispatchKind.GiveMoney && _grantConfirm && requiredArgsComplete )
+						{
+							<div class="grant-confirm">
+								<span class="grant-confirm-line">Give <span class="grant-amount">$@_amount</span> to <span class="grant-target">@targetContext</span>, into their <span class="grant-amount">@_destination</span>?</span>
+								<span class="grant-confirm-sub">This is audited and cannot be reversed from this console.</span>
+							</div>
+						}
+
+							<button class="confirm-btn @( requiredArgsComplete ? "" : "control-disabled" ) @( _grantConfirm ? "confirm-btn-danger" : "" )" onclick="@(() => ConfirmArgs( selected ))">
+							<i class="material-icons">@( _grantConfirm ? "warning" : "check" )</i> @( _grantConfirm ? "Yes, give the money" : $"Confirm {pending.Label}" )
 						</button>
 					</div>
 				}
@@ -658,21 +892,34 @@
 					@foreach ( var action in GetVisibleTabActions() )
 					{
 						var enabled = IsEnabled( action, selected, hasTarget );
-						<button class="action-btn @( enabled ? "" : "disabled" )"
+						var description = string.IsNullOrWhiteSpace( action.Tooltip ) ? action.Label : action.Tooltip;
+							<button class="action-btn @( ActionStateClasses( action, enabled ) )"
 						        tooltip="@( string.IsNullOrEmpty( action.Tooltip ) ? action.Label : action.Tooltip )"
 						        onclick="@(() => OnActionClick( action, selected, enabled ))">
 							<i class="material-icons">@action.Icon</i>
-							<span>@action.Label</span>
+							<span class="action-label">@action.Label</span>
+							@* One sub-line only. Showing description AND reason made card heights
+							   differ between rows, which a scrolling grid makes obvious. *@
+							@if ( !enabled && action.TargetMode == StaffActionTarget.OtherPlayer )
+							{
+								<span class="action-disabled-reason">@( _selectedSteamId is null ? "Select a target" : "Target protected" )</span>
+							}
+							else
+							{
+								<span class="action-description">@description</span>
+							}
 						</button>
 					}
 
-					@* Invisible spacers pad the final row to a multiple of 4 so real boxes keep their
-					   1/4 width (uniform) instead of flex-growing to fill the leftover space. *@
+					@* Invisible spacers complete the final three-card row so real cards retain their
+					   uniform flex width instead of growing into unused space. *@
 					@for ( var i = 0; i < (4 - GetVisibleTabActions().Count % 4) % 4; i++ )
 					{
 						<div class="action-spacer"></div>
 					}
 				</div>
+
+				<div class="action-scroll-tail"></div>
 
 				@if ( GetVisibleTabActions().Count == 0 )
 				{
@@ -689,7 +936,7 @@
 		</div>
 
 		<div class="lp-window-watermark lp-window-watermark--rounded">
-			<LifePunchUiFooter />
+			<LifePunchUiFooter Product="ULX Console" />
 		</div>
 	</div>
 </root>
@@ -782,6 +1029,19 @@
 	private bool _currentCopied;
 
 	private StaffAction? _pendingAction;
+
+	// Currency-grant form state. _destination defaults to cash because that is the common refund
+	// case; _grantConfirm makes the grant a deliberate two-step (17f) -- a mistyped zero on a
+	// grant is not recoverable by the recipient's goodwill.
+	private string _destination = "cash";
+	private bool _grantConfirm;
+
+	private void SetDestination( string destination )
+	{
+		_destination = destination;
+		_grantConfirm = false;   // changing the target of the money re-arms the confirm
+		StateHasChanged();
+	}
 	private string _reason = "";
 	private string _duration = "";
 	private string _amount = "";
@@ -854,6 +1114,94 @@
 		{
 			_detailHash = 0;
 		}
+
+		// Toggle state is live DXRP state, so it is sampled on the same throttled cadence as the
+		// other volatile values -- sampling it in BuildHash would re-read it every frame.
+		_detailHash = HashCode.Combine( _detailHash, SelfToggleHash() );
+	}
+
+	// Catalog actions grouped by the ROLE their colour communicates. Keys match StaffMenuActions.
+	// Destructive actions harm or remove; observe actions only look; self-toggles carry live state.
+	// 16a -- the sanctions surfaced as cards on the profile itself. Order is escalation order.
+	private static readonly string[] QuickSanctionKeys = { "jail", "kick", "ban" };
+
+	private static readonly string[] DestructiveActionKeys =
+	{
+		"kick", "ban", "jail", "arrest", "forceselldoor"
+	};
+
+	private static readonly string[] ObserveActionKeys =
+	{
+		"spectate"
+	};
+
+	private static readonly string[] SelfToggleActionKeys =
+	{
+		"god", "cloak", "incognito", "noclip"
+	};
+
+	/// <summary>
+	/// Role and live-state classes for one action card, returned as ONE string: the transpiler
+	/// cannot take two adjacent @() expressions in a single attribute.
+	/// </summary>
+	private string ActionStateClasses( StaffAction action, bool enabled )
+	{
+		var classes = enabled ? "" : "control-disabled";
+
+		if ( DestructiveActionKeys.Contains( action.Key ) )
+		{
+			classes += " action-destructive";
+		}
+		else if ( ObserveActionKeys.Contains( action.Key ) )
+		{
+			classes += " action-observe";
+		}
+
+		// Read from the host, never from a local click flag -- a click echo would desync from the
+		// HUD the moment anything else changed the state (death, respawn, another admin, reconnect).
+		if ( SelfToggleActionKeys.Contains( action.Key ) && StaffMenuHost.IsSelfToggleOn( action.Key ) )
+		{
+			classes += " action-toggle-on";
+		}
+
+		return classes.Trim();
+	}
+
+	// Deleting a waypoint is permanent and its control sits one pixel from Go in a repeated
+	// column -- a misclick loses data with no undo. The row confirms in place instead.
+	private string? _wpPendingDelete;
+
+	private void AskClearWaypoint( string name )
+	{
+		_wpPendingDelete = name;
+		StateHasChanged();
+	}
+
+	private void CancelClearWaypoint()
+	{
+		_wpPendingDelete = null;
+		StateHasChanged();
+	}
+
+	private void ConfirmClearWaypoint( string name )
+	{
+		_wpPendingDelete = null;
+		ClearWaypoint( name );
+	}
+
+	/// <summary>Live self-toggle state, folded into the throttled detail hash so cards re-render.</summary>
+	private int SelfToggleHash()
+	{
+		var bits = 0;
+		for ( var i = 0; i < SelfToggleActionKeys.Length; i++ )
+		{
+			if ( StaffMenuHost.IsSelfToggleOn( SelfToggleActionKeys[i] ) )
+			{
+				bits |= 1 << i;
+			}
+		}
+
+		return bits;
 	}
 
 	/// <summary>The roster filtered by the search box (by name); unfiltered when empty or a Steam ID.</summary>
@@ -1052,6 +1400,7 @@
 	private void CancelArgs()
 	{
 		_pendingAction = null;
+		_grantConfirm = false;
 		_jobDropdownOpen = false;
 		StateHasChanged();
 	}
@@ -1113,12 +1462,22 @@
 			args[arg.Name] = value;
 		}
 
+		// A currency grant arms first and fires on the second press, with the amount and the
+		// recipient restated in between.
+		if ( action.Dispatch == StaffDispatchKind.GiveMoney && !_grantConfirm )
+		{
+			_grantConfirm = true;
+			StateHasChanged();
+			return;
+		}
+
 		Dispatch( action, selected, args );
 		CancelArgs();
 	}
 
 	private string ValueFor( string argName ) => argName switch
 	{
+		"destination" => _destination,
 		"reason" => _reason,
 		"duration" => _duration,
 		"amount" => _amount,
@@ -1394,9 +1753,10 @@
 			HashCode.Combine( _players.Count, _playersCollapsed, _staffSectionCollapsed, _playersSectionCollapsed ),
 			_activeTab,
 			_pendingAction?.Key,
+			HashCode.Combine( _destination, _grantConfirm ),
 			HashCode.Combine( _reason, _duration, _amount, _name, _job, _jobFilter, _jobDropdownOpen ),
 			HashCode.Combine( _auditPlayerId, _auditEntity, _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ),
-			HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId ),
+			HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId, _wpPendingDelete, StaffMenuHost.SanctionsVersion ),
 			HashCode.Combine( _uiScale, _detailHash ) );
 	}
 }

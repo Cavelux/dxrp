@@ -9,22 +9,35 @@
    Presence in this repository or on the DXRP portal grants no rights to anyone else.
    ───────────────────────────────────────────────────────────────────────────── *@
 @namespace LifePunch.DXRP.Addons
+@using System
 @using Sandbox
 @using Sandbox.UI
 @inherits Panel
 @attribute [StyleSheet]
 
+@* Three-zone footer: identity left, legal dead-center, source URL right. *@
 <root class="lp-source-footer">
-    <span class="lp-mark">@LifePunchSourceMark.UiFooterMark</span>
-    <button class="lp-url-copy @(_urlCopied ? "copied" : "")"
-            tooltip="@($"Copy {LifePunchSourceMark.UiFooterUrl}")"
-            onclick="@CopySourceUrl">
-        @( _urlCopied ? "Link copied!" : LifePunchSourceMark.UiFooterUrl )
-    </button>
+	<div class="lp-footer-identity">
+		<span class="lp-mark" style="@AccentStyle()">@LifePunchSourceMark.UiFooterMark</span>
+		<span class="lp-product">@Product</span>
+	</div>
+	<div class="lp-footer-legal">
+		<span class="lp-legal">proprietary IP</span>
+	</div>
+	<div class="lp-footer-link">
+		<button class="lp-url-copy @(_urlCopied ? "copied" : "")"
+		        tooltip="@($"Copy {LifePunchSourceMark.UiFooterUrl}")"
+		        onclick="@CopySourceUrl">
+			@( _urlCopied ? "Link copied!" : LifePunchSourceMark.PublisherUrl )
+		</button>
+	</div>
 </root>
 
 @code {
-    private bool _urlCopied;
+	public string Product { get; set; } = string.Empty;
+	public string AccentColor { get; set; } = string.Empty;
+
+	private bool _urlCopied;
 
     private void CopySourceUrl()
     {
@@ -40,4 +53,10 @@
         _urlCopied = false;
         StateHasChanged();
     }
+
+	private string AccentStyle()
+		=> string.IsNullOrWhiteSpace( AccentColor ) ? string.Empty : $"color: {AccentColor};";
+
+	protected override int BuildHash()
+		=> HashCode.Combine( Product, AccentColor, _urlCopied );
 }
